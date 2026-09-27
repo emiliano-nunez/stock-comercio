@@ -1,4 +1,4 @@
-﻿import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, getUnidadBase, getPrecioPrincipal } from './db.js';
+import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, getUnidadBase, getPrecioPrincipal } from './db.js';
 import { abrirFormularioProducto } from './components/ProductoForm.js';
 import { abrirHistorial } from './components/HistorialModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
@@ -209,30 +209,18 @@ export class App {
     return this.categorias.find(c => c.id === categoriaId)?.nombre || SIN_CATEGORIA_ORDEN;
   }
   
-  /**
-   * Estado de stock de un producto: 'ok', 'poco' o 'vacio'.
-   *
-   * Vive en un método sólo y no repartido en tres ifs porque aparece en dos
-   * lugares que tienen que coincidir: el badge de la tarjeta y los grupos del
-   * catálogo. Si un producto caía en "pocas unidades" en la tarjeta y en "con
-   * stock" en el grupo, el catálogo contradecía a su propia grilla.
-   */
-  estadoStock(producto) {
-    const stock = producto.stock || 0;
-    if (stock === 0) return 'vacio';
-    if (stock <= (producto.stockMinimo || 0)) return 'poco';
-    return 'ok';
-  }
-
   getStockClass(producto) {
-    return App.ESTADOS_STOCK.find(e => e.clave === this.estadoStock(producto)).clase;
+    return App.ESTADOS_STOCK.find(e => e.clave === estadoStock(producto)).clase;
   }
   
   getStockLabel(producto) {
     const stock = producto.stock || 0;
     const unidad = getUnidadBase(producto.tipoVenta);
-    if (stock === 0) return 'Agotado';
-    if (stock <= (producto.stockMinimo || 0)) return `Poco (${stock} ${unidad})`;
+    // El "Poco" sale de estadoStock() y no de comparar acá otra vez, para que el
+    // badge no pueda decir "Poco" mientras el grupo del catálogo dice "Con stock".
+    const estado = estadoStock(producto);
+    if (estado === 'vacio') return 'Agotado';
+    if (estado === 'poco') return `Poco (${stock} ${unidad})`;
     return `${stock} ${unidad}`;
   }
   
@@ -394,7 +382,7 @@ export class App {
 
     const porEstado = new Map(App.ESTADOS_STOCK.map(e => [e.clave, []]));
     for (const p of this.productosFiltrados) {
-      porEstado.get(this.estadoStock(p)).push(p);
+      porEstado.get(estadoStock(p)).push(p);
     }
 
     // El tope se reparte entre los grupos que tienen algo, no entre los tres
@@ -460,7 +448,7 @@ export class App {
     const visibles = this.productosVisibles();
     const porEstado = new Map(App.ESTADOS_STOCK.map(e => [e.clave, []]));
     for (const p of visibles) {
-      porEstado.get(this.estadoStock(p)).push(p);
+      porEstado.get(estadoStock(p)).push(p);
     }
 
     // Se agrupan sólo los productos que se van a pintar, no todos. Con el tope

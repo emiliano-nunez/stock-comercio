@@ -700,6 +700,25 @@ export function getUnidadBase(tipoVenta) {
 }
 
 /**
+ * Estado de stock de un producto: 'ok', 'poco' o 'vacio'.
+ *
+ * Vive acá y no en un componente porque lo necesitan tres lugares que tienen
+ * que coincidir: el badge de la tarjeta, los grupos del catálogo y el badge del
+ * diálogo de código repetido. Cuando estaba repartido en tres ifs, un producto
+ * caía en "pocas unidades" en un lado y en "con stock" en otro, y el catálogo
+ * contradecía a su propia grilla.
+ *
+ * @param {{stock?: number, stockMinimo?: number}} producto
+ * @returns {'ok'|'poco'|'vacio'}
+ */
+export function estadoStock(producto) {
+  const stock = producto.stock || 0;
+  if (stock === 0) return 'vacio';
+  if (stock <= (producto.stockMinimo || 0)) return 'poco';
+  return 'ok';
+}
+
+/**
  * Unidad principal elegida por el usuario para un producto.
  *
  * Devuelve el descriptor de la sub-unidad elegida ({ value, label, icon }), o

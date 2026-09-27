@@ -1,4 +1,4 @@
-import { db, dbUtils, getUnidadBase } from '../db.js';
+import { db, dbUtils, estadoStock, getUnidadBase } from '../db.js';
 import { esc, escAttr, fmtPrecio } from '../utils/html.js';
 
 /**
@@ -87,8 +87,15 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
     function filaProducto(p, indice) {
       const stock = p.stock || 0;
       const minimo = p.stockMinimo || 0;
-      const claseBadge = stock === 0 ? 'stock-out' : stock <= minimo ? 'stock-low' : 'stock-ok';
-      const textoBadge = stock === 0 ? 'Agotado' : stock <= minimo ? 'Poco' : 'OK';
+      // El corte de "pocas unidades" sale de estadoStock(), no de un if propio:
+      // el badge de acá tiene que decir lo mismo que el grupo del catálogo donde
+      // va a aparecer este mismo producto.
+      const ETIQUETA = {
+        ok: { clase: 'stock-ok', texto: 'OK' },
+        poco: { clase: 'stock-low', texto: 'Poco' },
+        vacio: { clase: 'stock-out', texto: 'Agotado' }
+      };
+      const badge = ETIQUETA[estadoStock(p)];
 
       // Sólo el escáner ofrece abrir. En el formulario, abrir otro producto
       // taparía lo que el usuario viene escribiendo sin avisar.
@@ -106,7 +113,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
                 ${minimo > 0 ? ` / mínimo ${minimo}` : ''} · ${esc(fmtPrecio(p.precio))}
               </p>
             </div>
-            <span class="stock-badge ${claseBadge} shrink-0">${textoBadge}</span>
+            <span class="stock-badge ${badge.clase} shrink-0">${badge.texto}</span>
           </div>
           <div class="flex gap-2">
             ${acciones}
