@@ -101,26 +101,20 @@ El resto del checklist de validación está en el README.
 
 ## Publicación
 
-La app ya está preparada para los dos destinos, pero ninguno está hecho todavía.
+La app está publicada en **https://emiliano-nunez.github.io/stock-comercio/**.
+Cada push a `main` la republica solo. El repo es `emiliano-nunez/stock-comercio`,
+público.
 
-### El repo nunca estuvo en GitHub
+Lo que se comprobó sobre la página publicada: responde 200, todos los archivos
+que el HTML pide existen, el service worker se registra con el alcance
+`/stock-comercio/`, y el manifiesto que se sirve lleva `start_url`, `scope` y los
+dos accesos directos con la ruta ya puesta.
 
-No hay remoto configurado. El repo es local. Mientras no se suba a GitHub, el
-workflow de GitHub Pages no se ejecuta nunca y no hay contra qué probar que la
-ruta de publicación está bien.
+### Sigue sin probarse en un navegador
 
-**Para hacerlo:** crear el repo en GitHub, conectar el remoto, y push a `main`.
-El nombre del repo decide la ruta: si se llama `usuario.github.io`, el workflow
-publica en la raíz; si tiene cualquier otro nombre, publica en `/<nombre>/`. No
-hay que configurar nada más.
-
-### Nada se probó en un navegador
-
-No hay navegador conectado, así que lo que se comprobó fue el contenido del
-build: que las rutas de `index.html`, el manifest, el registro del service
-worker y el precache salgan correctos en la raíz y en un subdirectorio. Eso no
-alcanza para decir que la app anda, sólo que no tiene la falla de rutas que
-pone en blanco la página en GitHub Pages.
+No hay navegador conectado, así que lo anterior es leer la página publicada, no
+mirarla. Que todos los archivos respondan 200 descarta la causa de la pantalla en
+blanco, que era la de las rutas, pero no dice que la app se vea bien.
 
 Pendiente de mirar de verdad:
 
@@ -129,10 +123,29 @@ Pendiente de mirar de verdad:
       la ventana.
 - [ ] La app instalada abre y funciona, y los dos accesos directos de la
       pantalla de inicio abren el escáner y el formulario.
+- [ ] La cámara con HTTPS, que es la única forma de que funcione: por la red
+      local el navegador la bloquea.
 - [ ] La app funciona sin conexión, con la app ya abierta y con la app cerrada.
 - [ ] El service worker con `autoUpdate` puede mostrar la versión anterior durante
       las pruebas. Si un cambio parece no aplicarse, recargar a mano antes de
       diagnosticarlo como un error.
+
+### Lo que costó encontrar
+
+Dos fallas que no se ven ni al compilar ni al leer el build, y que sólo aparecen
+en la página publicada. Quedan anotadas porque el próximo deploy las va a
+enseñar de nuevo si algo vuelve a tocarse:
+
+- **Pages se puede quedar sirviendo el código fuente.** Por defecto sirve la
+  rama que se le indique, y en la raíz del repo el `index.html` es la plantilla
+  de desarrollo de Vite, que carga `/src/main.js` en crudo. El navegador no
+  muestra nada y no hay error. La fuente de Pages tiene que ser "GitHub
+  Actions", no una rama.
+- **La ruta de publicación hay que sacarla del nombre del repo, y el cálculo se
+  puede invertir.** Un repo de proyecto se sirve en `/<nombre>/` y uno de
+  usuario en la raíz; confundirlos publica la app pidiendo archivos en
+  `/assets/...`, que es 404 silencioso.
+
 
 ---
 
