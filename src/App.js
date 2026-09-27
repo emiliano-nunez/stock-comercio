@@ -16,6 +16,16 @@ export class App {
   // Cuántos productos se pintan por tanda. Ver productosVisibles().
   static LIMITE_RENDER = 60;
 
+  // Los tres grupos en que se ordena el catálogo, en el orden en que se
+  // muestran: lo que hay, lo que se está por acabar, y lo que ya se acabó.
+  // El color de cada uno es el mismo que usa el badge de la tarjeta, para que
+  // el grupo y su contenido se vean del mismo color.
+  static ESTADOS_STOCK = [
+    { clave: 'ok', etiqueta: 'Con stock', clase: 'stock-ok', color: '#22c55e' },
+    { clave: 'poco', etiqueta: 'Pocas unidades', clase: 'stock-low', color: '#f59e0b' },
+    { clave: 'vacio', etiqueta: 'Sin stock', clase: 'stock-out', color: '#ef4444' }
+  ];
+
   constructor() {
     this.productos = [];
     this.productosFiltrados = [];
@@ -190,22 +200,31 @@ export class App {
   }
   
   // Clave de ordenación: empuja los productos sin categoría al final.
-  // NO es una etiqueta para mostrar en la UI (eso es getCategoriaNombre).
+  // NO es una etiqueta para mostrar en la UI. El catálogo agrupa por estado de
+  // stock, así que la categoría sólo se muestra en el chip de cada tarjeta, y
+  // las categorías sueltas usan su propio nombre.
   getCategoriaOrden(categoriaId) {
     if (!categoriaId) return SIN_CATEGORIA_ORDEN;
     return this.categorias.find(c => c.id === categoriaId)?.nombre || SIN_CATEGORIA_ORDEN;
   }
   
-  // Nombre visible de la categoría
-  getCategoriaNombre(categoriaId) {
-    if (!categoriaId) return 'Sin categoría';
-    return this.categorias.find(c => c.id === categoriaId)?.nombre || 'Sin categoría';
+  /**
+   * Estado de stock de un producto: 'ok', 'poco' o 'vacio'.
+   *
+   * Vive en un método sólo y no repartido en tres ifs porque aparece en dos
+   * lugares que tienen que coincidir: el badge de la tarjeta y los grupos del
+   * catálogo. Si un producto caía en "pocas unidades" en la tarjeta y en "con
+   * stock" en el grupo, el catálogo contradecía a su propia grilla.
+   */
+  estadoStock(producto) {
+    const stock = producto.stock || 0;
+    if (stock === 0) return 'vacio';
+    if (stock <= (producto.stockMinimo || 0)) return 'poco';
+    return 'ok';
   }
-  
+
   getStockClass(producto) {
-    if (!producto.stock || producto.stock === 0) return 'stock-out';
-    if (producto.stock <= (producto.stockMinimo || 0)) return 'stock-low';
-    return 'stock-ok';
+    return App.ESTADOS_STOCK.find(e => e.clave === this.estadoStock(producto)).clase;
   }
   
   getStockLabel(producto) {
@@ -344,8 +363,9 @@ export class App {
       `;
     }
     
-    return this.productosVisibles().map(p => this.renderProductoHTML(p)).join('')
-      + this.renderCargarMasHTML();
+    const visibles = this.productosVisibles();
+    return visibles.map(p => this.renderProductoHTML(p)).join('')
+      + this.renderCargarMasHTML(visibles);
   }
 
   /**
@@ -359,18 +379,57 @@ export class App {
    * Ojo: esto NO es paginación. Los productos siguen todos cargados en memoria
    * y la búsqueda los sigue incluyendo a todos; sólo se limita hasta dónde se
    * pinta. Por eso el botón informa cuántos faltan.
+   *
+   * En el catálogo el tope se reparte entre los tres grupos de stock en vez de
+   * recortar la lista por el principio. Repartido al revés, con 200 productos
+   * ordenados por nombre los primeros 60 son los que empiezan con A y B: el
+   * grupo "Sin stock" podía quedar con la cabecera en "(12)" y cero tarjetas
+   * debajo, que es peor que no mostrarlo, porque el contador miente.
    */
   productosVisibles() {
-    return this.productosFiltrados.slice(0, this._limiteRender);
+    if (this.vistaActual !== 'catalogo') {
+      return this.productosFiltrados.slice(0, this._limiteRender);
+    }
+
+    const porEstado = new Map(App.ESTADOS_STOCK.map(e => [e.clave, []]));
+    for (const p of this.productosFiltrados) {
+      porEstado.get(this.estadoStock(p)).push(p);
+    }
+
+    // El tope se reparte entre los grupos que tienen algo, no entre los tres
+    // estados. Dividir entre tres estados con el catálogo entero en stock
+    // mostraría 20 de 200 y haría aparecer "Cargar más" cinco veces seguidas
+    // para nada.
+    const grupos = [...porEstado.values()].filter(g => g.length > 0);
+    if (grupos.length === 0) return [];
+
+    // Cada grupo se lleva la misma parte. El sobrante de un grupo chico no se
+    // pasa a los demás a propósito: si se pasara, cada "Cargar más" traería una
+    // cantidad distinta de cada grupo y el orden de lectura se volvería a romper.
+    //
+    // El mínimo de 1 hace que un grupo con un solo producto no se vuelva
+    // invisible, aunque el tope fuera más chico que la cantidad de grupos. En la
+    // app no pasa: _limiteRender siempre es múltiplo de 60 y hay 3 estados.
+    const cupo = Math.max(1, Math.floor(this._limiteRender / grupos.length));
+
+    const visibles = [];
+    for (const grupo of grupos) {
+      visibles.push(...grupo.slice(0, cupo));
+    }
+    return visibles;
   }
 
-  renderCargarMasHTML() {
-    const faltan = this.productosFiltrados.length - this._limiteRender;
+  renderCargarMasHTML(visibles) {
+    // Se cuenta sobre lo que realmente se pintó y no sobre _limiteRender: en el
+    // catálogo el reparto por grupos deja huecos sin usar cuando un grupo es
+    // chico, y con _limiteRender el botón anunciaba más productos de los que
+    // aparecían.
+    const faltan = this.productosFiltrados.length - visibles.length;
     if (faltan <= 0) return '';
-    
+
     return `
       <div class="text-center py-4">
-        <p class="text-sm text-gray-500 mb-2">Mostrando ${this._limiteRender} de ${this.productosFiltrados.length}</p>
+        <p class="text-sm text-gray-500 mb-2">Mostrando ${visibles.length} de ${this.productosFiltrados.length}</p>
         <button id="btn-cargar-mas" class="btn-secondary w-auto min-h-touch">
           Cargar ${Math.min(faltan, App.LIMITE_RENDER)} más
         </button>
@@ -388,56 +447,46 @@ export class App {
         </div>
       `;
     }
-    
-    // Agrupar por id de categoría (no por nombre): así se conserva el color y
-    // los productos sin categoría van a su propio grupo, ya con su etiqueta
-    // real "Sin categoría" en vez del sentinel interno de ordenación.
-    const grupos = new Map();
-    // Se agrupan sólo los productos que se van a pintar (productosVisibles), no
-    // todos: con el tope de render, incluir el resto sólo servía para que
-    // grupos enteros no llegaran a aparecer y el contador de la cabecera
-    // dijera un número que no se veía.
-    this.productosVisibles().forEach(p => {
-      const key = p.categoriaId || SIN_CATEGORIA_ORDEN;
-      if (!grupos.has(key)) grupos.set(key, []);
-      grupos.get(key).push(p);
-    });
-    
-    // Ordenar por nombre de categoría, con "Sin categoría" al final
-    const claves = [...grupos.keys()].sort((a, b) => {
-      if (a === SIN_CATEGORIA_ORDEN) return 1;
-      if (b === SIN_CATEGORIA_ORDEN) return -1;
-      return this.getCategoriaNombre(a).localeCompare(this.getCategoriaNombre(b), 'es');
-    });
-    
-    return claves.map(key => {
-      const productos = grupos.get(key);
-      const catObj = key === SIN_CATEGORIA_ORDEN ? null : this.categorias.find(c => c.id === key);
-      const etiqueta = this.getCategoriaNombre(catObj?.id);
-      return `
+
+    // El catálogo agrupa por estado de stock, no por categoría: primero lo que
+    // hay, después lo que se está por acabar y al final lo que ya se acabó. Es
+    // el orden en que un local necesita leer el catálogo, que es "qué puedo
+    // ofrecer hoy y qué tengo que reponer".
+    //
+    // La categoría no se pierde: cada tarjeta lleva su chip con el color y el
+    // nombre, y el orden elegido con el desplegable sigue funcionando dentro de
+    // cada grupo (incluida la opción "Categoría A-Z").
+    const visibles = this.productosVisibles();
+    const porEstado = new Map(App.ESTADOS_STOCK.map(e => [e.clave, []]));
+    for (const p of visibles) {
+      porEstado.get(this.estadoStock(p)).push(p);
+    }
+
+    // Se agrupan sólo los productos que se van a pintar, no todos. Con el tope
+    // de render, meter el resto haría que un grupo quedara con la cabecera en
+    // "(12)" y cero tarjetas debajo, y el contador miente.
+    return App.ESTADOS_STOCK
+      .filter(estado => porEstado.get(estado.clave).length > 0)
+      .map(estado => {
+        const productos = porEstado.get(estado.clave);
+        return `
         <section class="mb-6">
           <h3 class="text-touch font-bold text-gray-900 flex items-center gap-2 px-3 pb-1 border-b border-gray-200">
-            <span class="w-6 h-6 rounded-full flex-shrink-0" style="background-color: ${this.getCategoriaColor(catObj)}"></span>
-            ${etiqueta} (${productos.length})
+            <span class="w-6 h-6 rounded-full flex-shrink-0" style="background-color: ${estado.color}"></span>
+            ${esc(estado.etiqueta)} (${productos.length})
           </h3>
           <div class="grid grid-cols-2 gap-3 mt-3 px-3">
             ${productos.map(p => this.renderCatalogoItemHTML(p)).join('')}
           </div>
         </section>
       `;
-    }).join('') + this.renderCargarMasHTML();
+      }).join('') + this.renderCargarMasHTML(visibles);
   }
   
+  // La rama que aceptaba un string y sacaba un color por hash del nombre quedó
+  // sin uso cuando el catálogo dejó de agrupar por categoría: el único que
+  // llama es el formulario de categoría, que siempre pasa el objeto.
   getCategoriaColor(categoria) {
-    if (typeof categoria === 'string') {
-      const nombre = categoria;
-      let hash = 0;
-      for (let i = 0; i < nombre.length; i++) {
-        hash = nombre.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      const index = Math.abs(hash) % COLORES_CATEGORIAS.length;
-      return COLORES_CATEGORIAS[index];
-    }
     return categoria?.color || COLORES_CATEGORIAS[0];
   }
   
