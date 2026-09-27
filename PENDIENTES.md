@@ -99,6 +99,43 @@ El resto del checklist de validación está en el README.
 
 ---
 
+## Publicación
+
+La app ya está preparada para los dos destinos, pero ninguno está hecho todavía.
+
+### El repo nunca estuvo en GitHub
+
+No hay remoto configurado. El repo es local. Mientras no se suba a GitHub, el
+workflow de GitHub Pages no se ejecuta nunca y no hay contra qué probar que la
+ruta de publicación está bien.
+
+**Para hacerlo:** crear el repo en GitHub, conectar el remoto, y push a `main`.
+El nombre del repo decide la ruta: si se llama `usuario.github.io`, el workflow
+publica en la raíz; si tiene cualquier otro nombre, publica en `/<nombre>/`. No
+hay que configurar nada más.
+
+### Nada se probó en un navegador
+
+No hay navegador conectado, así que lo que se comprobó fue el contenido del
+build: que las rutas de `index.html`, el manifest, el registro del service
+worker y el precache salgan correctos en la raíz y en un subdirectorio. Eso no
+alcanza para decir que la app anda, sólo que no tiene la falla de rutas que
+pone en blanco la página en GitHub Pages.
+
+Pendiente de mirar de verdad:
+
+- [ ] La grilla del inventario en una pantalla grande: dos columnas, el tope de
+      ancho de 768px, y que el botón flotante quede pegado a la columna y no a
+      la ventana.
+- [ ] La app instalada abre y funciona, y los dos accesos directos de la
+      pantalla de inicio abren el escáner y el formulario.
+- [ ] La app funciona sin conexión, con la app ya abierta y con la app cerrada.
+- [ ] El service worker con `autoUpdate` puede mostrar la versión anterior durante
+      las pruebas. Si un cambio parece no aplicarse, recargar a mano antes de
+      diagnosticarlo como un error.
+
+---
+
 ## Descartado
 
 Cosas que se llegaron a considerar y se quitaron. No están pedidas; quedan
