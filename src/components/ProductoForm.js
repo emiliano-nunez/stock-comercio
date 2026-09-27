@@ -2,11 +2,12 @@ import { db, dbUtils, TIPOS_VENTA } from '../db.js';
 import { imagenUtils } from '../utils/imagen.js';
 import { abrirCamara } from './CamaraModal.js';
 import { abrirScanner } from './ScannerModal.js';
+import { abrirCodigoDuplicado } from './CodigoDuplicado.js';
 import { toast } from '../utils/toast.js';
 import { esc, escAttr } from '../utils/html.js';
 
 export class ProductoForm {
-  constructor(onSave, onClose, producto = null, onScanExistente = null) {
+  constructor(onSave, onClose, producto = null, onScanExistente = null, onBorrarProducto = null) {
     this.onSave = onSave;
     this.onClose = onClose;
     this.producto = producto;
@@ -15,6 +16,12 @@ export class ProductoForm {
     // ningún sitio: el toast prometía navegar y sólo cerraba el formulario,
     // perdiendo lo que el usuario hubiera escrito.
     this.onScanExistente = onScanExistente;
+    // Se invoca cuando el usuario borra un producto en conflicto desde el
+    // diálogo de código repetido. Pasa por la app y no por dbUtils directo para
+    // que el borrado deje punto de restauración, ofrezca deshacer y recargue la
+    // vista: si el formulario borrara por su cuenta, la app se quedaría con la
+    // lista vieja y el producto volvería a aparecer al cancelar el formulario.
+    this.onBorrarProducto = onBorrarProducto;
     // Editar = el producto ya existe en la BD (tiene id). Puede pasarse un
     // producto "semilla" sin id (p.ej. para pre-cargar un código escaneado):
     // en ese caso es un alta, no un update.
@@ -1151,28 +1158,34 @@ export class ProductoForm {
     
     const precioPrincipal = precioDePrincipal.valor;
     
-    const codigoBarras = formData.get('codigoBarras')?.toString().trim() || null;
+    // let y no const: el diálogo de código repetido puede cambiarlo (sufijo o
+    // guardarlo sin código) y el valor final es el que se escribe.
+    let codigoBarras = formData.get('codigoBarras')?.toString().trim() || null;
     const categoriaId = formData.get('categoriaId') || null;
-    
-    // Validar código de barras único (si cambió)
+
+    // Código de barras repetido (si cambió)
     //
-    // buscarPorCodigoBarras() devuelve TODOS los que coinciden. La versión
-    // anterior usaba .first(), que elegía uno al azar de entre los duplicados:
-    // el mensaje decía "ya está en uso" sin decir cuál, y con tres productos en
-    // conflicto el usuario no tenía con qué decidir.
+    // Antes se rechazaba el guardado con un toast y no había más salida que
+    // cambiar el código a mano. El índice de codigoBarras no es único a
+    // propósito, así que la repetición es posible y el usuario tiene que poder
+    // resolverla: distinguir con un sufijo, guardar sin código, o borrar el
+    // producto viejo que lo tenía. El mismo diálogo lo abre el escáner.
     if (codigoBarras && (!this.isEditing || this.producto.codigoBarras !== codigoBarras)) {
       const conflictos = await dbUtils.buscarPorCodigoBarras(codigoBarras);
       if (conflictos.length > 0) {
-        // Los nombres se cortan a 3: con 15 duplicados el toast se sale de la
-        // pantalla y deja de informar. El detalle completo lo da el diálogo de
-        // código duplicado, que abre el escáner y este mismo formulario.
-        const nombres = conflictos.slice(0, 3).map(p => p.nombre);
-        const resto = conflictos.length - nombres.length;
-        toast.error(
-          `Este código ya lo usan ${conflictos.length} producto(s): ${nombres.join(', ')}` +
-          (resto > 0 ? ` y ${resto} más` : '')
-        );
-        return;
+        const r = await abrirCodigoDuplicado({
+          codigo: codigoBarras,
+          productos: conflictos,
+          origen: 'formulario',
+          onBorrar: this.onBorrarProducto
+            || (p => dbUtils.eliminarProducto(p.id))
+        });
+
+        if (r.accion === 'cancelar') return;
+        if (r.accion === 'sufijo') codigoBarras = r.codigo;
+        else if (r.accion === 'sin-codigo') codigoBarras = null;
+        // 'guardar' (acepta el duplicado) y 'resuelto' (el usuario borró todos
+        // los conflictos) dejan el código como estaba escrito.
       }
     }
     
@@ -1432,9 +1445,20 @@ export class ProductoForm {
  *                                    ya está en la BD. Sin este callback, el aviso
  *                                    "Este código ya existe" no puede llevar al
  *                                    producto: sólo cerraría el formulario.
+ * @param {Function} [onBorrarProducto] Se llama con el producto en conflicto que el
+ *                                    usuario decide borrar desde el diálogo de código
+ *                                    repetido. Si no se pasa, el formulario borra
+ *                                    directo contra la base y la vista queda sin
+ *                                    recargar.
  */
-export async function abrirFormularioProducto(onSave, onClose, producto = null, onScanExistente = null) {
-  const form = new ProductoForm(onSave, onClose, producto, onScanExistente);
+export async function abrirFormularioProducto(
+  onSave,
+  onClose,
+  producto = null,
+  onScanExistente = null,
+  onBorrarProducto = null
+) {
+  const form = new ProductoForm(onSave, onClose, producto, onScanExistente, onBorrarProducto);
   await form.abrir();
   return form;
 }

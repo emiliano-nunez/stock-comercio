@@ -210,23 +210,25 @@ export class ScannerModal {
     // Se piden TODOS los que coinciden, no sólo el primero: el índice de
     // codigoBarras no es único, y con .first() el usuario veía un producto
     // arbitrario sin enterarse de que había otro con el mismo código.
+    //
+    // Se pasa la lista entera y no "el primero + cuántos hay": el diálogo de
+    // código repetido tiene que poder nombrar los productos en conflicto para
+    // que el usuario elija, y con un primero + un número no hay nada que elegir.
     const coincidencias = await dbUtils.buscarPorCodigoBarras(codigo);
-    const productoExistente = coincidencias[0] || null;
-    const hayDuplicados = coincidencias.length > 1;
-    
+
     // Cerrar scanner
     await this.detenerEscaneo();
-    
+
     // Cerrar modal con pequeño delay para mostrar feedback
     setTimeout(async () => {
       // Si en estos 800 ms el usuario cerró el escáner a mano (✕, Escape o clic
       // fuera), se respeta su decisión: antes se le abría el formulario del
       // producto igualmente, encima del escáner que acababa de descartar.
       if (this._cerrado) return;
-      
+
       // await: el modal debe salir del DOM antes de que se abra el formulario.
       await this.cerrar();
-      this.onScan(codigo, productoExistente, hayDuplicados ? coincidencias.length : 0);
+      this.onScan(codigo, coincidencias);
     }, 800);
   }
   

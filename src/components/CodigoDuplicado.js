@@ -1,0 +1,322 @@
+import { db, dbUtils, getUnidadBase } from '../db.js';
+import { esc, escAttr, fmtPrecio } from '../utils/html.js';
+
+/**
+ * Diálogo de código de barras repetido.
+ *
+ * El índice de codigoBarras NO es único, a propósito: un índice único en
+ * IndexedDB también indexa el null, y entonces sólo un producto de todo el
+ * inventario podría quedarse sin código. La consecuencia de esa decisión es que
+ * dos productos pueden compartir código, y cuando pasa hay que darle al usuario
+ * algo con qué decidir en vez de elegirle uno por su cuenta.
+ *
+ * El lector de códigos busca por similitud y no por coincidencia exacta, así que
+ * un sufijo "-2" no le impide encontrar el producto: sirve para que el usuario
+ * los distinga a ojo en la lista, que es lo que hace falta cuando él mismo
+ * duplicó el producto y sabe cuál es cuál.
+ */
+
+// Tope de productos listados. Con cuarenta duplicados el diálogo deja de ser una
+// herramienta de decisión y pasa a ser un muro; el resto se resume en una línea.
+const MAX_LISTADOS = 8;
+
+/**
+ * Primer código libre de la familia `base`, `base-2`, `base-3`...
+ *
+ * Se consulta por prefijo y no sólo por coincidencia exacta. Si el usuario
+ * guardó "7790-2" en algún momento, sigue ocupando el lugar aunque hoy no haya
+ * ningún "7790" pelado, y saltarse el prefijo volvería a elegir un código ya
+ * tomado.
+ *
+ * @param {string} base
+ * @returns {Promise<string|null>} null si ninguno queda libre (con 998 sufijos
+ *   encima el código base no es un código real).
+ */
+export async function primerCodigoLibre(base) {
+  const baseTxt = String(base);
+  const filas = await db.productos
+    .where('codigoBarras')
+    .startsWith(baseTxt)
+    .toArray();
+
+  const usados = new Set(filas.map(f => String(f.codigoBarras)));
+  if (!usados.has(baseTxt)) return baseTxt;
+
+  for (let n = 2; n <= 999; n++) {
+    const candidato = `${baseTxt}-${n}`;
+    if (!usados.has(candidato)) return candidato;
+  }
+  return null;
+}
+
+/**
+ * Abre el diálogo y resuelve con la decisión del usuario.
+ *
+ * @param {Object}    opciones
+ * @param {string}    opciones.codigo     Código escaneado, o el que se está por guardar
+ * @param {Array}     opciones.productos  Productos que ya lo tienen
+ * @param {'escaner'|'formulario'} opciones.origen
+ * @param {Function} [opciones.onAbrir]  (producto) => void. Sólo en escaner: en
+ *   el formulario no se ofrece, porque abrir otro producto taparía el formulario
+ *   con lo que el usuario viene escribiendo.
+ * @param {Function}  opciones.onBorrar   (producto) => Promise<void>. Borra el
+ *   producto y recarga; quien lo pasa decide si deja punto de restauración.
+ * @returns {Promise<{accion: string, codigo?: string, producto?: object}>}
+ *   `accion` es una de: 'crear' | 'abrir' | 'guardar' | 'sufijo' | 'sin-codigo'
+ *   | 'resuelto' | 'cancelar'.
+ */
+export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBorrar }) {
+  return new Promise((resolve) => {
+    // Copia propia: al borrar hay que sacar de la lista lo que se borró, y
+    // mutar el array del escáner dejaría al llamador con una lista que ya no
+    // refleja la base.
+    let conflictos = productos.map(p => ({ ...p }));
+
+    const box = document.createElement('div');
+    box.className = 'modal-overlay';
+
+    const cerrar = (valor) => {
+      box.remove();
+      document.removeEventListener('keydown', onKey);
+      resolve(valor);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') cerrar({ accion: 'cancelar' }); };
+
+    // ---------------------------------------------------------------- pintado
+
+    function filaProducto(p, indice) {
+      const stock = p.stock || 0;
+      const minimo = p.stockMinimo || 0;
+      const claseBadge = stock === 0 ? 'stock-out' : stock <= minimo ? 'stock-low' : 'stock-ok';
+      const textoBadge = stock === 0 ? 'Agotado' : stock <= minimo ? 'Poco' : 'OK';
+
+      // Sólo el escáner ofrece abrir. En el formulario, abrir otro producto
+      // taparía lo que el usuario viene escribiendo sin avisar.
+      const acciones = origen === 'escaner'
+        ? `<button class="btn-secondary flex-1 min-h-touch" data-accion="abrir" data-indice="${indice}">Abrir</button>`
+        : '';
+
+      return `
+        <div class="card-touch p-3 space-y-2" data-fila="${indice}">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-semibold text-gray-900 text-touch truncate">${esc(p.nombre)}</p>
+              <p class="text-sm text-gray-500 mt-0.5">
+                ${esc(getUnidadBase(p.tipoVenta))} · Stock ${stock}
+                ${minimo > 0 ? ` / mínimo ${minimo}` : ''} · ${esc(fmtPrecio(p.precio))}
+              </p>
+            </div>
+            <span class="stock-badge ${claseBadge} shrink-0">${textoBadge}</span>
+          </div>
+          <div class="flex gap-2">
+            ${acciones}
+            <button class="btn-danger flex-1 min-h-touch" data-accion="preguntar-borrar" data-indice="${indice}">Borrar</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Confirmación de borrado en el lugar, reemplazando el botón. El nombre del
+    // producto queda a la vista mientras se decide: borrar desde una lista sin
+    // nombre es como se borran productos equivocados.
+    function filaConfirmando(p, indice) {
+      return `
+        <div class="card-touch p-3 border-danger-200 bg-danger-50 space-y-2" data-fila="${indice}">
+          <p class="text-touch text-danger-900">
+            ¿Borrar <strong>${esc(p.nombre)}</strong>?
+          </p>
+          <p class="text-sm text-danger-700">Se puede recuperar desde el historial.</p>
+          <div class="flex gap-2">
+            <button class="btn-secondary flex-1 min-h-touch" data-accion="cancelar-borrar" data-indice="${indice}">No, dejarlo</button>
+            <button class="btn-danger flex-1 min-h-touch" data-accion="borrar" data-indice="${indice}">Sí, borrar</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function pintar() {
+      const total = conflictos.length;
+      const aMostrar = conflictos.slice(0, MAX_LISTADOS);
+      const ocultos = total - aMostrar.length;
+      const muchos = total > 1;
+
+      // El pie cambia por origen porque las decisiones disponibles son otras:
+      // desde el escáner el código ya está en la base y la pregunta es qué
+      // producto es; desde el formulario el producto está a medio hacer y la
+      // pregunta es con qué código se guarda.
+      const pie = origen === 'escaner'
+        ? `
+          <div class="p-4 border-t border-gray-100 space-y-2">
+            <p class="text-sm text-gray-500">
+              Un mismo código no puede identificar a dos productos. Abrí el que
+              corresponde, o creá uno nuevo si ninguno es el que buscabas.
+            </p>
+            <button class="btn-primary w-full min-h-touch" data-accion="crear">
+              Crear producto nuevo con este código
+            </button>
+            <button class="btn-secondary w-full min-h-touch" data-accion="cancelar">Cancelar</button>
+          </div>
+        `
+        : `
+          <div class="p-4 border-t border-gray-100 space-y-2">
+            <p class="text-sm text-gray-500">
+              Un mismo código no puede identificar a dos productos. Podés
+              distinguirlo con un sufijo, guardarlo sin código, o borrar el
+              producto de abajo que lo tenía.
+            </p>
+            <div class="flex gap-2">
+              <button class="btn-secondary flex-1 min-h-touch" data-accion="sin-codigo">Sin código</button>
+              <button class="btn-primary flex-1 min-h-touch" data-accion="guardar">Guardar igual</button>
+            </div>
+            <button class="btn-secondary w-full min-h-touch" data-accion="sufijo" data-cargando="0">
+              <span class="js-texto-sufijo">Distinguir con sufijo</span>
+            </button>
+            <button class="btn-ghost w-full min-h-touch" data-accion="cancelar">Cancelar</button>
+          </div>
+        `;
+
+      box.innerHTML = `
+        <div class="modal-content max-w-md">
+          <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-warning-50 rounded-t-2xl">
+            <h2 class="text-touch-lg font-bold text-gray-900 flex items-center gap-2 min-w-0">
+              <span>⚠️</span>
+              <span class="truncate">Código repetido</span>
+            </h2>
+            <button class="btn-ghost p-2 min-w-touch min-h-touch shrink-0" data-accion="cancelar" aria-label="Cerrar">✕</button>
+          </div>
+
+          <div class="p-4 space-y-3">
+            <div class="rounded-xl bg-gray-50 border border-gray-200 p-3">
+              <p class="text-sm text-gray-600">
+                ${muchos
+                  ? `Estos <strong>${total}</strong> productos usan el código`
+                  : 'Este producto usa el código'}
+              </p>
+              <p class="font-mono text-touch-lg font-bold text-gray-900 mt-1 break-all">${esc(codigo)}</p>
+            </div>
+
+            <div class="space-y-2">
+              ${aMostrar.map((p, i) => filaProducto(p, i)).join('')}
+            </div>
+
+            ${ocultos > 0
+              ? `<p class="text-sm text-gray-500 text-center">y ${ocultos} producto(s) más con este código</p>`
+              : ''}
+
+            <p class="text-sm text-gray-500">
+              ${origen === 'escaner'
+                ? 'El escáner no puede saber cuál de los dos es: lo decidís vos.'
+                : 'Ningún lector se va a perder: el código se sigue usando.'}
+            </p>
+          </div>
+
+          ${pie}
+        </div>
+      `;
+
+      // El sufijo disponible se calcula una vez por pintado y se muestra en el
+      // botón, para que el usuario vea el código exacto que va a quedar antes
+      // de aceptarlo y no después.
+      if (origen === 'formulario') prepararSufijo();
+    }
+
+    async function prepararSufijo() {
+      const boton = box.querySelector('[data-accion="sufijo"]');
+      if (!boton) return;
+      const texto = boton.querySelector('.js-texto-sufijo');
+      const libre = await primerCodigoLibre(codigo);
+      if (libre === codigo) {
+        // El código base ya no lo usa nadie: el diálogo quedó desactualizado
+        // (el usuario borró el último conflicto desde acá). No tiene sentido
+        // ofrecer distinguirlo de sí mismo.
+        boton.disabled = true;
+        texto.textContent = 'Distinguir con sufijo';
+        return;
+      }
+      if (libre === null) {
+        boton.disabled = true;
+        texto.textContent = 'Distinguir con sufijo';
+        return;
+      }
+      boton.dataset.candidato = libre;
+      texto.textContent = `Distinguir: ${libre}`;
+    }
+
+    // ------------------------------------------------------------- Delegados
+
+    async function borrar(indice) {
+      const producto = conflictos[indice];
+      if (!producto) return;
+      try {
+        await onBorrar(producto);
+      } catch (error) {
+        console.error(error);
+        box.querySelector(`[data-fila="${indice}"]`)?.replaceWith(filaProducto(producto, indice));
+        return;
+      }
+      conflictos = conflictos.filter(p => p.id !== producto.id);
+
+      // Vaciado el conflicto: el código ya no lo usa nadie más y la decisión
+      // que le corresponde tomar es la de siempre, la del código tal cual.
+      if (conflictos.length === 0) return cerrar({ accion: 'resuelto' });
+      pintar();
+    }
+
+    box.addEventListener('click', (e) => {
+      if (e.target === box) return cerrar({ accion: 'cancelar' });
+      const boton = e.target.closest('[data-accion]');
+      if (!boton || boton.disabled) return;
+
+      const accion = boton.dataset.accion;
+      const indice = Number(boton.dataset.indice);
+
+      switch (accion) {
+        case 'cancelar':
+          return cerrar({ accion: 'cancelar' });
+
+        case 'crear':
+          return cerrar({ accion: 'crear' });
+
+        case 'guardar':
+          return cerrar({ accion: 'guardar' });
+
+        case 'sin-codigo':
+          return cerrar({ accion: 'sin-codigo' });
+
+        case 'sufijo': {
+          const elegido = boton.dataset.candidato;
+          if (!elegido) return;
+          return cerrar({ accion: 'sufijo', codigo: elegido });
+        }
+
+        case 'abrir': {
+          const producto = conflictos[indice];
+          if (!producto) return;
+          cerrar({ accion: 'abrir', producto });
+          return onAbrir ? onAbrir(producto) : undefined;
+        }
+
+        case 'preguntar-borrar': {
+          const producto = conflictos[indice];
+          if (!producto) return;
+          box.querySelector(`[data-fila="${indice}"]`)?.replaceWith(filaConfirmando(producto, indice));
+          return;
+        }
+
+        case 'cancelar-borrar': {
+          const producto = conflictos[indice];
+          if (!producto) return;
+          box.querySelector(`[data-fila="${indice}"]`)?.replaceWith(filaProducto(producto, indice));
+          return;
+        }
+
+        case 'borrar':
+          return borrar(indice);
+      }
+    });
+
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(box);
+    pintar();
+  });
+}

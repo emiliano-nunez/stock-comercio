@@ -3,6 +3,7 @@ import { abrirFormularioProducto } from './components/ProductoForm.js';
 import { abrirHistorial } from './components/HistorialModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
 import { abrirScanner } from './components/ScannerModal.js';
+import { abrirCodigoDuplicado } from './components/CodigoDuplicado.js';
 import { toast } from './utils/toast.js';
 import { esc, escAttr, fmtPrecio } from './utils/html.js';
 
@@ -872,7 +873,8 @@ export class App {
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
       () => { this._productoFormAbierto = false; },
       null,
-      (p) => this._alVerProductoExistente(p)
+      (p) => this._alVerProductoExistente(p),
+      (p) => this.eliminarProducto(p.id)
     );
   }
   
@@ -885,7 +887,8 @@ export class App {
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
       () => { this._productoFormAbierto = false; },
       producto,
-      (p) => this._alVerProductoExistente(p)
+      (p) => this._alVerProductoExistente(p),
+      (p) => this.eliminarProducto(p.id)
     );
   }
   
@@ -934,7 +937,8 @@ export class App {
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
       () => { this._productoFormAbierto = false; },
       datos,
-      (p) => this._alVerProductoExistente(p)
+      (p) => this._alVerProductoExistente(p),
+      (p) => this.eliminarProducto(p.id)
     );
   }
   
@@ -986,22 +990,36 @@ export class App {
     // abrirScanner ya no propaga el fallo de inicio: deja el modal abierto con
     // el mensaje de error, así que no hace falta catch aquí.
     //
-    // duplicados es la cantidad de productos que tienen ese código. Si hay más
-    // de uno se abre el primero pero se avisa: el índice de codigoBarras no es
-    // único, y antes el escáner elegía uno al azar en silencio, así que el
-    // usuario podía estar editando el producto equivocado sin saberlo.
-    await abrirScanner(async (codigo, productoExistente, duplicados = 0) => {
-      if (productoExistente) {
-        if (duplicados > 1) {
-          toast.warning(
-            `⚠️ Hay ${duplicados} productos con el código ${codigo}. ` +
-            `Abriendo "${productoExistente.nombre}". Corregí los duplicados.`
-          );
-        }
-        this.editarProducto(productoExistente.id);
-      } else {
+    // El índice de codigoBarras no es único, así que un código puede
+    // pertenecer a más de un producto. Con uno solo no hay nada que decidir y se
+    // abre directo. Con dos o más, elegir por el usuario cuál es el correcto
+    // sería adivinar: antes se abría el primero con un aviso, y el usuario
+    // podía estar editando el producto equivocado sin enterarse.
+    await abrirScanner(async (codigo, coincidencias) => {
+      if (coincidencias.length === 0) {
         toast.success(`Código escaneado: ${codigo}`);
         setTimeout(() => this.nuevoProductoConCodigo(codigo), 300);
+        return;
+      }
+
+      if (coincidencias.length === 1) {
+        this.editarProducto(coincidencias[0].id);
+        return;
+      }
+
+      const r = await abrirCodigoDuplicado({
+        codigo,
+        productos: coincidencias,
+        origen: 'escaner',
+        onAbrir: p => this.editarProducto(p.id),
+        onBorrar: p => this.eliminarProducto(p.id)
+      });
+
+      if (r.accion === 'abrir') this.editarProducto(r.producto.id);
+      // 'crear' y 'resuelto' (el usuario borró todos los conflictos) terminan
+      // igual: el código ya no pertenece a nadie y toca dar de alta el producto.
+      else if (r.accion === 'crear' || r.accion === 'resuelto') {
+        this.nuevoProductoConCodigo(codigo);
       }
     });
   }
@@ -1016,7 +1034,8 @@ export class App {
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
       () => { this._productoFormAbierto = false; },
       { codigoBarras: codigo },
-      (p) => this._alVerProductoExistente(p)
+      (p) => this._alVerProductoExistente(p),
+      (p) => this.eliminarProducto(p.id)
     );
   }
   
