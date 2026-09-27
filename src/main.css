@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  body {
+    @apply antialiased;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  /* Prevenir zoom en inputs en iOS */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Evitar que cualquier elemento sobresalga */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+@layer components {
+  .btn-touch {
+    @apply min-h-touch px-4 py-3 rounded-xl font-semibold touch-none transition-all duration-100 
+           active:scale-[0.98] active:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+    @apply btn-touch bg-primary-600 text-white shadow-sm shadow-primary-600/20 
+           active:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply btn-touch bg-white text-gray-700 border-2 border-gray-200 
+           active:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn-danger {
+    @apply btn-touch bg-danger-500 text-white shadow-sm shadow-danger-500/20 
+           active:bg-danger-600 focus:outline-none focus:ring-2 focus:ring-danger-500 focus:ring-offset-2;
+  }
+  
+  .btn-ghost {
+    @apply min-h-touch px-4 py-3 rounded-xl font-medium text-gray-600 
+           active:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .input-touch {
+    @apply w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-white 
+           text-touch text-gray-900 placeholder-gray-400
+           focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20
+           disabled:bg-gray-50 disabled:text-gray-500;
+  }
+  
+  .card-touch {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-4;
+  }
+  
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center 
+           p-4 safe-top safe-bottom animate-fade-in;
+  }
+  
+  .modal-content {
+    @apply bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto 
+           animate-slide-up shadow-2xl;
+  }
+  
+  .stock-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  .stock-ok { @apply bg-primary-100 text-primary-800; }
+  .stock-low { @apply bg-warning-100 text-warning-800; }
+  .stock-out { @apply bg-danger-100 text-danger-800; }
+  
+  .toast {
+    /* Sólo posición, tamaño y acabado. El layout (flex row para los simples,
+       flex-col para los que llevan botón de acción) lo define toast.js con
+       utilidades propias: si estuviera aquí vía @apply, pelear con flex-col y
+       items-stretch dependería del orden en que Tailwind emitiera las clases,
+       que no está bajo control. */
+    @apply fixed bottom-24 left-3 right-3 md:left-auto md:right-3 md:w-96
+           px-4 py-3 rounded-xl shadow-2xl
+           z-[100] animate-slide-up pointer-events-auto;
+  }
+  
+  /* Mobile-first tab styles */
+  .tab-btn {
+    @apply flex-1 py-2 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent
+           active:bg-gray-50 transition-colors;
+  }
+  
+  .tab-btn.active {
+    @apply text-primary-700 border-primary-600 bg-primary-50;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  .animate-slide-down {
+    animation: slideDown 0.2s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes slideDown {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(20px); }
+  }
+  
+  .touch-none {
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .safe-area-inset {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}

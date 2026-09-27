@@ -1,0 +1,615 @@
+import { db, dbUtils } from '../db.js';
+import { toast } from '../utils/toast.js';
+import { esc, escAttr } from '../utils/html.js';
+import { exportarBackup, importarBackup, descargarBackup, leerBackupArchivo } from '../utils/backup.js';
+
+export class HistorialModal {
+  constructor(onRestore, onClose) {
+    this.onRestore = onRestore;
+    this.onClose = onClose;
+    this.modal = null;
+  }
+  
+  async abrir() {
+    this.historial = await dbUtils.getHistorial();
+    
+    // Dos cifras distintas y con dos botones distintos, porque son dos cosas
+    // distintas:
+    //   sueltas    -> fotos que no referencia nadie (canceladas, reemplazadas).
+    //   delHistorial -> fotos de productos que el usuario ya borró. Ocupan
+    //                  espacio, no se ven, y son lo que permite que "Volver
+    //                  Atrás" devuelva el producto con su imagen.
+    // La app no borra fotos sola, así que las dos crecen sin que el usuario lo
+    // decida. Medirlas es la forma de que al menos pueda saberlo y elegir.
+    this.fotosSueltas = { cantidad: 0, megas: 0 };
+    this.fotosDelHistorial = { cantidad: 0, megas: 0 };
+    try {
+      [this.fotosSueltas, this.fotosDelHistorial] = await Promise.all([
+        dbUtils.medirImagenesSinUsar(),
+        dbUtils.medirFotosDelHistorial()
+      ]);
+    } catch (error) {
+      // Medir no es crítico: si falla, los botones simplemente no aparecen.
+      console.error('No se pudieron medir las fotos sin uso:', error);
+    }
+    
+    this.modal = this.crearModal();
+    document.body.appendChild(this.modal);
+    
+    await new Promise(r => requestAnimationFrame(r));
+    
+    this.handleKeydown = (e) => {
+      if (e.key === 'Escape') this.cerrar();
+    };
+    document.addEventListener('keydown', this.handleKeydown);
+  }
+  
+  crearModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    
+    // El cuerpo y el footer con los botones de backup se construyen siempre,
+    // incluso sin historial. Antes el footer (y el input[type=file] que dispara
+    // el import) sólo existía en la rama "hay historial", así que con la base
+    // recién vacía no había forma de exportar ni de importar un backup: justo
+    // cuando el usuario más lo necesita para recuperar datos.
+    const cuerpo = this.historial.length === 0
+      ? `
+        <div class="p-8 text-center">
+          <span class="text-5xl">📭</span>
+          <h3 class="text-touch font-semibold text-gray-700 mt-4">Sin historial</h3>
+          <p class="text-gray-500 mt-2">No hay puntos de restauración disponibles.<br>Podés importar un backup para recuperar tu inventario.</p>
+        </div>
+      `
+      : `
+        <div class="p-2 max-h-[60vh] overflow-y-auto">
+          ${this.historial.map((item, index) => `
+            <button 
+              type="button"
+              class="w-full text-left p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors flex items-center gap-3 ${index === 0 ? 'bg-primary-50 border-primary-200' : ''}"
+              data-snapshot-id="${escAttr(item.id)}"
+            >
+              <div class="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-xl">🔄</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold text-gray-900 truncate">${esc(this.formatearMotivo(item.motivo))}</p>
+                <p class="text-sm text-gray-500">${esc(this.formatearFecha(item.fecha))}</p>
+              </div>
+              <span class="text-sm text-gray-400">${item.snapshotProductos?.length || 0} productos</span>
+            </button>
+          `).join('')}
+        </div>
+        <p class="text-center text-sm text-gray-500">Toca un estado para restaurar el inventario</p>
+      `;
+    
+    // Botones de limpieza de fotos. Deliberadamente con el número adelante: el
+    // usuario tiene que ver cuánto se va a llevar antes de decidir, porque desde
+    // que la app dejó de borrarlas sola esto es la única forma de recuperar el
+    // espacio. Y con confirmación aparte, porque una foto puede ser justo la que
+    // el usuario anda buscando.
+    const sueltas = this.fotosSueltas || { cantidad: 0, megas: 0 };
+    const delHistorial = this.fotosDelHistorial || { cantidad: 0, megas: 0 };
+    const limpiezaHTML = (sueltas.cantidad > 0 || delHistorial.cantidad > 0) ? `
+      <div class="pt-1 space-y-0.5">
+        ${sueltas.cantidad > 0 ? `
+          <button id="btn-limpiar-fotos" class="w-full btn-ghost text-xs text-gray-500 hover:text-danger-600 py-2">
+            🧹 Liberar ${sueltas.cantidad} foto(s) suelta(s) (${sueltas.megas.toFixed(1)} MB)
+          </button>
+        ` : ''}
+        ${delHistorial.cantidad > 0 ? `
+          <button id="btn-limpiar-fotos-historial" class="w-full btn-ghost text-xs text-gray-500 hover:text-danger-600 py-2">
+            🗄️ Liberar ${delHistorial.cantidad} foto(s) de productos borrados (${delHistorial.megas.toFixed(1)} MB)
+          </button>
+        ` : ''}
+      </div>
+    ` : '';
+    
+    modal.innerHTML = `
+      <div class="modal-content max-w-md">
+        <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-primary-50 rounded-t-2xl">
+          <h2 class="text-touch-lg font-bold text-gray-900">🔄 Volver Atrás</h2>
+          <button id="cerrar-historial" class="btn-ghost p-2" aria-label="Cerrar">✕</button>
+        </div>
+        ${cuerpo}
+        <div class="p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl space-y-2">
+          <div class="flex gap-2">
+            <button id="btn-exportar-backup" class="btn-secondary flex-1 text-sm">📤 Exportar Backup</button>
+            <button id="btn-importar-backup" class="btn-primary flex-1 text-sm">📥 Importar Backup</button>
+          </div>
+          ${limpiezaHTML}
+          <input type="file" id="input-importar-backup" accept=".json,application/json" class="hidden">
+        </div>
+      </div>
+    `;
+    
+    modal.querySelector('#cerrar-historial').addEventListener('click', () => this.cerrar());
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) this.cerrar();
+    });
+    
+    // Delegación de eventos para los puntos de restauración.
+    // Selector propio (data-snapshot-id) para no chocar con otros data-id.
+    modal.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-snapshot-id]');
+      if (btn) {
+        this.restaurar(btn.dataset.snapshotId);
+      }
+    });
+    
+    // Backup buttons
+    modal.querySelector('#btn-exportar-backup')?.addEventListener('click', async () => {
+      try {
+        const json = await exportarBackup();
+        descargarBackup(json);
+        toast.success('Backup exportado');
+      } catch (e) {
+        console.error(e);
+        toast.error('Error exportando backup');
+      }
+    });
+    
+    modal.querySelector('#btn-importar-backup')?.addEventListener('click', () => {
+      modal.querySelector('#input-importar-backup').click();
+    });
+    
+    modal.querySelector('#input-importar-backup')?.addEventListener('change', async (e) => {
+      const archivo = e.target.files[0];
+      if (!archivo) return;
+      e.target.value = '';
+      
+      try {
+        const json = await leerBackupArchivo(archivo);
+        
+        // Importar REEMPLAZA todo el contenido actual. Sin esta confirmación un
+        // clic equivocado en "Importar Backup" destruye el inventario.
+        const confirmado = await this.confirmarImportacion(archivo.name, json);
+        if (!confirmado) return;
+        
+        const resultado = await importarBackup(json);
+        toast.success(
+          `Backup importado: ${resultado.productos} productos, ${resultado.categorias} categorías`
+          + (resultado.reversible ? '. Podés volver atrás desde Volver Atrás.' : '')
+        );
+        this.cerrar();
+        if (this.onRestore) this.onRestore();
+      } catch (error) {
+        console.error(error);
+        toast.error('Error importando: ' + error.message);
+      }
+    });
+    
+    // Liberar fotos sin producto. Es la ÚNICA acción de la app que borra una
+    // imagen, y por eso lleva su propia confirmación con el detalle de qué se
+    // va a perder: si el usuario saca la foto de un producto, esa foto queda
+    // "suelta" y aparece acá. Borrarla es correcto en el 99% de los casos (foto
+    // reemplazada, foto de un producto que ya no existe), pero el 1% restante
+    // es el usuario que la quiere de vuelta y no la encuentra.
+    modal.querySelector('#btn-limpiar-fotos')?.addEventListener('click', async () => {
+      const s = this.fotosSueltas || { cantidad: 0, megas: 0 };
+      const confirmado = await this.pedirConfirmacion({
+        titulo: 'Liberar fotos sin producto',
+        aceptar: 'Liberar',
+        cuerpo: `
+          <p>
+            Se van a <strong>borrar ${s.cantidad} foto(s)</strong>
+            (${s.megas.toFixed(1)} MB) que no están en ningún producto ni en
+            ningún punto de restauración.
+          </p>
+          <p class="text-sm text-gray-500">
+            Suelen ser fotos que reemplazaste o de productos que ya borraste.
+            Si la de algún producto sigue en pie, <strong>no</strong> aparece acá.
+          </p>
+          <p class="text-sm text-warning-700">
+            ⚠️ Esto no se puede deshacer. Si querés asegurarte, exportá un
+            backup antes.
+          </p>
+        `
+      });
+      if (!confirmado) return;
+      
+      try {
+        const borradas = await dbUtils.limpiarImagenesSinUsar();
+        toast.success(`${borradas} foto(s) liberadas`);
+        this.cerrar();
+        this.onRestore?.();
+      } catch (error) {
+        console.error('Error liberando fotos:', error);
+        toast.error('No se pudieron liberar las fotos: ' + (error.message || ''));
+      }
+    });
+    
+    // Liberar las fotos que sólo el historial referencia. Es la acción más
+    // fuerte de la app: borra fotos que fueron de productos del usuario. Por
+    // eso el diálogo dice las tres cosas que importan —qué se borra, qué NO se
+    // toca y qué se pierde—, y por eso la decisión queda anotada en el
+    // historial: si el usuario vuelve a necesitar esa foto dentro de tres meses,
+    // va a leer "Limpieza de fotos" y no "se me borró sola".
+    modal.querySelector('#btn-limpiar-fotos-historial')?.addEventListener('click', async () => {
+      const s = this.fotosDelHistorial || { cantidad: 0, megas: 0 };
+      const confirmado = await this.pedirConfirmacion({
+        titulo: 'Liberar fotos de productos borrados',
+        aceptar: 'Borrar las fotos',
+        cuerpo: `
+          <p>
+            Vas a <strong>borrar ${s.cantidad} foto(s)</strong>
+            (${s.megas.toFixed(1)} MB) que son de productos que ya eliminaste.
+            Están guardadas sólo para que "Volver Atrás" te las devuelva.
+          </p>
+          <div class="p-3 bg-primary-50 border border-primary-200 rounded-xl text-sm">
+            <p class="font-semibold text-gray-900 mb-1">Esto NO toca:</p>
+            <ul class="list-disc list-inside text-gray-700">
+              <li>Las fotos de los productos que tenés ahora.</li>
+              <li>Los productos borrados: si restaurás, vuelven igual.</li>
+            </ul>
+          </div>
+          <div class="p-3 bg-danger-50 border border-danger-200 rounded-xl text-sm">
+            <p class="font-semibold text-gray-900 mb-1">Esto SÍ:</p>
+            <ul class="list-disc list-inside text-gray-700">
+              <li>Las fotos se van para siempre.</li>
+              <li>Si restaurás un producto borrado, <strong>vuelve sin foto</strong>.</li>
+            </ul>
+          </div>
+          <p class="text-sm text-gray-500">
+            Lo borrás <strong>vos</strong>, a propósito, y queda anotado en el
+            historial. Si más adelante te faltan esas fotos, no se perdieron
+            solas: acá está escrito que las liberaste vos. Si sólo querés
+            recuperar espacio, exportá un backup antes.
+          </p>
+        `
+      });
+      if (!confirmado) return;
+      
+      let borradas = 0;
+      try {
+        borradas = await dbUtils.liberarFotosDelHistorial();
+      } catch (error) {
+        console.error('Error liberando fotos del historial:', error);
+        toast.error('No se pudieron liberar: ' + (error.message || ''));
+        return;
+      }
+      
+      // El registro va DESPUÉS de borrar, y aparte: si el borrado falló no
+      // queremos una anotación de algo que no pasó, y si la anotación falla no
+      // queremos que el usuario piense que las fotos siguen ahí. Se avisa en los
+      // dos casos, pero no se abandona a medias.
+      try {
+        await dbUtils.crearPuntoRestauracion(
+          `Limpieza de fotos: ${borradas} foto(s) liberadas a propósito`
+        );
+        toast.success(`${borradas} foto(s) liberadas. Quedó anotado en el historial.`);
+      } catch (error) {
+        console.error('Se liberaron las fotos pero no se pudo anotar:', error);
+        toast.warning(
+          `Se liberaron ${borradas} foto(s), pero no se pudo anotar en el historial.`
+        );
+      }
+      
+      this.cerrar();
+      this.onRestore?.();
+    });
+    
+    return modal;
+  }
+  
+  formatearFecha(fechaISO) {
+    const fecha = new Date(fechaISO);
+    return fecha.toLocaleString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+  
+  formatearMotivo(motivo) {
+    const motivos = {
+      'manual': 'Restauración manual',
+      'cierre': 'Cierre diario',
+      'precios': 'Cambio de precios',
+      'inventario': 'Inventario masivo',
+      // Motivo que genera dbUtils.eliminarProducto() al borrar un producto
+      'eliminacion': 'Antes de una eliminación',
+      // Motivo que genera importarBackup() para que el import se pueda deshacer
+      'Antes de importar backup': 'Antes de importar un backup',
+      // Motivo que genera restaurarDesdeSnapshot() ANTES de pisar el
+      // inventario, para que restaurar un punto viejo sea reversible. Sin esto
+      // el usuario no tenía forma de volver atrás de un "Volver Atrás".
+      'Antes de restaurar': 'Antes de restaurar (tu estado actual)'
+    };
+    
+    // Los motivos de limpieza empiezan con "Limpieza de fotos:" y llevan el
+    // número de fotos liberadas detrás. Se dejan pasar tal cual a propósito: el
+    // detalle ES el motivo, y recortarlo para que entre en un diccionario
+    // perdería justo lo que el usuario necesita leer dentro de tres meses
+    // ("las 40 fotos las borré yo, no se perdieron solas").
+    if (typeof motivo === 'string' && motivo.startsWith('Limpieza de fotos:')) {
+      return motivo;
+    }
+    
+    return motivos[motivo] || motivo;
+  }
+  
+  /**
+   * Diálogo de confirmación superpuesto, con el estilo de la app.
+   *
+   * Se prefiere a confirm() nativo porque el texto necesita detalle (cuántos
+   * productos entran/salen, si es reversible) y el nativo no admite formato
+   * ni botones con su propio texto.
+   *
+   * @param {Function} [alAceptar] recibe el nodo del diálogo y devuelve el
+   *   valor a resolver. Sin esto resuelve siempre `true`. Existe para los
+   *   diálogos que traen un control (el de restaurar, con su interruptor de
+   *   fotos) y en vez de sí/no necesitan devolver la elección.
+   * @returns {Promise<boolean|any>} true si el usuario acepta, o lo que
+   *   devuelva alAceptar.
+   */
+  pedirConfirmacion({ titulo, cuerpo, aceptar = 'Aceptar', aceptarDeshabilitado = false, alAceptar = null }) {
+    return new Promise((resolve) => {
+      const box = document.createElement('div');
+      box.className = 'modal-overlay';
+      box.innerHTML = `
+        <div class="modal-content max-w-md">
+          <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-warning-50 rounded-t-2xl">
+            <h2 class="text-touch-lg font-bold text-gray-900 flex items-center gap-2">
+              <span>⚠️</span> ${esc(titulo)}
+            </h2>
+            <button class="btn-ghost p-2" data-accion="cancelar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="p-4 text-touch text-gray-700 space-y-3">${cuerpo}</div>
+          <div class="p-4 border-t border-gray-100 flex gap-2">
+            <button class="btn-secondary flex-1" data-accion="cancelar">Cancelar</button>
+            <button class="btn-primary flex-1" data-accion="aceptar" ${aceptarDeshabilitado ? 'disabled' : ''}>${esc(aceptar)}</button>
+          </div>
+        </div>
+      `;
+      
+      const cerrar = (valor) => {
+        box.remove();
+        document.removeEventListener('keydown', onKey);
+        resolve(valor);
+      };
+      const onKey = (e) => { if (e.key === 'Escape') cerrar(false); };
+      
+      box.addEventListener('click', (e) => {
+        if (e.target === box) return cerrar(false);
+        const boton = e.target.closest('[data-accion]');
+        if (!boton || boton.disabled) return;
+        const accion = boton.dataset.accion;
+        if (accion === 'aceptar') cerrar(alAceptar ? alAceptar(box) : true);
+        else if (accion === 'cancelar') cerrar(false);
+      });
+      document.addEventListener('keydown', onKey);
+      
+      document.body.appendChild(box);
+    });
+  }
+  
+  async confirmarRestauracion(item) {
+    const productos = item.snapshotProductos || [];
+    const total = productos.length;
+    
+    // Qué entra y qué sale, con nombre y apellido. Sin esto el diálogo decía
+    // "se sustituirá el inventario por el estado del 12/03" y el usuario tenía
+    // que decidir a ciegas. Lo que más le cuesta imaginar es justo lo que pasa
+    // con lo que él mismo borró: el punto de restauración se creó ANTES del
+    // borrado, así que restaurar le devuelve el producto que acaba de
+    // eliminar, y eso no se decía en ninguna parte.
+    let cambios = { vuelven: [], seVan: [] };
+    if (total > 0) {
+      try {
+        cambios = await dbUtils.compararConSnapshot(item.id);
+      } catch (error) {
+        // No es motivo para bloquear la restauración: si no se puede comparar,
+        // se restaura igual y el usuario ve el resultado en pantalla.
+        console.error('No se pudo comparar con el punto de restauración:', error);
+      }
+    }
+    
+    // Cuántas fotos van a volver de verdad. Casi todas, porque desde que la
+    // foto no se borra al eliminar un producto ni al cambiarla, el blob sigue
+    // ahí y el imagenId del snapshot sigue resolviendo. Pero los productos
+    // borrados o de los que se cambió la foto ANTES de ese cambio pueden
+    // tener el blob perdido, y conviene decirlo en vez de restaurar en
+    // silencio productos que van a aparecer sin foto.
+    let resumen = { total, conFoto: 0, disponibles: 0 };
+    if (total > 0) {
+      try {
+        resumen = await dbUtils.resumenFotos(productos);
+      } catch (error) {
+        // No es motivo para bloquear la restauración: si no se puede contar,
+        // se restaura igual y el usuario ve lo que haya.
+        console.error('No se pudo contar las fotos del snapshot:', error);
+      }
+    }
+    const perdidas = resumen.conFoto - resumen.disponibles;
+    
+    // 6 nombres es suficiente para reconocer lo que pasa y entra el resto en
+    // una línea. Poner los 300 sería un diálogo que no se lee y no se decide.
+    const lista = (listaProductos) => {
+      const MAX = 6;
+      const visibles = listaProductos.slice(0, MAX)
+        .map(p => `<li class="truncate">• ${esc(p.nombre)}</li>`)
+        .join('');
+      const resto = listaProductos.length - MAX;
+      return visibles + (resto > 0
+        ? `<li class="text-gray-500">… y ${resto} producto(s) más</li>`
+        : '');
+    };
+    
+    const vuelvenHTML = cambios.vuelven.length > 0 ? `
+      <div class="p-3 bg-primary-50 border border-primary-200 rounded-xl">
+        <p class="text-sm font-semibold text-gray-900 mb-1">
+          ↩️ Vuelven ${cambios.vuelven.length} producto(s) que borraste después de esa fecha
+        </p>
+        <ul class="text-sm text-gray-700 space-y-0.5">${lista(cambios.vuelven)}</ul>
+      </div>
+    ` : '';
+    
+    const seVanHTML = cambios.seVan.length > 0 ? `
+      <div class="p-3 bg-danger-50 border border-danger-200 rounded-xl">
+        <p class="text-sm font-semibold text-gray-900 mb-1">
+          🗑️ Desaparecen ${cambios.seVan.length} producto(s) que cargaste o cambiaste después
+        </p>
+        <ul class="text-sm text-gray-700 space-y-0.5">${lista(cambios.seVan)}</ul>
+        <p class="text-xs text-gray-500 mt-1">
+          No se pierden: antes de aplicar se guarda este estado como un punto
+          nuevo, así que podés volver atrás desde acá mismo.
+        </p>
+      </div>
+    ` : '';
+    
+    const sinCambios = total > 0 && cambios.vuelven.length === 0 && cambios.seVan.length === 0;
+    
+    return this.pedirConfirmacion({
+      titulo: 'Restaurar inventario',
+      aceptar: 'Restaurar',
+      aceptarDeshabilitado: total === 0,
+      cuerpo: `
+        <p>
+          Se sustituirá el inventario actual por el estado del
+          <strong>${esc(this.formatearFecha(item.fecha))}</strong>
+          (${esc(this.formatearMotivo(item.motivo))}), con ${total} producto(s).
+        </p>
+        ${total === 0 ? '<p class="text-sm text-danger-600">Este punto no contiene productos, no se puede aplicar.</p>' : ''}
+        ${vuelvenHTML}
+        ${seVanHTML}
+        ${sinCambios ? '<p class="text-sm text-gray-500">No hay diferencias de productos: sólo cambian precios o stocks.</p>' : ''}
+        ${resumen.conFoto > 0 ? `
+          <label class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer select-none">
+            <input type="checkbox" id="restaurar-fotos" checked
+                   class="w-6 h-6 mt-0.5 flex-shrink-0 accent-primary-600">
+            <span class="text-sm">
+              <span class="font-semibold text-gray-900">Traer también las fotos</span>
+              <span class="block text-gray-500">
+                ${resumen.disponibles} de ${resumen.conFoto} producto(s) con foto
+                pueden volver con su imagen.
+              </span>
+            </span>
+          </label>
+        ` : ''}
+        ${perdidas > 0 ? `
+          <p class="text-sm text-warning-700">
+            ⚠️ ${perdidas} de esas fotos ya no están en el dispositivo, así que
+            esos productos van a volver sin imagen.
+          </p>
+        ` : ''}
+        <p class="text-sm text-gray-500">Los cambios que hagas después de restaurar no se podrán deshacer desde aquí.</p>
+      `,
+      alAceptar: (box) => ({
+        conFotos: box.querySelector('#restaurar-fotos')?.checked !== false
+      })
+    });
+  }
+  
+  // El archivo se lee y valida ANTES de preguntar, para poder mostrar en el
+  // diálogo cuántos productos y categorías trae y no dejar al usuario
+  // esperando un confirm con datos a ciegas.
+  async confirmarImportacion(nombreArchivo, json) {
+    let resumen = null;
+    try {
+      const b = JSON.parse(json);
+      resumen = {
+        productos: b.productos?.length || 0,
+        categorias: b.categorias?.length || 0,
+        fecha: b.fecha
+      };
+    } catch {
+      // Dejar que importarBackup lance el error de formato después.
+    }
+    
+    if (!resumen) return true;  // que sea importarBackup quien rechace el archivo
+    
+    const hayDatos = await db.productos.count();
+    
+    return this.pedirConfirmacion({
+      titulo: 'Importar backup',
+      aceptar: 'Reemplazar todo',
+      cuerpo: `
+        <p>
+          <strong>${esc(nombreArchivo)}</strong> contiene
+          ${resumen.productos} producto(s) y ${resumen.categorias} categoría(s).
+        </p>
+        ${resumen.fecha ? `<p class="text-sm text-gray-500">Backup del ${esc(this.formatearFecha(resumen.fecha))}.</p>` : ''}
+        ${hayDatos > 0
+          ? `<p class="text-danger-600">
+               Se <strong>reemplazarán los ${hayDatos} producto(s) que tenés ahora</strong>,
+               incluidas sus categorías e imágenes.
+             </p>
+             <p class="text-sm text-gray-500">
+               No pasa nada: antes de importar se guarda un punto de restauración
+               con tu inventario actual, y podés volver con "Volver Atrás".
+             </p>`
+          : '<p class="text-sm text-gray-500">Tu base está vacía, no se pierde nada.</p>'}
+      `
+    });
+  }
+  
+  async restaurar(snapshotId) {
+    const item = this.historial.find(h => h.id === snapshotId);
+    if (!item) {
+      toast.error('Punto de restauración no encontrado');
+      return;
+    }
+    
+    // Devuelve { conFotos } si el usuario acepta, o false si cancela.
+    const eleccion = await this.confirmarRestauracion(item);
+    if (!eleccion) return;
+    
+    try {
+      await dbUtils.restaurarDesdeSnapshot(snapshotId, { conFotos: eleccion.conFotos });
+      const n = item.snapshotProductos?.length || 0;
+      toast.success(
+        eleccion.conFotos
+          ? `Inventario restaurado: ${n} producto(s)`
+          : `Inventario restaurado sin fotos: ${n} producto(s)`
+      );
+      this.cerrar();
+      this.onRestore?.();
+    } catch (error) {
+      console.error('Error restaurando:', error);
+      toast.error(error.message || 'Error al restaurar');
+    }
+  }
+  
+  cerrar() {
+    if (this.handleKeydown) {
+      document.removeEventListener('keydown', this.handleKeydown);
+      this.handleKeydown = null;
+    }
+    
+    // Idempotente: evita que dos llamadas seguidas disparen onClose dos veces
+    if (this._cerrando) return;
+    this._cerrando = true;
+    
+    if (this.modal) {
+      this.modal.classList.add('animate-slide-down');
+      this.modal.classList.remove('animate-slide-up');
+      
+      setTimeout(() => {
+        if (this.modal && this.modal.parentNode) {
+          this.modal.remove();
+        }
+        this.modal = null;
+        if (this.onClose) this.onClose();
+      }, 200);
+    } else if (this.onClose) {
+      this.onClose();
+    }
+  }
+}
+
+/**
+ * Abre el modal de historial.
+ * @param {Function} [onRestore] Se llama tras restaurar un punto o importar un backup.
+ * @param {Function} [onClose]   Se llama SIEMPRE al cerrar (✕, Escape o clic fuera).
+ *                              Imprescindible para que quien lo abrió pueda
+ *                              limpiar su flag de "ya está abierto"; sin esto el
+ *                              botón que lo invoca queda inutilizable.
+ */
+export async function abrirHistorial(onRestore, onClose) {
+  const modal = new HistorialModal(onRestore, onClose);
+  await modal.abrir();
+  return modal;
+}

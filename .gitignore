@@ -1,0 +1,22 @@
+# Dependencias: se reinstalan con `npm install` y son 116 MB.
+node_modules/
+
+# Build: se regenera con `npm run build`. El dist/ local tampoco sirve para
+# instalar la PWA en el teléfono (ahí va el build de producción, y el service
+# worker cachea por hash de nombre de archivo).
+dist/
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+*.log

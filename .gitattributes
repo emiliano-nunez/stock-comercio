@@ -1,0 +1,17 @@
+# Sin esto Git convierte LF a CRLF en cada checkout y los diffs se ensucian con
+# cambios de fin de línea que no son cambios reales. Se normaliza a LF en el
+# repositorio y sólo se guarda como CRLF lo que Windows ejecuta (scripts .bat,
+# .cmd), donde el intérprete lo necesita.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Los iconos de la PWA y los avif/webp son binarios: que Git no intente
+# decodificarlos como texto.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary

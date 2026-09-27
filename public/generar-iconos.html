@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Generador de Iconos PWA</title>
+  <style>
+    body { font-family: system-ui; padding: 20px; max-width: 800px; margin: 0 auto; }
+    .sizes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; margin-top: 20px; }
+    .icon-preview { border: 1px solid #ddd; border-radius: 12px; padding: 16px; text-align: center; background: #fafafa; }
+    .icon-preview canvas { border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    button { background: #16a34a; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; }
+    button:hover { background: #15803d; }
+  </style>
+</head>
+<body>
+  <h1>🎨 Generador de Iconos PWA</h1>
+  <p>Haz clic en "Generar todos" para crear los PNGs en diferentes tamaños. Luego haz clic derecho en cada uno para guardar.</p>
+  <button onclick="generarTodos()">Generar todos los iconos</button>
+  <div class="sizes" id="contenedor"></div>
+  
+  <script>
+    const tamaños = [72, 96, 128, 144, 152, 192, 384, 512];
+    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#16a34a"/>
+          <stop offset="100%" style="stop-color:#15803d"/>
+        </linearGradient>
+      </defs>
+      <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+      <text x="256" y="340" font-family="system-ui, sans-serif" font-size="280" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">📦</text>
+    </svg>`;
+    
+    function generarTodos() {
+      const contenedor = document.getElementById('contenedor');
+      contenedor.innerHTML = '';
+      
+      tamaños.forEach(size => {
+        const div = document.createElement('div');
+        div.className = 'icon-preview';
+        div.innerHTML = `<strong>${size}×${size}</strong><br><canvas id="canvas-${size}" width="${size}" height="${size}"></canvas><br><button onclick="descargar(${size})">Descargar PNG</button>`;
+        contenedor.appendChild(div);
+        
+        const canvas = document.getElementById(`canvas-${size}`);
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, size, size);
+        };
+        img.src = 'data:image/svg+xml;base64,' + btoa(svgContent);
+      });
+    }
+    
+    function descargar(size) {
+      const canvas = document.getElementById(`canvas-${size}`);
+      const link = document.createElement('a');
+      link.download = `icon-${size}x${size}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>
