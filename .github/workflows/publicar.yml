@@ -67,6 +67,12 @@ jobs:
 
       - uses: actions/configure-pages@v5
         id: pages
+        with:
+          # Sin esto el paso falla en un repo donde Pages todavía no está
+          # activado, que es el estado en que queda un repo recién creado: hay
+          # que ir a Settings → Pages a tocar una perilla a mano. Con esto, el
+          # primer push deja la publicación andando sola.
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:
