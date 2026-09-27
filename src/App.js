@@ -512,6 +512,7 @@ export class App {
           ` : ''}
         </div>
         <h4 class="font-semibold text-gray-900 truncate text-sm mb-1">${esc(p.nombre)}</h4>
+        ${p.codigoBarras ? `<p class="text-xs text-gray-400 font-mono truncate mb-1">${esc(p.codigoBarras)}</p>` : ''}
         ${avisoFotoPerdida}
         ${p.precios && p.precios.length > 1 ? `
           <div class="flex flex-wrap gap-1 mb-1">
