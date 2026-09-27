@@ -9,6 +9,14 @@
  *
  * Todo lo que crea lleva el prefijo 'test_' y se limpia al terminar, incluso si
  * un test falla a mitad (bloque finally).
+ *
+ * ⚠️ CORRERLO DESTRUYE EL INVENTARIO REAL. No es cosa de los datos que crea el
+ * test: es que testFotosConHistorial() llama a restaurarDesdeSnapshot(), que
+ * hace db.productos.clear() y deja la base con el contenido del snapshot. O
+ * sea que tu catálogo se reemplaza por el del punto de restauración. Se puede
+ * recuperar con "Volver Atrás" (el propio test genera el punto "Antes de
+ * restaurar"), pero es un susto. Corrélo sobre una base vacía o con un backup
+ * exportado.
  */
 import { db, dbUtils, TIPOS_VENTA, getUnidadBase, getPrecioPrincipal } from './db.js';
 
