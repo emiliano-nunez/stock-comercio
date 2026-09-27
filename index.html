@@ -10,7 +10,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Stock Comercio">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-  <link rel="manifest" href="manifest.json">
+  <!--
+    El manifiesto lo inyecta vite-plugin-pwa a partir de la ruta de publicación.
+    Acá no se declara ninguno a mano: un link más apuntaría a un archivo que ya
+    no existe, y mientras existió hubo dos manifiestos servidos en la misma
+    página, con start_url y accesos directos distintos.
+  -->
   <title>Stock Comercio</title>
 </head>
 <body class="bg-primary-50 min-h-screen text-gray-900">
