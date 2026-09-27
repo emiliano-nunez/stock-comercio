@@ -1155,10 +1155,23 @@ export class ProductoForm {
     const categoriaId = formData.get('categoriaId') || null;
     
     // Validar código de barras único (si cambió)
+    //
+    // buscarPorCodigoBarras() devuelve TODOS los que coinciden. La versión
+    // anterior usaba .first(), que elegía uno al azar de entre los duplicados:
+    // el mensaje decía "ya está en uso" sin decir cuál, y con tres productos en
+    // conflicto el usuario no tenía con qué decidir.
     if (codigoBarras && (!this.isEditing || this.producto.codigoBarras !== codigoBarras)) {
-      const existente = await db.productos.where('codigoBarras').equals(codigoBarras).first();
-      if (existente) {
-        toast.error('Este código de barras ya está en uso');
+      const conflictos = await dbUtils.buscarPorCodigoBarras(codigoBarras);
+      if (conflictos.length > 0) {
+        // Los nombres se cortan a 3: con 15 duplicados el toast se sale de la
+        // pantalla y deja de informar. El detalle completo lo da el diálogo de
+        // código duplicado, que abre el escáner y este mismo formulario.
+        const nombres = conflictos.slice(0, 3).map(p => p.nombre);
+        const resto = conflictos.length - nombres.length;
+        toast.error(
+          `Este código ya lo usan ${conflictos.length} producto(s): ${nombres.join(', ')}` +
+          (resto > 0 ? ` y ${resto} más` : '')
+        );
         return;
       }
     }
