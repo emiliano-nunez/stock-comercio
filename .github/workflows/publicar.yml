@@ -52,13 +52,16 @@ jobs:
         id: ruta
         run: |
           REPO="${{ github.event.repository.name }}"
-          if [ "$REPO" = "${REPO%.github.io}" ]; then
-            # Repo de usuario: se sirve en la raíz del dominio.
+          # Si al repo se le saca el sufijo ".github.io" y queda otro nombre
+          # distinto, es que ese sufijo estaba: es un repo de usuario, que se
+          # sirve en la raíz del dominio. Si queda igual, es un repo de
+          # proyecto, que se sirve en /<nombre>/.
+          if [ "${REPO%.github.io}" != "$REPO" ]; then
             echo "valor=/" >> "$GITHUB_OUTPUT"
           else
             echo "valor=/$REPO/" >> "$GITHUB_OUTPUT"
           fi
-          echo "Publicando en: $REPO -> $(cat "$GITHUB_OUTPUT" | tail -1 | cut -d= -f2)"
+          echo "Publicando en: $REPO -> $(cut -d= -f2 "$GITHUB_OUTPUT" | tail -1)"
 
       - name: Compilar
         run: npm run build
