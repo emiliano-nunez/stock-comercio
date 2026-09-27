@@ -226,8 +226,12 @@ import('./src/test-db.js').then(m => m.testDatabase())
 # Extrae las funciones reales de src/db.js y las corre contra una base falsa.
 node probar-fotos.mjs
 
+# Sufijo de código de barras libre (base, base-2, base-3...).
+# Misma técnica: recorta la función real de CodigoDuplicado.js y la corre.
+node probar-codigos.mjs
+
 # Chequeos estáticos
-node verificar-sintaxis.mjs src      # los 13 archivos parsean
+node verificar-sintaxis.mjs src      # los 14 archivos parsean
 node verificar-caracteres.mjs        # sin CJK ni mojibake
 
 # Limpieza total BD (consola)
@@ -276,6 +280,76 @@ npm run build
 ```
 
 > **Importante**: HTTPS obligatorio para PWA, Service Workers y APIs de cámara/escáner.
+
+## 🧾 Cómo commitear
+
+Un commit por bloque de trabajo. El mensaje cuenta **qué cambió y por qué**, con
+el problema concreto de antes, no un resumen de las tareas del día.
+
+```bash
+# Antes de commitear: los chequeos y el build. El build es el que de verdad
+# comprueba que el código esté entero.
+node verificar-sintaxis.mjs src
+node verificar-caracteres.mjs
+node probar-fotos.mjs
+node probar-codigos.mjs
+npm run build
+```
+
+### Qué va en el mensaje
+
+- **El problema primero.** Qué se veía o se rompía antes, en el caso del
+  usuario. Sin el "antes", el "después" no dice nada.
+- **El porqué de la decisión**, incluso cuando hay una más simple disponible. Es
+  la parte que se pierde al leer el código dentro de seis meses.
+- **Lo que salió mal al implementarlo.** Si un enfoque tuvo que cambiarse a
+  mitad de camino, eso es lo más útil que queda escrito.
+- **Lo que no se pudo verificar**, si es algo. "No se ha visto en un dispositivo"
+  es información, no una disculpa.
+
+### Qué NO va en el mensaje
+
+- **Notas de trabajo.** "Ahora falta X", "revisar después", "el usuario pidió Y".
+  Eso no es un cambio; es una nota. Las tareas pendientes van a
+  [PENDIENTES.md](PENDIENTES.md), y lo que se descartó también, para que no se
+  vuelva a proponer.
+- **Rutas de archivos de trabajo** ni nombres de archivos auxiliares.
+- **Mensajes en inglés.** Los comentarios y los mensajes van en español.
+
+### Trampa conocida: el mensaje en PowerShell
+
+En este proyecto el mensaje se escribe a un archivo y se pasa con `-F`. El
+atajo `@'...'@ | git commit -F -` no es de fiar: en PowerShell el bloque no
+siempre llega por stdin, y si llega truncado el commit queda con el mensaje a
+medias sin que avise. Con el archivo se ve qué se está commiteando antes de
+commitear.
+
+```powershell
+# 1. Escribir el mensaje a un archivo UTF-8 SIN BOM (con la herramienta de
+#    escritura, no con Out-File, que mete BOM).
+# 2. Comprobar que no tiene BOM antes de commitear.
+$b = [System.IO.File]::ReadAllBytes("ruta\msg.txt")
+$b[0] -ne 0xEF   # tiene que dar False
+
+# 3. Commiteear leyéndolo del archivo.
+git commit -F "ruta\msg.txt"
+
+# 4. Borrar el archivo. Los temporales no se dejan tirados.
+Remove-Item "ruta\msg.txt" -Force
+```
+
+Un mensaje con BOM arranca con unos bytes raros antes del texto, y se cuelan en
+el historial para siempre.
+
+### Cuando hay que deshacer un commit
+
+```bash
+git log --oneline            # ubicar el commit a deshacer
+git revert <hash>            # commit nuevo que deshace los cambios
+```
+
+`git revert` y no `git reset`: `reset` reescribe la historia y si el commit ya
+está subido a un remoto, el que lo tiene se queda con algo que no cuadra.
 
 ## 📄 Licencia
 
