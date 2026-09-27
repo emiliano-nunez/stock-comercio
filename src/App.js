@@ -78,6 +78,7 @@ export class App {
       this.render();
       this.bindEvents();
       this.registrarServiceWorker();
+      this.atenderAtajo();
       
     } catch (error) {
       // Sin esto, cualquier fallo de arranque deja la pantalla en blanco y sólo
@@ -1237,6 +1238,42 @@ export class App {
     });
   }
   
+  /**
+   * Accesos directos de la PWA instalada: "#scan" y "#add".
+   *
+   * El manifest los declaraba, pero no había nada en la app que leyera el hash.
+   * Tocarlos desde la pantalla de inicio abría la app y no pasaba nada. Sólo se
+   * notaba una vez instalada la PWA, que es justo lo que pasa al publicarla.
+   *
+   * Se atiende en los dos momentos en que puede llegar:
+   *   1. Al arrancar, si la app estaba cerrada y el acceso directo la abrió.
+   *   2. Con 'hashchange', si la app ya estaba abierta. Tocar el ícono con la
+   *      app corriendo cambia el hash de la misma pestaña.
+   *
+   * El hash se borra después de atenderlo. Sin eso, tocar dos veces seguidas el
+   * mismo acceso directo no vuelve a disparar nada, porque la dirección no
+   * cambia y 'hashchange' no se dispara. Es lo que hace que el atajo sea
+   * repetible en vez de andar de a una.
+   */
+  atenderAtajo() {
+    const ejecutar = () => {
+      const atajo = (location.hash || '').replace(/^#/, '');
+      if (!atajo) return;
+      if (atajo !== 'scan' && atajo !== 'add') return;
+
+      // Se borra antes de actuar, no después: si abrir el escáner o el
+      // formulario fallara, el hash ya está limpio y el usuario no queda con una
+      // dirección que al recargar le reabra un modal encima.
+      history.replaceState(null, '', location.pathname + location.search);
+
+      if (atajo === 'scan') this.escanearCodigo();
+      else this.nuevoProducto();
+    };
+
+    window.addEventListener('hashchange', ejecutar);
+    ejecutar();
+  }
+
   // El service worker NO se registra aquí.
   //
   // vite-plugin-pwa (injectRegister: 'auto', el valor por defecto) ya inyecta

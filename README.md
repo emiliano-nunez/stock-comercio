@@ -261,25 +261,91 @@ localStorage.clear(); indexedDB.deleteDatabase('StockComercioDB')
 
 ## 🚀 Despliegue
 
-### Vercel (Recomendado)
+La app es estática: no hay servidor, ni base de datos, ni backend. Todo se
+publica es la carpeta `dist/`, y los datos (productos, fotos, historial) viven
+en IndexedDB, en el dispositivo de cada quien. Por eso un repo público no
+expone el inventario: publica el código, no los datos de nadie.
+
+> **Importante**: HTTPS obligatorio para PWA, Service Workers y APIs de
+> cámara/escáner. Las tres plataformas de abajo lo dan.
+
+### La ruta de publicación
+
+La app se puede publicar en la raíz de un dominio o en un subdirectorio, y eso
+cambia una sola cosa: la ruta. Está en `vite.config.js`, en `RUTA_PUBLICA`, y de
+ahí salen **todas** las direcciones que la app usa para ubicarse: los assets, el
+alcance del service worker, la dirección con la que arranca la PWA instalada y
+sus accesos directos.
+
+| Dónde se publica | `RUTA_PUBLICA` |
+|---|---|
+| Netlify, Vercel, cualquier hosting en la raíz | `'/'` (el valor por defecto, no hay que tocar nada) |
+| GitHub Pages de **proyecto** (repo `stock-comercio`) | `'/stock-comercio/'` |
+| GitHub Pages de **usuario** (repo `usuario.github.io`) | `'/'` |
+
+El valor se puede sobrescribir con la variable de entorno `VITE_BASE_PATH`, que
+es lo que conviene usar en un deploy automatizado:
+
 ```bash
-npm i -g vercel
-vercel --prod
+# PowerShell
+$env:VITE_BASE_PATH = '/stock-comercio/'
+npm run build
 ```
+
+> Si la ruta se olvida o queda mal, el síntoma es **pantalla en blanco** en
+> GitHub Pages: el HTML pide los archivos en `/assets/...` en vez de
+> `/stock-comercio/assets/...`. En Netlify no pasa, porque todo va en la raíz.
 
 ### Netlify
-```bash
-npm run build
-# Arrastrar carpeta dist/ a netlify.com/drop
-```
+
+No necesita configuración: ya está en `netlify.toml`. Dos formas de usarlo.
+
+**La rápida**, para probar: `npm run build` y arrastrar `dist/` a
+[netlify.com/drop](https://netlify.com/drop).
+
+**La atada al repo**, que es la que conviene: en Netlify, "Add new site →
+Import an existing project", se elige el repo, y Netlify lee `netlify.toml`.
+Cada push a `main` publica solo.
 
 ### GitHub Pages
+
+Ya está en `.github/workflows/publicar.yml`. Cada push a `main` compila y
+publica. Un solo paso, en el repo:
+
+**Settings → Pages → Source: GitHub Actions.**
+
+El workflow calcula la ruta solo a partir del nombre del repo, así que no hay
+que editar `vite.config.js` nunca. Si el repo es privado, Pages necesita un
+plan que lo incluya; si es público, sale gratis.
+
+Para probar sin esperar al push también se puede disparar a mano desde la
+pestaña **Actions → Publicar → Run workflow**.
+
+**Alternativa manual**, si en algún momento se quiere publicar sin Actions:
+con la ruta ya configurada en `vite.config.js`,
+
 ```bash
 npm run build
-# Push dist/ a rama gh-pages
+git add -f dist
+git commit -m "dist"
+git push origin gh-pages
 ```
 
-> **Importante**: HTTPS obligatorio para PWA, Service Workers y APIs de cámara/escáner.
+y en Settings → Pages → Source: rama `gh-pages`, carpeta `/ (root)`. Sólo
+una de las dos formas a la vez, o las dos se pelean por cuál versión se sirve.
+
+### Instalar en el teléfono
+
+Ambas plataformas dan HTTPS, que es lo que hace falta para que la cámara y el
+escáner funcionen. Por la red local (`http://192.168.x.x:4173`) la app se ve
+pero **la cámara no**, porque el navegador exige un contexto seguro.
+
+En Android: abrir la dirección → menú → "Agregar a pantalla de inicio".
+En iPhone: Safari → Compartir → "Agregar a pantalla de inicio".
+
+La app instalada tiene dos accesos directos en la pantalla de inicio
+("Escanear producto" y "Agregar producto") que abren el escáner y el formulario
+directamente.
 
 ## 🧾 Cómo commitear
 

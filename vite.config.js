@@ -1,7 +1,35 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+/**
+ * Ruta en la que se publica la app.
+ *
+ * Todo lo que dependa de dónde vive la app tiene que salir de este valor: los
+ * assets que genera Vite, el alcance del service worker, la dirección con la que
+ * arranca la PWA instalada y sus accesos directos. Si cada uno se escribiera por
+ * su cuenta, en un deploy que no sea la raíz se rompe por lo menos uno, y la
+ * falla es silenciosa: pantalla en blanco, o una PWA instalada que abre la
+ * página equivocada.
+ *
+ *   Netlify, o github pages de usuario (el repo se llama "usuario.github.io"):
+ *     '/'
+ *   Github pages de proyecto (el repo se llama, por ejemplo, "stock-comercio"):
+ *     '/stock-comercio/'
+ *
+ * Se puede sobrescribir con la variable de entorno VITE_BASE_PATH, que es lo
+ * que conviene en un deploy automatizado para no editar este archivo.
+ */
+const RUTA_PUBLICA = process.env.VITE_BASE_PATH || '/';
+
+// La ruta tiene que empezar Y terminar en barra, y el motivo es concreto:
+// `base + '#scan'` se concatena sin separador. Con base '/stock-comercio' (sin
+// la barra final) el acceso directo salía como '/stock-comercio#scan', y el
+// navegador lo leía como un ancla dentro de la página, no como la app con un
+// atajo. Hay que normalizar los dos extremos, no sólo el de adelante.
+const base = `/${RUTA_PUBLICA.replace(/^\/+|\/+$/g, '')}/`.replace(/\/{2,}/g, '/');
+
 export default defineConfig({
+  base,
   server: {
     hmr: {
       // Desactivar overlay de errores para evitar ruido en consola
@@ -19,12 +47,19 @@ export default defineConfig({
         name: 'Stock Comercio',
         short_name: 'Stock',
         description: 'Control de inventario local-first para comerciantes',
+        // vite-plugin-pwa pone 'en' si no se dice nada, y eso es lo que algunos
+        // lanzadores usan para decidir el idioma de la app instalada.
+        lang: 'es',
         theme_color: '#16a34a',
         background_color: '#f0fdf4',
         display: 'standalone',
         orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
+        // scope y start_url tienen que ser la ruta de publicación, no "/". En
+        // github pages de proyecto, con "/" la PWA instalada abre el perfil de
+        // github del usuario en vez de la app, y el service worker queda
+        // registrado fuera del directorio donde vive.
+        scope: base,
+        start_url: base,
         icons: [
           {
             src: 'icons/icon-72x72.png',
@@ -82,14 +117,14 @@ export default defineConfig({
             name: 'Escanear producto',
             short_name: 'Escanear',
             description: 'Abrir escáner de código de barras',
-            url: '/#scan',
+            url: `${base}#scan`,
             icons: [{ src: 'icons/scan-shortcut.png', sizes: '96x96' }]
           },
           {
             name: 'Agregar producto',
             short_name: 'Agregar',
             description: 'Crear nuevo producto',
-            url: '/#add',
+            url: `${base}#add`,
             icons: [{ src: 'icons/add-shortcut.png', sizes: '96x96' }]
           }
         ]

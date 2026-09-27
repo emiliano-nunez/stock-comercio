@@ -1,0 +1,29 @@
+# Configuración de Netlify.
+#
+# La app es estática: Netlify sólo compila y publica dist/. No hay funciones, ni
+# cabeceras propias, ni backend.
+#
+# La ruta de publicación NO se toca acá a propósito. Netlify sirve desde la raíz
+# del dominio, así que la app tiene que publicarse en "/", que es el valor por
+# defecto de RUTA_PUBLICA en vite.config.js. Fijarla acá sólo serviría para que
+# alguien la cambiara sin darse cuenta y dejara la app en blanco.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# El service worker y el index.html no se cachean en el navegador. Sin esto, un
+# deploy nuevo puede quedar invisible hasta que el usuario recargue a mano, que
+# es justo lo que hace notar un cambio del service worker.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"

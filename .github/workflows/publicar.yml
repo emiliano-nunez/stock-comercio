@@ -1,0 +1,76 @@
+name: Publicar
+
+# Publica la app en GitHub Pages en cada push a main.
+#
+# La app es estática: esto compila y sube dist/, no hay nada más que desplegar.
+#
+# La ruta de publicación sale del NOMBRE del repo, y no de un valor escrito a
+# mano, porque es la parte que se olvida: si el build sale con la ruta de la raíz
+# y el repo es un proyecto de Pages, el HTML pide los archivos en /assets/... en
+# vez de /<repo>/assets/... y la página queda en blanco sin dar ningún error.
+#
+# Un repo de usuario (el que se llama "usuario.github.io") se sirve en la raíz
+# del dominio, así que su ruta es "/" y no "/usuario.github.io/". Por eso el
+# cálculo tiene esa condición y no es simplemente el nombre del repo.
+
+on:
+  push:
+    branches: [main]
+  # Se puede disparar a mano desde la pestaña Actions, útil para republicar sin
+  # tocar nada.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Una sola publicación a la vez. Sin esto, dos pushes seguidos pueden terminar
+# publicando el build más viejo al final.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Calcular la ruta de publicación
+        id: ruta
+        run: |
+          REPO="${{ github.event.repository.name }}"
+          if [ "$REPO" = "${REPO%.github.io}" ]; then
+            # Repo de usuario: se sirve en la raíz del dominio.
+            echo "valor=/" >> "$GITHUB_OUTPUT"
+          else
+            echo "valor=/$REPO/" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Publicando en: $REPO -> $(cat "$GITHUB_OUTPUT" | tail -1 | cut -d= -f2)"
+
+      - name: Compilar
+        run: npm run build
+        env:
+          VITE_BASE_PATH: ${{ steps.ruta.outputs.valor }}
+
+      - uses: actions/configure-pages@v5
+        id: pages
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
