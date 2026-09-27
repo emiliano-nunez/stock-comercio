@@ -19,6 +19,11 @@
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow-x: hidden;
     max-width: 100vw;
+    /* En una pantalla de PC la app se dibuja en una columna angosta centrada y
+       este color es lo que se ve a los costados. Sin él, el borde de la columna
+       no se distingue del fondo y la app parece cortada. En el teléfono, que
+       ocupa todo el ancho, no se ve nunca. */
+    background-color: theme('colors.gray.200');
   }
   
   /* Prevenir zoom en inputs en iOS */
@@ -82,6 +87,23 @@
   
   .stock-badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold;
+  }
+  
+  /*
+   * Botón de agregar producto.
+   *
+   * Es fixed, así que se ancla a la VENTANA y no a la columna de la app. Con la
+   * columna centrada, un right-4 de pantalla lo dejaba botado en la esquina
+   * opuesta de la app, a tres pantallas de la última tarjeta. El margen se
+   * calcula contra la mitad de la ventana menos la mitad de la columna: en
+   * pantallas angostas el cálculo da negativo y gana el 1rem de siempre, que es
+   * el comportamiento de teléfono que ya tenía.
+   */
+  .btn-fab {
+    position: fixed;
+    bottom: 1.5rem;
+    right: max(1rem, calc(50vw - 24rem + 1rem));
+    z-index: 50;
   }
   
   .stock-ok { @apply bg-primary-100 text-primary-800; }

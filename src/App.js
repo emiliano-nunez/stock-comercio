@@ -233,7 +233,7 @@ export class App {
     
     const app = document.getElementById('app');
     app.innerHTML = `
-      <div class="min-h-screen flex flex-col safe-area-inset bg-gray-50 overflow-x-hidden">
+      <div class="min-h-screen flex flex-col safe-area-inset bg-gray-50 overflow-x-hidden w-full max-w-3xl mx-auto shadow-sm">
         <header class="bg-white border-b border-gray-100 sticky top-0 z-40 overflow-x-hidden">
           <div class="px-3 py-2.5">
             <div class="flex items-center justify-between gap-2">
@@ -308,7 +308,7 @@ export class App {
         
         <button 
           id="btn-agregar-fab" 
-          class="fixed bottom-6 right-4 z-50 btn-primary shadow-xl shadow-primary-600/40 flex items-center justify-center text-touch safe-bottom"
+          class="btn-fab btn-primary shadow-xl shadow-primary-600/40 flex items-center justify-center text-touch safe-bottom"
           aria-label="Agregar producto"
           style="width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"
         >
@@ -353,8 +353,20 @@ export class App {
     }
     
     const visibles = this.productosVisibles();
-    return visibles.map(p => this.renderProductoHTML(p)).join('')
-      + this.renderCargarMasHTML(visibles);
+    // Grilla, con una columna en el teléfono y dos a partir de 768px de ancho de
+    // PANTALLA, que es cuando la columna de la app ya llegó a su tope de 48rem.
+    //
+    // El corte va en md y no en sm a propósito. La tarjeta de inventario lleva
+    // tres filas de controles (ajuste rápido, duplicar/editar/eliminar) y con la
+    // miniatura al costado necesita unos 254px de contenido: a 640px de pantalla
+    // dos columnas darían 305px de tarjeta, unos 190px de contenido, y el botón
+    // de eliminar se caería de la fila. Con md, la columna ya mide 768px y cada
+    // tarjeta 370px, que es lo que la tarjeta esperaba.
+    return `
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        ${visibles.map(p => this.renderProductoHTML(p)).join('')}
+      </div>
+    ` + this.renderCargarMasHTML(visibles);
   }
 
   /**
@@ -460,11 +472,11 @@ export class App {
         const productos = porEstado.get(estado.clave);
         return `
         <section class="mb-6">
-          <h3 class="text-touch font-bold text-gray-900 flex items-center gap-2 px-3 pb-1 border-b border-gray-200">
+          <h3 class="text-touch font-bold text-gray-900 flex items-center gap-2 pb-1 border-b border-gray-200">
             <span class="w-6 h-6 rounded-full flex-shrink-0" style="background-color: ${estado.color}"></span>
             ${esc(estado.etiqueta)} (${productos.length})
           </h3>
-          <div class="grid grid-cols-2 gap-3 mt-3 px-3">
+          <div class="grid grid-cols-2 gap-3 mt-3">
             ${productos.map(p => this.renderCatalogoItemHTML(p)).join('')}
           </div>
         </section>
@@ -619,8 +631,8 @@ export class App {
     const stockBadgeText = stock === 0 ? 'Agotado' : stock <= stockMinimo ? 'Poco' : 'OK';
     
     return `
-      <article class="card-touch bg-white rounded-2xl shadow-sm border border-gray-100 mb-3 overflow-hidden" data-id="${escAttr(p.id)}">
-        <div class="flex items-center gap-3 p-3">
+      <article class="card-touch bg-white rounded-2xl shadow-sm border border-gray-100 h-full overflow-hidden" data-id="${escAttr(p.id)}">
+        <div class="flex items-start gap-3 p-3 h-full">
           <div class="relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden">
             ${imagenHTML}
           </div>
@@ -657,8 +669,13 @@ export class App {
               ilegible. Además al repartir por igual (flex-1) cada botón mide
               ~81px en vez de 52: se tocan mejor y, con su texto, no hay que
               adivinar qué hace el ícono.
+
+              mt-auto las baja al pie de la tarjeta. En dos columnas las tarjetas
+              no miden lo mismo (una con el aviso de foto perdida es más alta), y
+              sin esto los botones de cada columna quedan a distinta altura y la
+              grilla se ve despareja.
             -->
-            <div class="flex items-center gap-1.5 pt-1 border-t border-gray-50">
+            <div class="flex items-center gap-1.5 pt-1 border-t border-gray-50 mt-auto">
               <button class="btn-ghost flex-1 inline-flex items-center justify-center gap-1 text-xs px-2 min-w-touch" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
                 <span aria-hidden="true">📋</span><span>Duplicar</span>
               </button>
