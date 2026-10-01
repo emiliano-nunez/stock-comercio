@@ -1,0 +1,309 @@
+/*
+ * Superficies: tarjetas, diálogos, insignias y avisos.
+ *
+ * Todo lo que tiene fondo propio y se apoya sobre otra cosa. Los diálogos son
+ * la parte con más cuidado: el velo tapa la app, el cuerpo encima, y el botón
+ * de agregar tiene que quedar entre los dos.
+ */
+
+/* =================================================================
+ * Tarjetas
+ * ================================================================= */
+
+.tarjeta {
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde-tenue);
+  border-radius: var(--radio-xl);
+  box-shadow: var(--sombra-sm);
+  overflow: hidden;
+}
+
+.tarjeta-padded {
+  padding: var(--espacio-4);
+}
+
+.tarjeta-cuerpo {
+  padding: var(--espacio-3);
+}
+
+/* La miniatura del producto. */
+.miniatura {
+  flex-shrink: 0;
+  width: 4rem;
+  height: 4rem;
+  background-color: var(--gris-100);
+  border-radius: var(--radio-lg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .miniatura {
+    width: 5rem;
+    height: 5rem;
+  }
+}
+
+/*
+ * La fila de acciones al pie de la tarjeta.
+ *
+ * El margen automático la baja al pie: en una grilla de dos columnas las
+ * tarjetas no miden lo mismo y sin esto los botones de cada columna quedan a
+ * distinta altura.
+ */
+.tarjeta-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: auto;
+  padding-top: var(--espacio-1);
+  border-top: 1px solid var(--color-borde-tenue);
+}
+
+/* =================================================================
+ * Diálogos
+ *
+ * El velo es lo que tapa la app y captura el toque de afuera. El cuerpo va
+ * encima. Los dos son fijos y no dependen uno del otro, así que el ancho
+ * máximo y el centrado se resuelven en cada uno.
+ * ================================================================= */
+
+.velo {
+  position: fixed;
+  inset: 0;
+  z-index: var(--capa-velo);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--espacio-4);
+
+  background-color: rgb(0 0 0 / 50%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  padding-top: calc(var(--espacio-4) + env(safe-area-inset-top));
+  padding-bottom: calc(var(--espacio-4) + env(safe-area-inset-bottom));
+}
+
+.dialogo {
+  position: relative;
+  z-index: var(--capa-dialogo);
+
+  width: 100%;
+  max-width: 28rem;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  background-color: var(--color-superficie);
+  border-radius: var(--radio-xl);
+  box-shadow: var(--sombra-xl);
+}
+
+.dialogo-ancho {
+  max-width: 40rem;
+}
+
+.dialogo-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+  padding: var(--espacio-4);
+  border-bottom: 1px solid var(--color-borde-tenue);
+}
+
+.dialogo-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  font-weight: var(--grosor-fuerte);
+}
+
+/*
+ * Cierre del diálogo, arriba a la derecha. Es un botón cuadrado con el mínimo
+ * táctil: el ✕ solo mide unos 16px y con eso el toque se pierde.
+ */
+.dialogo-cerrar {
+  flex-shrink: 0;
+  min-width: var(--toque-min);
+  min-height: var(--toque-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radio-lg);
+  color: var(--color-texto-suave);
+}
+
+.dialogo-cerrar:active {
+  background-color: var(--gris-100);
+}
+
+.dialogo-cuerpo {
+  padding: var(--espacio-4);
+}
+
+.dialogo-pie {
+  display: flex;
+  gap: var(--espacio-3);
+  justify-content: flex-end;
+  padding: 0 var(--espacio-4) var(--espacio-4);
+}
+
+/* El diálogo de confirmación usa un título con su propio color. */
+.dialogo-cabecera-peligro {
+  background-color: var(--color-peligro-tenue);
+}
+
+.dialogo-cabecera-peligro .dialogo-titulo {
+  color: var(--rojo-900);
+}
+
+/* =================================================================
+ * Insignias y etiquetas de color
+ * ================================================================= */
+
+.insignia {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  padding: var(--espacio-1) var(--espacio-3);
+  border-radius: var(--radio-full);
+  background-color: var(--gris-100);
+  color: var(--gris-700);
+  font-size: var(--texto-xs);
+  font-weight: var(--grosor-medio);
+  white-space: nowrap;
+}
+
+.insignia-pequena {
+  padding: 2px var(--espacio-2);
+  font-size: var(--texto-xs);
+}
+
+/* Estado del stock. El color lo decide el estado, no el que llama a la clase. */
+.insignia-ok {
+  background-color: var(--verde-100);
+  color: var(--verde-800);
+}
+
+.insignia-poco {
+  background-color: var(--ambar-100);
+  color: var(--ambar-700);
+}
+
+.insignia-sin {
+  background-color: var(--rojo-100);
+  color: var(--rojo-700);
+}
+
+.insignia-marca {
+  background-color: var(--color-marca-tenue);
+  color: var(--verde-800);
+}
+
+/* La categoría, como etiqueta chica sobre la tarjeta del catálogo. */
+.categoria-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  padding: 2px var(--espacio-2);
+  border-radius: var(--radio-sm);
+  background-color: var(--color-marca-tenue);
+  color: var(--verde-800);
+  font-size: var(--texto-xs);
+  font-weight: var(--grosor-medio);
+}
+
+/* =================================================================
+ * Avisos
+ *
+ * Un bloque con color propio que explica algo. El tono se elige con una clase
+ * más, no repitiendo el bloque entero.
+ * ================================================================= */
+
+.aviso {
+  padding: var(--espacio-3);
+  border-radius: var(--radio-lg);
+  border: 1px solid transparent;
+  font-size: var(--texto-sm);
+  line-height: var(--texto-sm-al);
+}
+
+.aviso-info {
+  background-color: var(--color-marca-tenue);
+  border-color: var(--verde-200);
+  color: var(--verde-800);
+}
+
+.aviso-peligro {
+  background-color: var(--color-peligro-tenue);
+  border-color: var(--rojo-200);
+  color: var(--rojo-700);
+}
+
+.aviso-atencion {
+  background-color: var(--color-aviso-tenue);
+  border-color: var(--ambar-200);
+  color: var(--ambar-700);
+}
+
+/* =================================================================
+ * Secciones con título
+ *
+ * El título de un grupo con su cantidad, y el contenido abajo. Es el patrón que
+ * usan el catálogo agrupado por stock y la lista de categorías.
+ * ================================================================= */
+
+.seccion {
+  margin-bottom: var(--espacio-6);
+}
+
+.seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  padding-bottom: var(--espacio-1);
+  border-bottom: 1px solid var(--color-borde);
+  font-weight: var(--grosor-fuerte);
+}
+
+.seccion-contenido {
+  margin-top: var(--espacio-3);
+}
+
+/* El punto de color que abre el título de la sección. */
+.seccion-punto {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radio-full);
+}
+
+/* =================================================================
+ * Avisos flotantes
+ * ================================================================= */
+
+.aviso-flotante {
+  position: fixed;
+  bottom: var(--espacio-16);
+  left: var(--espacio-3);
+  right: var(--espacio-3);
+  z-index: var(--capa-aviso);
+
+  padding: var(--espacio-3) var(--espacio-4);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-lg);
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .aviso-flotante {
+    left: auto;
+    right: var(--espacio-3);
+    width: 24rem;
+  }
+}

@@ -1,0 +1,230 @@
+/*
+ * Base: el reinicio y los valores que se heredan.
+ *
+ * Este archivo hace el trabajo que antes hacía el "preflight" de Tailwind, y le
+ * agrega algo que Tailwind no hacía: los elementos con estilo por etiqueta, sin
+ * clase. Un título toma su color del contenedor porque el color se hereda, y su
+ * tamaño lo define el selector de la etiqueta. Con eso, el HTML no repite
+ * "color de texto, negrita, tamaño" cuarenta veces: lo dice una vez acá y los
+ * hijos lo reciben.
+ *
+ * Orden de lectura del archivo:
+ *   1. Qué se hereda y qué no
+ *   2. El reinicio
+ *   3. Tipografía por etiqueta
+ *   4. Controles de formulario
+ *   5. Lo que sólo se ve en la app
+ */
+
+/* =================================================================
+ * 1. Qué se hereda y qué no
+ *
+ * La herencia es lo que hace que el CSS sea corto, pero tiene un límite: el
+ * tamaño y el color sí se heredan, y las propiedades de caja no. Por eso los
+ * botones y los campos, que reciben color del contenedor pero traen su propio
+ * tamaño y su propio fondo, secorrigen más abajo.
+ * ================================================================= */
+
+html {
+  box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  font-family: var(--fuente);
+  font-size: var(--texto-base);
+  line-height: var(--texto-base-al);
+  color: var(--color-texto);
+  margin: 0;
+
+  /*
+   * En una pantalla de PC la app se dibuja en una columna angosta centrada, y
+   * este color es lo que se ve a los costados. Sin él, el borde de la columna no
+   * se distingue del fondo y la app parece cortada. En el teléfono, que ocupa
+   * todo el ancho, nunca se ve.
+   */
+  background-color: var(--gris-200);
+
+  /* Nada se sale de la pantalla en horizontal. */
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* =================================================================
+ * 2. El reinicio
+ *
+ * Lo mínimo: que ningún navegador traiga su propio espaciado ni sus propios
+ * bordes de formulario.
+ * ================================================================= */
+
+h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
+  margin: 0;
+}
+
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, svg, video, canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--color-borde);
+  margin: var(--espacio-4) 0;
+}
+
+/*
+ * En iOS, un div con texto y sin nada que lo vuelva pulsable no es seleccionable
+ * y por eso el toque no dispara el clic. Con esto sí lo hace, sin perder la
+ * selección de texto donde sí tiene sentido.
+ */
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+/* El resaltado azul al tocar en Android queda horrible sobre el verde. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* =================================================================
+ * 3. Tipografía por etiqueta
+ *
+ * Aquí está la herencia. El color no se escribe en ningún título porque se
+ * hereda del contenedor; el tamaño y el grosor sí, porque cambian por jerarquía.
+ * ================================================================= */
+
+h1 {
+  font-size: var(--texto-lg);
+  line-height: var(--texto-lg-al);
+  font-weight: var(--grosor-fuerte);
+}
+
+h2 {
+  font-size: var(--texto-lg);
+  line-height: var(--texto-lg-al);
+  font-weight: var(--grosor-fuerte);
+}
+
+h3 {
+  font-size: var(--texto-base);
+  line-height: var(--texto-base-al);
+  font-weight: var(--grosor-medio);
+}
+
+/*
+ * iOS agranda automáticamente el texto de un campo con fuente menor a 16px, y
+ * con eso la página salta al enfocarlo. El mínimo de 16px es del navegador, no
+ * un gusto: es lo que evita el zoom.
+ */
+input,
+select,
+textarea {
+  font-size: max(16px, 1em);
+  font-family: inherit;
+  color: inherit;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-texto-tenue);
+}
+
+/* =================================================================
+ * 4. Controles de formulario
+ * ================================================================= */
+
+fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+/* =================================================================
+ * 5. Lo que sólo se ve en la app
+ * ================================================================= */
+
+/* Contenedor con desplazamiento sin barra visible. */
+.sin-barra::-webkit-scrollbar {
+  display: none;
+}
+
+.sin-barra {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Sólo para lectores de pantalla: el texto existe, no se ve. */
+.solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Quita el margen de toque doble de los controles, sin dejarlo sin efecto. */
+.sin-toque-doble {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* =================================================================
+ * Animaciones
+ * ================================================================= */
+
+@keyframes aparecer {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes subir {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bajar {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(20px); }
+}
+
+.anim-aparecer { animation: aparecer var(--transicion-media); }
+.anim-subir   { animation: subir var(--transicion-lenta); }
+.anim-bajar   { animation: bajar var(--transicion-media); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* A quien el movimiento le hace mal, no se le muestra. */
+  .anim-aparecer,
+  .anim-subir,
+  .anim-bajar {
+    animation: none;
+  }
+}

@@ -1,4 +1,23 @@
+/*
+ * Los estilos se cargan en este orden y el orden importa, porque el CSS se
+ * aplica de arriba abajo: lo que se escribe después gana cuando dos reglas dicen
+ * lo mismo con el mismo peso.
+ *
+ *   1. main.css     - los estilos viejos, con Tailwind. Se va al final de la
+ *                     migración.
+ *   2. tokens.css   - las variables: colores, tamaños, espacios.
+ *   3. disposicion  - el armazón: columna, cabecera, pestañas, rejilla.
+ *   4. controles    - botones y campos.
+ *   5. superficies  - tarjetas, diálogos, insignias, avisos.
+ *   6. base.css     - el reinicio y la tipografía por etiqueta. Se carga cuando
+ *                     ya no quede nada de Tailwind, porque reinicia los estilos
+ *                     base del navegador y pisa los de Tailwind.
+ */
 import './main.css';
+import './css/tokens.css';
+import './css/disposicion.css';
+import './css/controles.css';
+import './css/superficies.css';
 import './App.js';
 
 /**

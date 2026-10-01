@@ -1,0 +1,225 @@
+/*
+ * Controles: botones, campos y etiquetas.
+ *
+ * Un solo archivo con todo lo que la persona toca. La idea es que haya una clase
+ * base, `.btn`, con lo que comparten todos los botones, y encima variantes que
+ * sólo cambian el color. La forma, el alto mínimo y lo que pasa al tocarlos se
+ * escriben una vez, no en cada variante.
+ *
+ * El mínimo táctil son 52px en las DOS dimensiones. Por eso `.btn` declara
+ * min-width: los botones cuadrados de editar y eliminar se armaban con 36px o
+ * 44px de ancho, y con dedos grandes el toque se pierde.
+ */
+
+/* =================================================================
+ * Botones
+ * ================================================================= */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+
+  min-width: var(--toque-min);
+  min-height: var(--toque-min);
+  padding: var(--relleno-control);
+
+  border: 2px solid transparent;
+  border-radius: var(--radio-lg);
+  background-color: var(--color-superficie);
+  color: var(--color-texto);
+
+  font-size: var(--texto-base);
+  line-height: var(--texto-base-al);
+  font-weight: var(--grosor-fuerte);
+
+  transition: background-color var(--transicion-rapida),
+              border-color var(--transicion-rapida),
+              transform var(--transicion-rapida);
+}
+
+/* Lo que pasa mientras el dedo está sobre el botón. */
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-marca);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Un botón que ocupa todo el ancho disponible. */
+.btn-ancho {
+  width: 100%;
+}
+
+/* Botones que comparten una fila: se reparten el espacio. */
+.btn-crece {
+  flex: 1;
+}
+
+/* --- Variantes de color --- */
+
+.btn-principal {
+  background-color: var(--color-marca);
+  color: var(--color-texto-invertido);
+  box-shadow: var(--sombra-sm);
+}
+
+.btn-principal:active:not(:disabled) {
+  background-color: var(--color-marca-fuerte);
+}
+
+.btn-secundario {
+  background-color: var(--color-superficie);
+  color: var(--gris-700);
+  border-color: var(--color-borde);
+}
+
+.btn-secundario:active:not(:disabled) {
+  background-color: var(--gris-50);
+}
+
+.btn-peligro {
+  background-color: var(--color-peligro);
+  color: var(--color-texto-invertido);
+  box-shadow: var(--sombra-sm);
+}
+
+.btn-peligro:active:not(:disabled) {
+  background-color: var(--color-peligro-fuerte);
+}
+
+/*
+ * Botón sin fondo: el que vive en la cabecera, sobre una superficie blanca. El
+ * relleno transparente es para que el área de toque sea completa aunque el ícono
+ * sea chiquito.
+ */
+.btn-fantasma {
+  background-color: transparent;
+  color: var(--gris-600);
+  font-weight: var(--grosor-medio);
+}
+
+.btn-fantasma:active:not(:disabled) {
+  background-color: var(--gris-100);
+}
+
+/*
+ * Botón cuadrado de la cabecera. El padding se queda: sin él el área de toque
+ * sería el ícono solo, que es más chico que el mínimo táctil.
+ */
+.btn-icono {
+  padding: var(--espacio-2);
+  flex-shrink: 0;
+}
+
+/*
+ * Botón chico, para las filas de acción de una tarjeta: duplicar, editar,
+ * eliminar. No bajan de 52px, pero bajan de fuente y pierden el relleno.
+ */
+.btn-chico {
+  padding: var(--espacio-2);
+  font-size: var(--texto-xs);
+  font-weight: var(--grosor-medio);
+  gap: var(--espacio-1);
+}
+
+.btn-texto {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--gris-500);
+}
+
+.btn-texto:active:not(:disabled) {
+  background-color: var(--gris-100);
+  color: var(--color-peligro);
+}
+
+/* =================================================================
+ * Campos
+ * ================================================================= */
+
+.campo {
+  display: block;
+  width: 100%;
+  min-height: var(--toque-min);
+  padding: var(--relleno-control);
+
+  border: 2px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--color-superficie);
+  color: var(--color-texto);
+
+  font-size: var(--texto-base);
+  line-height: var(--texto-base-al);
+
+  transition: border-color var(--transicion-rapida), box-shadow var(--transicion-rapida);
+}
+
+.campo:focus {
+  outline: none;
+  border-color: var(--color-marca);
+  box-shadow: 0 0 0 3px var(--verde-100);
+}
+
+.campo:disabled {
+  background-color: var(--gris-50);
+  color: var(--gris-500);
+}
+
+/* El selector de opciones necesita su propia flecha y un poco más de alto. */
+.selector {
+  appearance: none;
+  padding-right: var(--espacio-8);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--espacio-3) center;
+  background-size: 12px;
+}
+
+.area-texto {
+  min-height: 5rem;
+  resize: vertical;
+  line-height: var(--texto-sm-al);
+}
+
+/* =================================================================
+ * Etiquetas de formulario
+ *
+ * El color y el tamaño se heredan del bloque del formulario: la etiqueta dice
+ * sólo cómo se ve, no de qué color es.
+ * ================================================================= */
+
+.etiqueta {
+  display: block;
+  margin-bottom: var(--espacio-1);
+  color: var(--gris-700);
+  font-size: var(--texto-sm);
+  font-weight: var(--grosor-medio);
+}
+
+/* El subtítulo de una sección del formulario. */
+.etiqueta-seccion {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  margin-bottom: var(--espacio-1);
+  color: var(--gris-700);
+  font-size: var(--texto-sm);
+  font-weight: var(--grosor-medio);
+}
+
+.campo-grupo {
+  margin-bottom: var(--espacio-4);
+}
+
+.campo-grupo-apretado {
+  margin-bottom: var(--espacio-2);
+}

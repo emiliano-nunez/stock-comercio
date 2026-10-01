@@ -1,0 +1,253 @@
+/*
+ * Disposición: el armazón de la app.
+ *
+ * Cómo se acomodan las cosas, sin importar cómo se vean. El archivo define la
+ * columna angosta y centrada, la cabecera que se queda pegada arriba, las
+ * pestañas, la rejilla y el botón flotante.
+ *
+ * Todos los contenedores de acá heredan el color y el tamaño de letra del
+ * cuerpo. Por eso los hijos no los repiten: un título de la cabecera no dice de
+ * qué color es, lo hereda.
+ */
+
+/* =================================================================
+ * La app
+ * ================================================================= */
+
+.app {
+  display: flex;
+  flex-direction: column;
+
+  /* Toda la app cabe en una columna angosta, también en una pantalla de PC.
+     En el teléfono esto no hace nada, porque el ancho disponible es menor. */
+  width: 100%;
+  max-width: var(--ancho-app);
+  margin-inline: auto;
+
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--color-fondo);
+  box-shadow: var(--sombra-md);
+  overflow-x: hidden;
+
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* =================================================================
+ * La cabecera
+ * ================================================================= */
+
+.cabecera {
+  position: sticky;
+  top: 0;
+  z-index: var(--capa-cabecera);
+  background-color: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde-tenue);
+
+  /* Acá se cambia el color de todo lo que hay adentro de la cabecera: el
+     título, los botones y las pestañas lo heredan. */
+  color: var(--color-texto);
+}
+
+.cabecera-cuerpo {
+  padding: var(--espacio-2) var(--espacio-3);
+}
+
+.cabecera-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+}
+
+/* El tamaño y el grosor los pone base.css por la etiqueta. Acá sólo el
+   alto mínimo, que es una regla táctil y no una cuestión de tipo. */
+.cabecera-titulo {
+  min-height: var(--toque-min);
+  display: flex;
+  align-items: center;
+}
+
+.cabecera-acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-1);
+}
+
+/* =================================================================
+ * El buscador
+ *
+ * El ícono de la lupa y el botón del escáner están arriba del campo, así que el
+ * contenedor es relativo y los dos se acomodan contra sus bordes.
+ * ================================================================= */
+
+.buscador {
+  position: relative;
+  margin-top: var(--espacio-2);
+}
+
+.buscador-campo {
+  padding-left: 2.5rem;
+  padding-right: 2.75rem;
+}
+
+.buscador-lupa {
+  position: absolute;
+  left: var(--espacio-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-texto-tenue);
+  font-size: var(--texto-lg);
+  pointer-events: none;
+}
+
+.buscador-boton {
+  position: absolute;
+  right: var(--espacio-2);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* =================================================================
+ * Las pestañas
+ * ================================================================= */
+
+.pestanas {
+  display: flex;
+  border-top: 1px solid var(--color-borde-tenue);
+  overflow-x: hidden;
+}
+
+.pestana {
+  flex: 1;
+  min-height: var(--toque-min);
+  padding: var(--espacio-2) var(--espacio-1);
+  border-bottom: 2px solid transparent;
+  color: var(--gris-600);
+  font-size: var(--texto-sm);
+  text-align: center;
+  transition: color var(--transicion-rapida), background-color var(--transicion-rapida);
+}
+
+.pestana-activa {
+  color: var(--color-marca-fuerte);
+  background-color: var(--color-marca-tenue);
+  border-bottom-color: var(--color-marca);
+}
+
+/* =================================================================
+ * El contenido
+ * ================================================================= */
+
+.contenido {
+  flex: 1;
+  padding: var(--espacio-3);
+  /* Espacio de abajo para que el botón flotante no tape la última tarjeta. */
+  padding-bottom: var(--espacio-16);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/*
+ * La rejilla del inventario: una columna en el teléfono y dos a partir de
+ * 768px de ancho de pantalla.
+ *
+ * El corte va en 768px y no más abajo a propósito. La tarjeta lleva tres filas de
+ * controles y con la miniatura al costado necesita unos 254px de contenido: a
+ * 640px de pantalla dos columnas darían 190px de contenido y el botón de
+ * eliminar se caería de la fila. A 768px la columna de la app ya llegó a su
+ * tope, así que cada tarjeta mide 370px.
+ */
+.rejilla {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espacio-3);
+}
+
+@media (min-width: 768px) {
+  .rejilla {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* =================================================================
+ * Filas
+ *
+ * Sólo hay cuatro, y son los que más se repiten. Un "contenido" o un "alineado"
+ * por cada variación sería una clase nueva que casi no dice nada.
+ * ================================================================= */
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+.fila-separada {
+  justify-content: space-between;
+}
+
+.fila-arriba {
+  align-items: flex-start;
+}
+
+.centrado {
+  justify-content: center;
+}
+
+/* =================================================================
+ * El botón de agregar
+ *
+ * Es fixed, así que se ancla a la VENTANA y no a la columna de la app. Con la
+ * columna centrada, un margen fijo lo dejaba botado en la esquina opuesta de la
+ * app. El margen se calcula contra la mitad de la ventana menos la mitad de la
+ * columna: en pantallas angostas el cálculo da negativo y gana el margen de
+ * teléfono de siempre.
+ * ================================================================= */
+
+.boton-flotante {
+  position: fixed;
+  bottom: calc(var(--espacio-6) + env(safe-area-inset-bottom));
+  right: max(var(--espacio-4), calc(50vw - (var(--ancho-app) / 2) + var(--espacio-4)));
+  z-index: var(--capa-flotante);
+
+  width: var(--toque-flotante);
+  height: var(--toque-flotante);
+  border-radius: var(--radio-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--texto-lg);
+  line-height: 1;
+}
+
+/* =================================================================
+ * Los estados vacíos
+ * ================================================================= */
+
+.vacio {
+  text-align: center;
+  padding: var(--espacio-12) 0;
+  color: var(--color-texto-suave);
+}
+
+.vacio-icono {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.vacio-icono-grande {
+  font-size: 3.75rem;
+  line-height: 1;
+}
+
+.vacio-titulo {
+  margin-top: var(--espacio-4);
+  font-weight: var(--grosor-medio);
+}
+
+.vacio-texto {
+  margin-top: var(--espacio-1);
+  font-size: var(--texto-sm);
+}
