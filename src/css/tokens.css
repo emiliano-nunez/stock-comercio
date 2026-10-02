@@ -1,12 +1,12 @@
 /*
  * Variables de la app.
  *
- * AcÃ¡ vive todo valor que se repite: colores, tamaÃ±os de letra, espacios, radios
- * y sombras. NingÃºn otro archivo escribe un color o un tamaÃ±o en crudo, asÃ­ que
- * cambiar la paleta o agrandar todo el texto se hace desde acÃ¡ y en un solo
+ * Acá vive todo valor que se repite: colores, tamaños de letra, espacios, radios
+ * y sombras. Ningún otro archivo escribe un color o un tamaño en crudo, así que
+ * cambiar la paleta o agrandar todo el texto se hace desde acá y en un solo
  * lugar.
  *
- * Se lee de arriba abajo: paleta, tipografÃ­a, espacio, medidas tÃ¡ctiles, radios,
+ * Se lee de arriba abajo: paleta, tipografía, espacio, medidas táctiles, radios,
  * sombras, capas y movimiento.
  */
 
@@ -14,8 +14,8 @@
   /* -----------------------------------------------------------------
    * Paleta
    *
-   * El gris es el fondo y el texto; el verde, la marca y lo que estÃ¡ bien; el
-   * Ã¡mbar, lo que hay que mirar; el rojo, lo que estÃ¡ mal. SÃ³lo estÃ¡n los tonos
+   * El gris es el fondo y el texto; el verde, la marca y lo que está bien; el
+   * ámbar, lo que hay que mirar; el rojo, lo que está mal. Sólo están los tonos
    * que la app usa: una paleta de diez pasos por color que nadie usa es ruido.
    * ----------------------------------------------------------------- */
 
@@ -31,7 +31,7 @@
   --gris-800: #1f2937;
   --gris-900: #111827;
 
-  /* Verde: la marca, lo que tiene stock, la acciÃ³n principal */
+  /* Verde: la marca, lo que tiene stock, la acción principal */
   --verde-50:  #f0fdf4;
   --verde-100: #dcfce7;
   --verde-200: #bbf7d0;
@@ -40,7 +40,7 @@
   --verde-700: #15803d;
   --verde-800: #166534;
 
-  /* Ãmbar: avisos y stock bajo */
+  /* Ámbar: avisos y stock bajo */
   --ambar-50:  #fffbeb;
   --ambar-100: #fef3c7;
   --ambar-200: #fde68a;
@@ -59,9 +59,9 @@
   /*
    * Roles: lo que la app llama con una palabra y no con un color.
    *
-   * Esta capa es la que hace que el CSS sea mantenible. Si maÃ±ana cambia el
-   * verde de la marca, se cambia acÃ¡ y no en los cuarenta lugares que hoy dicen
-   * "verde de stock bajo". Sin esta capa, cada color estÃ¡ repetido por todo el
+   * Esta capa es la que hace que el CSS sea mantenible. Si mañana cambia el
+   * verde de la marca, se cambia acá y no en los cuarenta lugares que hoy dicen
+   * "verde de stock bajo". Sin esta capa, cada color está repetido por todo el
    * proyecto y cambiar la paleta es buscar y reemplazar a mano.
    */
   --color-fondo:           var(--gris-50);
@@ -82,22 +82,23 @@
   --color-aviso-tenue:     var(--ambar-50);
 
   /* -----------------------------------------------------------------
-   * TipografÃ­a
+   * Tipografía
    *
-   * La app se usa con el dedo y a veces con guantes, asÃ­ que el cuerpo del
-   * texto no baja de 18px. Por debajo de eso el botÃ³n deja de leerse sin
+   * La app se usa con el dedo y a veces con guantes, así que el cuerpo del
+   * texto no baja de 18px. Por debajo de eso el botón deja de leerse sin
    * acercar la pantalla a la cara.
    * ----------------------------------------------------------------- */
   --fuente: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  --texto-xs:    0.75rem;   /* 12px: metadatos y cÃ³digos */
+  --texto-xs:    0.75rem;   /* 12px: metadatos y códigos */
   --texto-xs-al: 1rem;
   --texto-sm:    0.875rem;  /* 14px: texto secundario */
   --texto-sm-al: 1.25rem;
   --texto-base:  1.125rem;  /* 18px: el cuerpo de la app */
   --texto-base-al: 1.5rem;
-  --texto-lg:    1.25rem;   /* 20px: tÃ­tulos de diÃ¡logo */
+  --texto-lg:    1.25rem;   /* 20px: títulos de diálogo */
   --texto-lg-al: 1.75rem;
+  --texto-xl:    1.5rem;    /* 24px: los signos + y − del ajuste de stock */
 
   --grosor-normal: 400;
   --grosor-medio:  500;
@@ -106,8 +107,8 @@
   /* -----------------------------------------------------------------
    * Espacio
    *
-   * Escala de 4px. El nombre es el mÃºltiplo, para que en el CSS se lea el
-   * tamaÃ±o sin tener que hacer la cuenta: --espacio-2 son 8px.
+   * Escala de 4px. El nombre es el múltiplo, para que en el CSS se lea el
+   * tamaño sin tener que hacer la cuenta: --espacio-2 son 8px.
    * ----------------------------------------------------------------- */
   --espacio-0:  0;
   --espacio-1:  0.25rem;
@@ -121,27 +122,27 @@
   --espacio-12: 3rem;
   --espacio-16: 4rem;
 
-  /* Relleno interno de un control. El botÃ³n y el campo lo comparten. */
+  /* Relleno interno de un control. El botón y el campo lo comparten. */
   --relleno-control: var(--espacio-3) var(--espacio-4);
 
   /* -----------------------------------------------------------------
-   * Medidas tÃ¡ctiles
+   * Medidas táctiles
    *
-   * 52px es el mÃ­nimo, y es el mÃ­nimo en las DOS dimensiones: no es un ancho ni
+   * 52px es el mínimo, y es el mínimo en las DOS dimensiones: no es un ancho ni
    * un alto, son los dos a la vez. Por eso el ancho y el alto comparten
-   * variable, y no hay dos nÃºmeros que puedan dejar de coincidir.
+   * variable, y no hay dos números que puedan dejar de coincidir.
    * ----------------------------------------------------------------- */
   --toque-min:        52px;
   --toque-min-grande: 60px;
   --toque-flotante:   56px;
 
   /* Ancho máximo de la app. En una pantalla grande no se estira: se dibuja en
-  una columna angosta y centrada. */
+     una columna angosta y centrada. */
   --ancho-app: 48rem;
 
-  /* Tope de la foto de un producto, en tarjetas y en la hoja del detalle. La
-  foto no crece con la tarjeta: más allá de esto deja de ayudar a reconocer el
-  producto y lo único que agranda es la tarjeta. */
+  /* Tope de la foto de un producto, en las tarjetas y en la hoja del detalle.
+     La foto no crece con la tarjeta: más allá de esto deja de ayudar a reconocer
+     el producto y lo único que agranda es la tarjeta. */
   --tope-foto: 200px;
 
   /* -----------------------------------------------------------------
@@ -149,3 +150,27 @@
    * ----------------------------------------------------------------- */
   --radio-sm:   0.25rem;
   --radio-md:   0.5rem;
+  --radio-lg:   0.75rem;
+  --radio-xl:   1rem;
+  --radio-full: 9999px;
+
+  --sombra-sm: 0 1px 2px rgb(0 0 0 / 6%);
+  --sombra-md: 0 2px 6px rgb(0 0 0 / 8%);
+  --sombra-lg: 0 8px 24px rgb(0 0 0 / 12%);
+  --sombra-xl: 0 12px 32px rgb(0 0 0 / 18%);
+
+  /*
+   * Las capas van por número y de menor a mayor: el velo de un diálogo tapa la
+   * app, y el botón de agregar queda por encima de las tarjetas pero por debajo
+   * de un diálogo.
+   */
+  --capa-cabecera: 40;
+  --capa-flotante: 50;
+  --capa-velo:     60;
+  --capa-dialogo:   70;
+  --capa-aviso:    100;
+
+  --transicion-rapida: 100ms ease-out;
+  --transicion-media:  200ms ease-out;
+  --transicion-lenta:  300ms ease-out;
+}
