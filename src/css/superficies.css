@@ -65,8 +65,15 @@
 /*
  * La foto de una categoría: cuadrada. El borde punteado marca el lugar donde se
  * puede tocar para agregar, que es lo que un rectángulo vacío no dice.
+ *
+ * El position no es decorativo: es el ancla de todo lo que va encima de la
+ * foto. La insignia de stock, la franja, la etiqueta de la categoría y el botón
+ * de cerrar son position absolute y se colocan contra sus bordes. Sin esto se
+ * ancla al elemento positioned de más arriba, y la etiqueta de la categoría
+ * aparecía flotando en la esquina de la página, a tres fotos de la suya.
  */
 .marco-foto {
+  position: relative;
   width: 100%;
   aspect-ratio: 1;
   background-color: var(--gris-100);
