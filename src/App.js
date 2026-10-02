@@ -285,11 +285,11 @@ export class App {
             <div class="fila fila-separada">
               <h1 class="titulo">📦 Stock Comercio</h1>
               <div class="fila fila-corta">
-                <button id="btn-historial" class="btn-fantasma btn-icono" aria-label="Historial y restaurar">
-                  🔄
+                <button id="btn-historial" class="btn-texto" aria-label="Historial y restaurar">
+                  <span aria-hidden="true">🔄</span><span class="texto-boton">Historial</span>
                 </button>
-                <button id="btn-pedido" class="btn-fantasma btn-icono" aria-label="Pedido de faltantes">
-                  📋
+                <button id="btn-pedido" class="btn-texto" aria-label="Pedido de faltantes">
+                  <span aria-hidden="true">📋</span><span class="texto-boton">Pedido</span>
                 </button>
               </div>
             </div>
@@ -310,7 +310,7 @@ export class App {
             </div>
             
             <div class="con-margen-arriba">
-              <select id="ordenar-select" class="campo">
+              <select id="ordenar-select" class="campo selector" aria-label="Ordenar por">
                 <option value="nombre_asc" ${this.ordenarPor === 'nombre' && this.ordenDireccion === 'asc' ? 'selected' : ''}>🔤 Nombre A-Z</option>
                 <option value="nombre_desc" ${this.ordenarPor === 'nombre' && this.ordenDireccion === 'desc' ? 'selected' : ''}>🔤 Nombre Z-A</option>
                 <option value="stock_asc" ${this.ordenarPor === 'stock' && this.ordenDireccion === 'asc' ? 'selected' : ''}>📦 Stock menor</option>

@@ -7,6 +7,25 @@ import { toast } from '../utils/toast.js';
 import { esc, escAttr } from '../utils/html.js';
 import { normalizarTexto } from '../utils/texto.js';
 
+/**
+ * Qué hay adentro del bloque de detalles, en una línea.
+ *
+ * Va en el botón que lo abre. Sin esto, un producto con tres precios cargados se
+ * ve igual que uno recién creado, y el usuario no tiene forma de saber si abrir
+ * el bloque vale la pena.
+ *
+ * Se cuentan los precios con valor, no los que existen: un precio en cero es un
+ * campo que el usuario abrió y no llenó, no un precio.
+ */
+function resumenDetalles(form) {
+  const p = form.producto || {};
+  const precios = Array.isArray(p.precios) ? p.precios.filter(x => x.valor > 0) : [];
+  const partes = [];
+  if (p.costo > 0) partes.push('costo');
+  if (precios.length) partes.push(`${precios.length} ${precios.length === 1 ? 'precio' : 'precios'}`);
+  return partes.length ? partes.join(' · ') : 'costo, fecha y precios';
+}
+
 export class ProductoForm {
   constructor(onSave, onClose, producto = null, onScanExistente = null, onBorrarProducto = null) {
     this.onSave = onSave;
@@ -52,6 +71,53 @@ export class ProductoForm {
     // (no hay ningún producto que las referencie), así que se borran en cerrar().
     this._imagenesNuevas = new Set();
     this._guardado = false;
+    this.modoDetalles = ProductoForm.modoDetalles();
+    // El bloque arranca pliegado o desplegado, según el modo elegido y según si
+    // este producto ya tiene datos reviseables. Ver abrirDetalles().
+    this._detallesAbiertos = this.modoDetalles === 'segun-datos'
+      ? ProductoForm.tieneDetalles(producto)
+      : false;
+  }
+  
+  /*
+   * Cómo se pliega el bloque de detalles.
+   *
+   * Hay dos modos porque no hay uno que sirva siempre:
+   *
+   *   'siempre-cerrado'  el bloque arranca pliegado siempre. El formulario se
+   *                      ve corto y hay que tocar para llegar a los precios.
+   *
+   *   'segun-datos'      el bloque arranca pliegado en un alta y desplegado si
+   *                      el producto ya tiene costo o precios. Quien está
+   *                      editando algo con precio no tiene que abrirlo cada vez.
+   *
+   * El modo se guarda entre sesiones porque el usuario tiene que elegir uno y
+   * que le vuelva al mismo al abrir el formulario al día siguiente. La clave
+   * lleva el nombre de la app para no pisar nada de otra cosa del mismo
+   * navegador.
+   *
+   * Se lee defensivamente: si el valor guardado no es uno de los dos modos se
+   * usa el segundo, que es el que menos molesta. Un localStorage corrupto no
+   * puede dejar el formulario sin poder abrir.
+   */
+  static MODO_DETALLES = 'stock-comercio:detalles';
+  
+  static modoDetalles() {
+    try {
+      const guardado = localStorage.getItem(ProductoForm.MODO_DETALLES);
+      return guardado === 'siempre-cerrado' || guardado === 'segun-datos'
+        ? guardado
+        : 'segun-datos';
+    } catch {
+      return 'segun-datos';
+    }
+  }
+  
+  /** ¿Este producto ya tiene algo guardado en el bloque de detalles? */
+  static tieneDetalles(producto) {
+    if (!producto?.id) return false;
+    if (producto.costo > 0) return true;
+    return Array.isArray(producto.precios) && producto.precios.some(p => p.valor > 0);
   }
   
   async abrir() {
@@ -127,6 +193,40 @@ export class ProductoForm {
    * El filtro no se parece en mayúsculas ni en tildes, igual que la búsqueda
    * principal. Si el usuario busca "sur" tiene que salir "Distribuidora del Sur".
    */
+  bindDetalles(modal) {
+    const btn = modal.querySelector('#btn-detalles');
+    const bloque = modal.querySelector('#bloque-detalles');
+    const btnModo = modal.querySelector('#btn-modo-detalles');
+    if (!btn || !bloque) return;
+
+    btn.addEventListener('click', () => {
+      this._detallesAbiertos = !this._detallesAbiertos;
+      bloque.classList.toggle('oculto', !this._detallesAbiertos);
+      bloque.hidden = !this._detallesAbiertos;
+      btn.setAttribute('aria-expanded', String(this._detallesAbiertos));
+      const rotulo = btn.querySelector('.detalle.fuerte');
+      if (rotulo) rotulo.textContent = `${this._detallesAbiertos ? 'Ocultar' : 'Ver'} detalles y precios`;
+    });
+
+    btnModo?.addEventListener('click', () => {
+      this.modoDetalles = this.modoDetalles === 'siempre-cerrado' ? 'segun-datos' : 'siempre-cerrado';
+      try {
+        localStorage.setItem(ProductoForm.MODO_DETALLES, this.modoDetalles);
+      } catch {
+        // Sin localStorage el modo sirve igual en esta sesión, sólo no se recuerda.
+      }
+      btnModo.textContent = this.modoDetalles === 'siempre-cerrado'
+        ? '⚙️ Detalles: siempre cerrados · tocar para abrir si tiene datos'
+        : '⚙️ Detalles: se abren si tiene datos · tocar para cerrarlos siempre';
+
+      // El cambio de modo no aplica al bloque ya abierto: si el usuario lo abrió
+      // a mano, se respeta. El modo decide cómo arranca el próximo formulario.
+      toast.info(this.modoDetalles === 'siempre-cerrado'
+        ? 'Los detalles van a quedar siempre cerrados'
+        : 'Los detalles se van a abrir si el producto ya tiene datos');
+    });
+  }
+  
   bindProveedor(modal) {
     const campo = modal.querySelector('#proveedor');
     const lista = modal.querySelector('#proveedor-lista');
@@ -508,6 +608,32 @@ export class ProductoForm {
             </div>
           </div>
           
+          <!--
+            Botón grande que abre y cierra el bloque de más abajo. Va por
+            afuera del bloque y no adentro a propósito: si estuviera dentro,
+            cerrarlo lo escondería y no se podría volver a abrir.
+          -->
+          <button
+            type="button"
+            id="btn-detalles"
+            class="boton-plegable con-margen-arriba"
+            aria-expanded="${this._detallesAbiertos}"
+            aria-controls="bloque-detalles"
+          >
+            <span class="columna">
+              <span class="detalle fuerte">${this._detallesAbiertos ? 'Ocultar' : 'Ver'} detalles y precios</span>
+              <span class="micro apagado">${resumenDetalles(this)}</span>
+            </span>
+            <svg class="flecha-plegable tenue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          
+          <button type="button" id="btn-modo-detalles" class="btn-secundario btn-ancho detalle con-margen-arriba-chica">
+            ${this.modoDetalles === 'siempre-cerrado'
+              ? '⚙️ Detalles: siempre cerrados · tocar para abrir si tiene datos'
+              : '⚙️ Detalles: se abren si tiene datos · tocar para cerrarlos siempre'}
+          </button>
+          
+          <div id="bloque-detalles" class="bloque-plegable apilado-3 ${this._detallesAbiertos ? '' : 'oculto'}" ${this._detallesAbiertos ? '' : 'hidden'}>
           <!-- Costo -->
           <div>
             <label for="costo" class="etiqueta">💵 Costo (${unidadBase})</label>
@@ -611,6 +737,7 @@ export class ProductoForm {
               ➕ Agregar otro precio
             </button>
           </div>
+          </div>
           
           <!--
             Proveedor y notas van al final del formulario, no antes de los
@@ -674,6 +801,7 @@ export class ProductoForm {
     const form = modal.querySelector('#form-producto');
     
     this.bindProveedor(modal);
+    this.bindDetalles(modal);
     
     // Cerrar
     modal.querySelector('#cerrar-form').addEventListener('click', () => this.cerrar());

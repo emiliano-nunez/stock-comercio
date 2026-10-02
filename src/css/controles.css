@@ -153,9 +153,26 @@
   color: var(--gris-500);
 }
 
+/*
+ * Un botón fantasma con ícono y texto, como "🔄 Historial" en la cabecera.
+ *
+ * Se hunde en gris, no en rojo. El rojo era para el botón de borrar un precio, y
+ * un botón de la cabecera que se pone rojo al tocar dice "esto borra algo" sin
+ * que lo haga. El que sí es destructivo lleva `texto-peligro`, y ese lo pinta
+ * rojo de verdad.
+ */
 .btn-texto:active:not(:disabled) {
   background-color: var(--gris-100);
-  color: var(--color-peligro);
+  color: var(--color-texto);
+}
+
+/* El texto se esconde en pantalla angosta y queda sólo el ícono. El `aria-label`
+   de cada botón ya dice qué es, así que sin texto sigue siendo un botón con
+   nombre para el lector de pantalla. */
+@media (max-width: 400px) {
+  .texto-boton {
+    display: none;
+  }
 }
 
 /*
@@ -310,10 +327,19 @@
   padding-inline-start: 1.75rem;
 }
 
-/* El campo del buscador, con hueco para la lupa y para el botón del escáner. */
+/*
+ * El campo del buscador, con hueco para la lupa y para el botón del escáner.
+ *
+ * Sólo va el `padding`, que es lo del control. El `position: relative` del
+ * contenedor y la lupa y el botón viven en disposicion.css, que es donde está
+ * todo lo que se posiciona contra un borde. Antes esta clase estaba definida
+ * en las dos hojas, con valores distintos y con propiedades físicas en una y
+ * lógicas en la otra: ganaba la última, y cambiar un valor en el lugar
+ * equivocado no hacía nada.
+ */
 .buscador-campo {
   padding-inline-start: 2.5rem;
-  padding-inline-end: 2.75rem;
+  padding-inline-end: 4.25rem;
 }
 
 /* Un campo con un valor y un botón pegado a la derecha, como el que muestra la

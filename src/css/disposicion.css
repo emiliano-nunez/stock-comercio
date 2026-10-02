@@ -88,10 +88,9 @@
   margin-top: var(--espacio-2);
 }
 
-.buscador-campo {
-  padding-left: 3rem;
-  padding-right: 4.25rem;
-}
+/* El hueco del campo del buscador va en controles.css, junto al resto de los
+   campos. Acá sólo va lo que se posiciona contra un borde: la lupa y el botón
+   del escáner. */
 
 .buscador-lupa {
   position: absolute;

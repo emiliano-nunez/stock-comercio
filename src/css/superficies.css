@@ -412,6 +412,61 @@
   border-top: 1px solid var(--color-borde-tenue);
 }
 
+/*
+ * El botón que abre y cierra el bloque de detalles del formulario.
+ *
+ * Es una fila entera y no un botón chico pegado al borde porque es lo que dice
+ * si el bloque va a estar abierto o cerrado, y eso hay que leerlo antes de
+ * tocar. Con un ícono de flecha solo hay que tocar y ver qué pasó.
+ *
+ * El borde de arriba va siempre: separa el bloque de lo que está arriba aunque
+ * el bloque esté abierto, y ahí es un simple filete de separación.
+ */
+.boton-plegable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+  width: 100%;
+  min-height: var(--toque-min-grande);
+  padding: var(--relleno-control);
+  text-align: left;
+  background-color: var(--gris-100);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  color: var(--color-texto);
+}
+
+.boton-plegable:active {
+  background-color: var(--gris-200);
+}
+
+/* El rótulo del botón y lo que tiene al lado van en columnas propias para que
+   el texto largo envuelva sin empujar la flecha. */
+.boton-plegable .columna {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* La flecha del botón. Gira hacia abajo cuando el bloque está abierto, para no
+   depender de leer el texto. */
+.boton-plegable .flecha-plegable {
+  flex-shrink: 0;
+  transition: transform var(--transicion-rapida);
+}
+
+.boton-plegable[aria-expanded="true"] .flecha-plegable {
+  transform: rotate(180deg);
+}
+
+/* El contenido plegable. No lleva animación: medir el alto real para animarlo
+   obliga a leerlo del DOM en cada apertura, y en un formulario largo el bloque
+   salta de golpe, que es lo que se quiere ver. */
+.bloque-plegable {
+  margin-block-start: var(--espacio-3);
+}
+
 /* =================================================================
  * Diálogos
  *
