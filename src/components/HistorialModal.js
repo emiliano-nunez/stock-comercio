@@ -3,6 +3,47 @@ import { toast } from '../utils/toast.js';
 import { esc, escAttr } from '../utils/html.js';
 import { exportarBackup, importarBackup, descargarBackup, leerBackupArchivo } from '../utils/backup.js';
 
+/**
+ * Cómo se actualiza la app, en palabras de a uno.
+ *
+ * Está acá y no en un instructivo suelto porque la pregunta "no me aparece lo
+ * nuevo" le va a salir a cualquiera, y la respuesta corta es siempre la misma.
+ *
+ * La app se actualiza sola. Lo que hace falta es abrirla de nuevo: guarda lo
+ * último para que funcione aunque no haya internet, y por eso guarda también la
+ * versión anterior hasta que la app queda cerrada del todo.
+ *
+ * No se pide reinstalar. Si alguien desinstala para "arreglarlo", pierde el
+ * inventario, que vive sólo en ese dispositivo y no está en ningún servidor.
+ */
+function avisoActualizacion() {
+  return `
+    <div class="recuadro recuadro-suave apilado-chico">
+      <details>
+        <summary class="etiqueta">Actualizar la app</summary>
+        <div class="apilado-chico con-margen-arriba-chica">
+          <p class="micro">
+            La app se actualiza sola, no hay que hacer nada.
+          </p>
+          <p class="micro">
+            Si no ves un cambio nuevo, <strong class="fuerte">cerrá la app del todo</strong>
+            (no la tapes, sacala de la pantalla de apps) y abrila de nuevo.
+          </p>
+          <p class="micro">
+            <strong class="fuerte">No la borres</strong> para actualizarla. Tus
+            productos están guardados en este aparato y no hay copia en otro
+            lado: si la borrás, los perdés.
+          </p>
+          <p class="micro apagado">
+            Tu versión es la <strong class="fuerte">${esc(__VERSION__)}</strong>.
+            Mirá abajo, al final del inventario.
+          </p>
+        </div>
+      </details>
+    </div>
+  `;
+}
+
 export class HistorialModal {
   constructor(onRestore, onClose) {
     this.onRestore = onRestore;
@@ -112,6 +153,7 @@ export class HistorialModal {
           <button id="cerrar-historial" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
         </div>
         ${cuerpo}
+        ${avisoActualizacion()}
         <div class="dialogo-pie apilado pie-suave">
           <div class="fila">
             <button id="btn-exportar-backup" class="btn-secundario btn-crece detalle">📤 Exportar Backup</button>

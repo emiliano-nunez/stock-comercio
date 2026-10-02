@@ -427,6 +427,27 @@
   justify-content: center;
   font-size: var(--texto-lg);
   line-height: 1;
+  
+  /*
+  * El fondo y la sombra van acá y no en un atributo `style`.
+  *
+  * El reinicio de base.css le pone `background: none` a todos los botones, así
+  * que sin esto el botón flotante queda transparente y sólo se ve el signo +
+  * dibujado encima de las tarjetas. La sombra es la que lo despega del
+  * contenido: sin ella, un círculo de color plano encima de una foto no se
+  * distingue de nada.
+  *
+  * Con :active baja y se oscurece, que es el único aviso de que el toque se
+  * registró sin esperar a que aparezca la pantalla nueva.
+  */
+  background-color: var(--color-marca);
+  color: var(--color-texto-invertido);
+  box-shadow: var(--sombra-lg);
+}
+  
+.boton-flotante:active {
+  background-color: var(--color-marca-fuerte);
+  transform: scale(0.95);
 }
 
 /* =================================================================

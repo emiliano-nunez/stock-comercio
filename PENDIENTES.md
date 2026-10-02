@@ -114,8 +114,63 @@ El resto del checklist de validación está en el README.
 ### Ya comprobado en el teléfono
 
 El usuario probó la app instalada y confirmó que la cámara abre y que la PWA se
-instala bien. Todo lo demás de las dos listas de arriba sigue sin verse en un
-dispositivo.
+instala bien.
+
+### Falta probar en el teléfono
+
+Todo lo de esta lista se cambió o se decidió en esta tanda y todavía nadie lo
+miró en un aparato. Casi nada se puede comprobar desde el escritorio.
+
+- [ ] **El lector de códigos.** Se arregló: la zona de escaneo estaba en 0,8
+      píxeles y la cámara se veía pero no se leía nada. Falta escanear un EAN de
+      verdad y confirmar que lo detecta.
+- [ ] **La tarjeta de actualización.** Se cambió de `autoUpdate` a `prompt`: la
+      versión nueva ahora espera a que el usuario toque "Actualizar ahora" en vez
+      de activarse sola. Falta provocar una versión nueva y ver que aparece la
+      tarjeta, que el botón la aplica y que la app queda en la versión nueva.
+- [ ] **El pie con la versión.** Debe decir `v1.0.4` abajo del inventario, en
+      las dos versiones: la del host y la publicada. Es para distinguir cuál de
+      las dos se está probando.
+- [ ] **El buscador de proveedores.** Escribir dos letras y ver si la lista sale,
+      si no queda cortada abajo con muchos proveedores, y si al elegir uno se
+      escribe el nombre tal cual.
+- [ ] **La búsqueda sin tildes.** `limon` tiene que encontrar `Limón`.
+- [ ] **Notas con varios renglones.** Escribirlas con enters, guardar, y
+      abrirlas otra vez en la hoja del producto: los saltos tienen que estar.
+- [ ] **El ajuste de stock en la hoja.** El + y el − de arriba de Editar/Cerrar,
+      y que el número del centro cambie al tocarlos.
+- [ ] **El botón flotante de agregar.** Estaba sin fondo: el reinicio de
+      `base.css` le pone `background: none` a todos los botones y la clase nunca
+      lo compensó, así que se veía sólo el signo + sobre las tarjetas.
+- [ ] **El formulario con todas las opciones a la vez.** El bloque plegable se
+      sacó por decisión del usuario: ahora costo, fecha, calculadora y precios
+      se ven siempre. Confirmar que se llega bien al final y que "Agregar otro
+      precio" sigue agregando.
+- [ ] **La grilla del catálogo en pantalla grande:** 3 columnas en el celular y 4
+      en PC, con la foto tope de 200px.
+- [ ] **La grilla del inventario en pantalla grande:** 1 columna en el celular y 2
+      en PC, que es distinta de la del catálogo a propósito.
+- [ ] **El pedido por proveedor.** Que los grupos salgan bien, que copiar un
+      proveedor copie sólo el suyo, y que "copiar los que no tienen proveedor"
+      no mezcle los otros.
+- [ ] **El color de categoría al azar:** que dos categorías seguidas casi nunca
+      salgan del mismo color.
+- [ ] **Los dos accesos directos** de la pantalla de inicio abren el escáner y el
+      formulario.
+- [ ] **La app funciona sin conexión**, con la app ya abierta y con la app
+      cerrada.
+
+### Lo que cambió de verdad y hay que volver a mirar
+
+Estos son cambios de aspecto, no de traducción. Los tres de la lista de arriba
+siguen valiendo, y se suman estos:
+
+- La cabecera pasó a tener "Historial" y "Pedido" con texto, no sólo el ícono.
+- El desplegable de orden ahora usa la flecha de la app en vez de la del
+  sistema.
+- Las notas se muestran en un papelito amarillo, sin marco negro al escribirlas.
+- El selector de orden y el buscador compartían una clase CSS definida en dos
+  hojas con valores distintos; ahora está en una sola.
 
 ---
 
@@ -158,9 +213,11 @@ app se vea fea: eso lo decide una persona mirando su teléfono.
 - [ ] Los dos accesos directos de la pantalla de inicio abren el escáner y el
       formulario.
 - [ ] La app funciona sin conexión, con la app ya abierta y con la app cerrada.
-- [ ] El service worker con `autoUpdate` puede mostrar la versión anterior durante
-      las pruebas. Si un cambio parece no aplicarse, recargar a mano antes de
-      diagnosticarlo como un error.
+- [ ] El service worker ahora usa `prompt`: la versión nueva NO se activa sola, espera
+      a que el usuario toque "Actualizar ahora". Eso es a propósito, y también
+      significa que si se abre la app y no se toca ese botón, se sigue viendo la
+      versión anterior. Para probar cambios hay que tocarlo o recargar a mano
+      dos veces.
 
 ### Lo que costó encontrar
 

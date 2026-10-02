@@ -95,6 +95,7 @@ export class App {
       this.render();
       this.bindEvents();
       this.registrarServiceWorker();
+      this.vigilarActualizacion();
       this.atenderAtajo();
       
     } catch (error) {
@@ -349,16 +350,16 @@ export class App {
         </header>
         
         <main class="contenido" id="contenido-principal">
+          ${this.renderTarjetaActualizacionHTML()}
           ${this.renderVistaHTML()}
         </main>
         
-        <button 
-          id="btn-agregar-fab" 
+        <button
+          id="btn-agregar-fab"
           class="boton-flotante"
           aria-label="Agregar producto"
-          style="width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"
         >
-          <span class="grande" style="line-height: 1;">➕</span>
+          <span class="grande" aria-hidden="true">＋</span>
         </button>
       </div>
     `;
@@ -1021,6 +1022,7 @@ export class App {
     document.getElementById('btn-historial')?.addEventListener('click', () => this.abrirHistorial());
     document.getElementById('btn-pedido')?.addEventListener('click', () => this.abrirPedido());
     document.getElementById('btn-agregar-fab')?.addEventListener('click', () => this.nuevoProducto());
+    document.getElementById('btn-actualizar-ahora')?.addEventListener('click', () => this.aplicarActualizacion());
     document.getElementById('btn-nueva-categoria')?.addEventListener('click', () => this.abrirModalCategoria());
     document.getElementById('btn-nueva-categoria-vacia')?.addEventListener('click', () => this.abrirModalCategoria());
     
@@ -1615,6 +1617,130 @@ export class App {
     if (import.meta.env.DEV) {
       console.debug('[SW] Registro gestionado por vite-plugin-pwa (registerSW.js)');
     }
+  }
+
+  /**
+   * Avisa cuando hay una versión nueva esperando, y la aplica cuando el usuario
+   * lo decide.
+   *
+   * Con `registerType: 'prompt'` el service worker nuevo NO se activa solo: queda
+   * esperando a un lado y el control sigue siendo del viejo. Por eso hay algo
+   * que avisar, y por eso el aviso puede ser una tarjeta y no un refresco
+   * silencioso.
+   *
+   * Dos momentos en que puede haber algo esperando:
+   *
+   *   - la app abre y ya había uno esperando de la visita anterior. Es el caso
+   *     más común: el usuario cerró la app sin terminar de actualizar.
+   *
+   *   - la app está abierta y llega una versión nueva. Sale del evento
+   *     `updatefound`, que dispara el navegador cuando descarga un worker
+   *     distinto al que está activo.
+   *
+   * La tarjeta es un botón y no un aviso flotante porque no se puede perder: si
+   * el usuario la ignora, sigue ahí en cada pantalla.
+   */
+  vigilarActualizacion() {
+    if (!('serviceWorker' in navigator)) return;
+    // En desarrollo no hay service worker: /sw.js sólo existe después del build,
+    // y tratar de registrarlo acá tiraría un error de MIME type en la consola.
+    if (import.meta.env.DEV) return;
+
+    const avisar = () => {
+      this.hayActualizacion = true;
+      this.render();
+    };
+
+    const vigilar = (registro) => {
+      if (!registro) return;
+
+      // Ya había uno esperando de antes.
+      if (registro.waiting) {
+        avisar();
+        return;
+      }
+
+      registro.addEventListener('updatefound', () => {
+        const entrante = registro.installing;
+        if (!entrante) return;
+        entrante.addEventListener('statechange', () => {
+          // 'installed' con un control previo significa que hay una versión
+          // nueva esperando. Sin control previo es la primera instalación de
+          // todo, y en ese caso no hay nada que actualice.
+          if (entrante.state === 'installed' && navigator.serviceWorker.controller) {
+            avisar();
+          }
+        });
+      });
+    };
+
+    // El registro lo hace vite-plugin-pwa desde registerSW.js, en el evento
+    // 'load'. init() es async y puede terminar antes o después de ese evento, así
+    // que se consulta el registro varias veces en vez de esperar a un evento que
+    // puede que ya haya pasado.
+    let intentos = 0;
+    const consultar = () => {
+      navigator.serviceWorker.getRegistration().then(registro => {
+        if (registro) {
+          vigilar(registro);
+        } else if (++intentos < 20) {
+          setTimeout(consultar, 500);
+        }
+      });
+    };
+    consultar();
+  }
+
+  /**
+   * Aplica la versión que estaba esperando y recarga.
+   *
+   * No se recarga antes de que el worker nuevo tome el control: si se recargara
+   * con el viejo todavía activo, la página volvería a pedir los archivos viejos
+   * y la actualización no pasaría. Por eso se espera al `controllerchange`.
+   */
+  aplicarActualizacion() {
+    const boton = document.getElementById('btn-actualizar-ahora');
+    if (boton) {
+      boton.disabled = true;
+      boton.textContent = 'Actualizando...';
+    }
+
+    navigator.serviceWorker.getRegistration().then(registro => {
+      const entrante = registro?.waiting;
+      if (!entrante) {
+        // No hay nada esperando: se recarga igual, porque el worker viejo ya
+        // quedó sin control y en la próxima carga toma el nuevo.
+        location.reload();
+        return;
+      }
+      navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), { once: true });
+      entrante.postMessage({ type: 'SKIP_WAITING' });
+    });
+  }
+
+  /**
+   * La tarjeta de "hay una versión nueva".
+   *
+   * Va arriba de todo y no abajo de un desplegable porque es lo único que
+   * cambia solo en la pantalla sin que el usuario haga nada: si queda escondida,
+   * se pierde, y una actualización perdida es la app vieja sin explicación.
+   */
+  renderTarjetaActualizacionHTML() {
+    if (!this.hayActualizacion) return '';
+    return `
+      <div class="recuadro recuadro-marca apilado">
+        <div class="etiqueta-seccion">⬇️ Hay una versión nueva</div>
+        <p class="detalle">
+          La app se actualiza sola, pero necesita que la cierres y la abras de
+          nuevo. Tus productos no se pierden: están guardados en este aparato.
+        </p>
+        <button
+          type="button"
+          id="btn-actualizar-ahora"
+          class="btn-principal btn-ancho con-margen-arriba"
+        >Actualizar ahora</button>
+      </div>
+    `;
   }
 }
 

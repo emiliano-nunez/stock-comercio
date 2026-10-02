@@ -60,7 +60,18 @@ export default defineConfig({
   },
   plugins: [
     VitePWA({
-      registerType: 'autoUpdate',
+      /*
+       * 'prompt' y no 'autoUpdate'.
+       *
+       * Con autoUpdate la versión nueva se activa sola y en silencio: entra el
+       * service worker nuevo, controlando la página, y no se dice nada. Para el
+       * usuario es un cambio de versión que aparece solo y nadie le pidió.
+       *
+       * Con 'prompt' la versión nueva queda esperando a un lado y la app puede
+       * avisar y dejar que el usuario elija el momento. Eso alimenta la tarjeta
+       * "hay una versión nueva" de App.js. Ver vigilarActualizacion().
+       */
+      registerType: 'prompt',
       // Lo que hay que meter en la precarga a mano son los archivos que
       // index.html pide y que no entran ni por el manifiesto ni por el
       // agrupado de los assets. Antes pedía 'apple-touch-icon.png', que no

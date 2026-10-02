@@ -1,6 +1,6 @@
 # Stock Comercio - PWA Control de Inventario Local-First
 
-**Versión 1.0.3** · el mismo número de `package.json`, que es de donde sale el que muestra la app al pie del inventario.
+**Versión 1.0.4** · el mismo número de `package.json`, que es de donde sale el que muestra la app al pie del inventario.
 
 Aplicación de control de stock diseñada para comerciantes con baja alfabetización digital, funcionando 100% offline en dispositivos de gama baja (ej. Samsung Galaxy A10 con 2GB RAM).
 
