@@ -346,11 +346,32 @@
   color: var(--ambar-700);
 }
 
+/*
+ * El área escribe sobre el papel, sin recuadro. Eso incluye el estado de foco:
+ * `.campo:focus` pinta un borde de 3px que sobre el amarillo se lee como un
+ * marco negro alrededor del papelito, y rompe la idea de que se está escribiendo
+ * encima de una hoja.
+ *
+ * El textarea NO lleva la clase `campo` a propósito: si la llevara heredaría ese
+ * foco verde. Por eso el foco se apaga acá a mano.
+ *
+ * Y para no perder del todo la señal de dónde se está escribiendo, el papel se
+ * oscurece un tono al enfocarse. Es un cambio de fondo, no un marco: no rompe la
+ * vista y sigue diciendo "acá".
+ */
 .pos-it .area-texto {
   flex: 1;
   padding: 0;
   background-color: transparent;
   border-color: transparent;
+  transition: background-color var(--transicion-rapida);
+}
+
+.pos-it .area-texto:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: none;
+  background-color: var(--ambar-200);
 }
 
 /* El bloque de texto largo que se puede desplazar, como el detalle de un

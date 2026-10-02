@@ -43,9 +43,11 @@ let abierta = null;
  * @param {object}   opciones.producto    el producto tal como lo carga la app
  * @param {object[]} opciones.categorias  todas, para resolver nombres y colores
  * @param {Function} [opciones.onEditar]  se llama con el producto al pedir editar
+ * @param {Function} [opciones.onAjustar] recibe +1 o -1 y devuelve el stock nuevo,
+ *   o null si no se pudo guardar
  * @returns {{ cerrar: Function }}        para poder cerrarla desde afuera
  */
-export function abrirDetalleProducto({ producto, categorias = [], onEditar }) {
+export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAjustar }) {
   const p = producto;
   if (!p) return { cerrar() {} };
 
@@ -56,6 +58,9 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar }) {
 
   const tipo = TIPOS_VENTA.find(t => t.value === p.tipoVenta) || TIPOS_VENTA[0];
   const unidadStock = getUnidadBase(p.tipoVenta);
+  // Cuánto mueve cada toque el ajuste. Se muestra junto al número para que un
+  // stock que sube de a uno no parezca un error de tipeo.
+  const step = tipo.step;
   const principal = getUnidadPrincipal(p);
   const precio = getPrecioPrincipal(p);
   const stock = p.stock || 0;
@@ -81,9 +86,9 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar }) {
     filas.push(`<tr><th scope="row">${esc(dato)}</th><td class="planilla-valor ${extra}">${valor}</td></tr>`);
   };
 
-  fila('Stock', `${stock} <span class="tenue">${esc(unidadStock)}</span>`);
+  fila('Stock', `${stock} <span class="tenue">${esc(unidadStock)}</span>`, 'js-detalle-stock');
   fila('Mínimo', `${stockMinimo} <span class="tenue">${esc(unidadStock)}</span>`);
-  fila('Estado', `<span class="insignia ${claseEstado}">${textoEstado}</span>`);
+  fila('Estado', `<span class="insignia ${claseEstado}">${textoEstado}</span>`, 'js-detalle-estado');
 
   // El precio sale en la unidad corta (unidad, kg, 500g) y no en el nombre largo
   // de la opción ("Por Kilo (kg)"), porque es lo mismo que se usa en la tarjeta y
@@ -134,6 +139,33 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar }) {
 
   const notas = (p.notas || '').trim();
 
+  /*
+   * El ajuste de stock vive acá y no en la tarjeta.
+   *
+   * En la tarjeta ocupaba dos filas de cada producto y sólo hace falta mientras
+   * se está vendiendo o cargando un pedido. Acá es el lugar natural: el usuario
+   * abrió la hoja justo para mirar el stock, y si lo va a cambiar es porque
+   * lo está leyendo.
+   *
+   * El rótulo va en su propia línea arriba de los botones, y no al lado. En una
+   * fila sola los tres controles con su mínimo táctil de 52px más el rótulo y la
+   * unidad no entran en un teléfono, y lo que sobra es el texto: se ve cortado
+   * sin aviso. Arriba, el rótulo se lee entero o pasa a dos líneas, pero nunca
+   * se corta.
+   */
+  const ajustarHTML = `
+    <div class="apilado-chico con-margen-abajo-chica">
+      <span class="micro medio tenue ancho-entero">Ajuste de stock · ${esc(unidadStock)} · ${esc(step)} por toque</span>
+      <div class="fila fila-centro">
+        <button type="button" class="btn-resta" id="detalle-resta"
+          aria-label="Quitar ${escAttr(step)} ${escAttr(unidadStock)}">−</button>
+        <span class="campo-numero" id="detalle-stock">${stock}</span>
+        <button type="button" class="btn-suma" id="detalle-suma"
+          aria-label="Agregar ${escAttr(step)} ${escAttr(unidadStock)}">+</button>
+      </div>
+    </div>
+  `;
+
   const modal = document.createElement('div');
   modal.className = 'velo';
   modal.innerHTML = `
@@ -163,15 +195,18 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar }) {
         ${notas ? `
           <div class="pos-it">
             <div class="etiqueta-seccion">📝 Notas</div>
-            <p class="detalle">${esc(notas)}</p>
+            <p class="detalle texto-libre">${esc(notas)}</p>
           </div>
         ` : ''}
       </div>
 
-      <div class="dialogo-pie dialogo-pie-fija">
-        <button type="button" id="detalle-editar" class="btn-secundario btn-crece">✏️ Editar</button>
-        <button type="button" id="detalle-cerrar-pie" class="btn-principal btn-crece">Cerrar</button>
-      </div>
+      <div class="dialogo-pie dialogo-pie-fija apilado">
+          ${ajustarHTML}
+          <div class="fila">
+            <button type="button" id="detalle-editar" class="btn-secundario btn-crece">✏️ Editar</button>
+            <button type="button" id="detalle-cerrar-pie" class="btn-principal btn-crece">Cerrar</button>
+          </div>
+        </div>
     </div>
   `;
 
@@ -189,6 +224,43 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar }) {
     if (e.key === 'Escape') cerrar();
   };
   document.addEventListener('keydown', alTeclado);
+
+  /*
+   * Los botones de más y menos.
+   *
+   * El ajuste lo hace la app, que es la que sabe guardar y refrescar el
+   * inventario. Acá sólo se le pide y se pinta lo que devuelve: si el guardado
+   * falla, ajustarStock devuelve null y el número no se mueve, así que la hoja
+   * nunca muestra un stock que no está guardado.
+   *
+   * La insignia de estado de la planilla se refresca en el mismo paso, porque el
+   * renglón de stock y el de estado son el mismo dato dicho de dos formas y
+   * verlos distintos en la misma pantalla invite a desconfiar de los dos.
+   */
+  const pintarStock = (nuevo) => {
+    const numero = modal.querySelector('#detalle-stock');
+    if (numero) numero.textContent = nuevo;
+    
+    const celdaEstado = modal.querySelector('.js-detalle-estado');
+    if (!celdaEstado) return;
+    const bajo = nuevo === 0 ? 'vacio' : nuevo <= stockMinimo ? 'poco' : 'ok';
+    const clases = bajo === 'vacio' ? 'insignia-sin' : bajo === 'poco' ? 'insignia-poco' : 'insignia-ok';
+    const texto = bajo === 'vacio' ? 'Agotado' : bajo === 'poco' ? 'Poco' : 'OK';
+    celdaEstado.className = `planilla-valor js-detalle-estado`;
+    celdaEstado.innerHTML = `<span class="insignia ${clases}">${texto}</span>`;
+    
+    const celdaStock = modal.querySelector('.js-detalle-stock');
+    if (celdaStock) celdaStock.innerHTML = `${nuevo} <span class="tenue">${esc(unidadStock)}</span>`;
+  };
+
+  const ajustar = async (delta) => {
+    if (!onAjustar) return;
+    const nuevo = await onAjustar(delta);
+    if (nuevo !== null && nuevo !== undefined) pintarStock(nuevo);
+  };
+
+  modal.querySelector('#detalle-suma')?.addEventListener('click', () => ajustar(1));
+  modal.querySelector('#detalle-resta')?.addEventListener('click', () => ajustar(-1));
 
   modal.querySelector('#detalle-cerrar').addEventListener('click', cerrar);
   modal.querySelector('#detalle-cerrar-pie').addEventListener('click', cerrar);

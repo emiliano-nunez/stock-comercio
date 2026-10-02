@@ -153,6 +153,24 @@
   word-break: break-all;
 }
 
+/*
+ * Texto que escribió el usuario con enters de por medio, como las notas del
+ * producto.
+ *
+ * Sin esto el navegador junta los renglones: HTML apila los espacios en blanco,
+ * así que unas notas de cuatro líneas se leen como un párrafo largo y se pierde
+ * dónde cortó cada idea.
+ *
+ * Lleva `.rompe-palabras` adentro porque van siempre juntos: si pegó algo sin
+ * espacios, como un código de barras de 30 dígitos, esa palabra sola empuja el
+ * scroll horizontal del diálogo.
+ */
+.texto-libre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
 .centro-texto {
   text-align: center;
 }

@@ -887,27 +887,14 @@ export class App {
               </div>
               ${avisoFotoPerdida}
             </div>
-            <div id="ajuste-${escAttr(p.id)}" class="fila fila-separada envuelto separador-arriba relleno-superior-1 oculto">
-              <span class="micro medio tenue ancho-entero">Ajuste rápido:</span>
-              <div class="fila ancho-cero">
-                <button class="btn-resta" data-action="decrement" data-id="${escAttr(p.id)}" aria-label="Quitar ${escAttr(step)} ${escAttr(unidad)}">
-                  −
-                </button>
-                <span class="campo-numero js-stock-numero">${stock}</span>
-                <button class="btn-suma" data-action="increment" data-id="${escAttr(p.id)}" aria-label="Agregar ${escAttr(step)} ${escAttr(unidad)}">
-                  +
-                </button>
-              </div>
-            </div>
             <!--
-              Las acciones van en su propia fila y no arriba en la esquina: con iconos de
-              52px, varias en la fila del título se comen el ancho que queda al
-              lado de la miniatura y el nombre queda ilegible.
+              Las acciones van en su propia fila y no arriba en la esquina: con
+              iconos de 52px, varias en la fila del título se comen el ancho que
+              queda al lado de la miniatura y el nombre queda ilegible.
 
-              El ajuste de stock entra acá y no siempre a la vista. Los botones
-              de más y menos ocupan dos filas de la tarjeta y sólo hacen falta
-              mientras se está vendiendo o cargando un pedido; el resto del
-              tiempo son ruido.
+              El ajuste de stock no está acá. Ocupaba dos filas y sólo hace falta
+              mientras se está vendiendo o cargando un pedido; ahora vive en la
+              hoja del producto, que es donde uno va a mirarlo para decidir.
 
               mt-auto las baja al pie de la tarjeta. En dos columnas las tarjetas
               no miden lo mismo (una con el aviso de foto perdida es más alta), y
@@ -915,9 +902,6 @@ export class App {
               grilla se ve despareja.
             -->
             <div class="fila fila-corta con-margen-arriba-auto separador-arriba relleno-superior-1">
-              <button class="btn-fantasma btn-crece btn-chico" data-action="toggle-ajuste" data-id="${escAttr(p.id)}" aria-label="Ajustar stock de ${escAttr(p.nombre)}" aria-expanded="false">
-                <span aria-hidden="true">±</span><span>Ajustar</span>
-              </button>
               <button class="btn-fantasma btn-crece btn-chico" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
                 <span aria-hidden="true">📋</span><span>Duplicar</span>
               </button>
@@ -1027,14 +1011,6 @@ export class App {
       const action = btn.dataset.action;
       
       switch (action) {
-        case 'toggle-ajuste': {
-          const fila = document.getElementById('ajuste-' + id);
-          if (fila) {
-            const oculta = fila.classList.toggle('oculto');
-            btn.setAttribute('aria-expanded', String(oculta === false));
-          }
-          break;
-        }
         case 'increment':
           this.ajustarStock(id, 1);
           break;
@@ -1082,7 +1058,8 @@ export class App {
     abrirDetalleProducto({
       producto,
       categorias: this.categorias,
-      onEditar: p => this.editarProducto(p.id)
+      onEditar: p => this.editarProducto(p.id),
+      onAjustar: delta => this.ajustarStock(producto.id, delta)
     });
   }
   
@@ -1116,8 +1093,10 @@ export class App {
       } else if (producto.stock === 0) {
         toast.error(`❌ ${producto.nombre}: Agotado`);
       }
+      return producto.stock;
     } catch (error) {
       toast.error('Error ajustando stock');
+      return null;
     } finally {
       this._ajustandoStock[id] = false;
     }
@@ -1126,9 +1105,9 @@ export class App {
   /**
    * Reflejar en el DOM el nuevo stock de un producto, sin volver a pintar todo.
    *
-   * Se actualizan tres cosas de la tarjeta: el número central, el badge de
-   * estado (Agotado / Poco / OK) y el "Mín: N" no cambia pero se refresca junto
-   * con el badge para que no quede desfasado si algún día se toca.
+   * Sólo se actualiza la insignia de estado. El número grande que había acá
+   * murió con el ajuste de stock de la tarjeta: ahora los botones viven en la
+   * hoja del producto y son los de esa hoja los que se refrescan.
    *
    * Si la tarjeta no está en el DOM (está más allá del límite de render, o la
    * vista cambió entre el click y el await) no se hace nada: el próximo
@@ -1142,13 +1121,9 @@ export class App {
     const stock = producto.stock || 0;
     const stockMinimo = producto.stockMinimo || 0;
     
-    // Número central del ajuste rápido
-    const numero = card.querySelector('.js-stock-numero');
-    if (numero) numero.textContent = stock;
-    
     // Insignia de estado. Se reescribe entera con className, así que la clase
     // de estado va primero y el gancho de JavaScript va con ella: sin el
-    // "js-stock-badge" el próximo ajuste rápido no encontraría la insignia.
+    // "js-stock-badge" el próximo ajuste no encontraría la insignia.
     const badge = card.querySelector('.js-stock-badge');
     if (badge) {
       const clases = stock === 0
