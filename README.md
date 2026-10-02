@@ -1,5 +1,7 @@
 # Stock Comercio - PWA Control de Inventario Local-First
 
+**Versión 1.0.3** · el mismo número de `package.json`, que es de donde sale el que muestra la app al pie del inventario.
+
 Aplicación de control de stock diseñada para comerciantes con baja alfabetización digital, funcionando 100% offline en dispositivos de gama baja (ej. Samsung Galaxy A10 con 2GB RAM).
 
 ## 🚀 Características Principales
@@ -20,7 +22,7 @@ Aplicación de control de stock diseñada para comerciantes con baja alfabetizac
 |------------|------------|
 | Build | Vite.js |
 | PWA/Offline | vite-plugin-pwa + Workbox |
-| UI | TailwindCSS |
+| UI | CSS propio con variables |
 | Base de Datos | IndexedDB + Dexie.js |
 | Cámara | getUserMedia (API nativa) |
 | Escáner | html5-qrcode |
@@ -105,28 +107,38 @@ Abrir app → Ver inventario → Tocar [+] Agregar
 
 ```
 ├── index.html              # Entry point HTML
-├── vite.config.js          # Config Vite + PWA
-├── tailwind.config.js      # Colores, tamaños touch, safe-area
-├── postcss.config.js       # PostCSS plugins
-├── package.json
+├── vite.config.js          # Config Vite + PWA + inyección de versión
+├── package.json            # De acá sale la versión que muestra la app
 ├── public/
-│   ├── manifest.json       # PWA Manifest
+│   ├── favicon.ico
 │   ├── icons/              # Iconos PWA (generar con generar-iconos.html)
 │   └── generar-iconos.html # Herramienta para crear PNGs
 └── src/
-    ├── main.js             # Bootstrap
-    ├── main.css            # Tailwind + componentes custom
+    ├── main.js             # Bootstrap y orden de carga del CSS
     ├── db.js               # Dexie schema + utils
     ├── App.js              # Componente principal
+    ├── css/                # 7 hojas, en el orden que carga main.js
+    │   ├── tokens.css      # Variables: colores, espacios, medidas táctiles
+    │   ├── disposicion.css # Columna, cabecera, pestañas, rejillas
+    │   ├── controles.css   # Botones, campos, etiquetas
+    │   ├── superficies.css # Tarjetas, diálogos, insignias, avisos
+    │   ├── tipografia.css   # Tamaños y alineación de texto
+    │   ├── espacios.css    # Márgenes y rellenos
+    │   └── base.css        # Reinicio; se carga AL FINAL
     ├── utils/
     │   ├── imagen.js       # Compresión WebP <100KB
+    │   ├── texto.js        # Normalización para buscar y comparar
+    │   ├── backup.js       # Exportar e importar el inventario
+    │   ├── html.js         # Escapar texto de usuario
     │   └── toast.js        # Notificaciones + Deshacer
     └── components/
         ├── CamaraModal.js  # getUserMedia + canvas + compresión
         ├── ScannerModal.js # html5-qrcode + vibración + beep
+        ├── CodigoDuplicado.js # Código repetido entre productos
         ├── ProductoForm.js # Formulario adaptativo unidad/peso
+        ├── ProductoDetalle.js # Hoja del producto en planilla
         ├── HistorialModal.js # Lista de snapshots + restaurar + liberar fotos
-        └── PedidoModal.js  # Faltantes → WhatsApp
+        └── PedidoModal.js  # Faltantes por proveedor → WhatsApp
 ```
 
 ## 📊 Esquema de Base de Datos (IndexedDB)
@@ -194,12 +206,13 @@ Notas:
   antes de que existieran las miniaturas no la tienen y usan `blob`: no hace
   falta migración. El backup exporta `blob` pero no `thumb`.
 
-## 🎨 Guía UX/UI (Baja Alfabetización Digital)
+## 🎨 Guía UX/UI
 
-- **Botones mínimos 52px** (accesibilidad táctil), en alto **y** en ancho.
-  Tailwind lo expone como `min-h-touch min-w-touch` (ver `tailwind.config.js`).
-  Los +/− del ajuste rápido y el de deshacer del toast están en 52px; los de
-  duplicar / editar / eliminar miden ~81px por el reparto en partes iguales.
+- **Botones mínimos 52px** (accesibilidad táctil), en alto **y** en ancho. Vive
+  en `--toque-min` (`src/css/tokens.css`) y los botones lo toman de ahí, así
+  que el mínimo y el ancho no pueden dejar de coincidir. Los +/− del ajuste de
+  stock y el de deshacer del toast están en 52px; los de duplicar / editar /
+  eliminar miden ~81px por el reparto en partes iguales.
 - **Texto + Ícono** en las acciones principales. Los botones duplicar / editar /
   eliminar van en su propia fila al pie de la tarjeta, repartidos por igual
   (~81px cada uno en un teléfono de 360px, por encima del mínimo de 52): con
