@@ -315,6 +315,44 @@
   border-color: var(--verde-100);
 }
 
+/*
+ * El papelito de notas del producto.
+ *
+ * Va amarillo y con sombra propia para que se lea como algo aparte del resto
+ * del formulario: las notas son texto libre del usuario, no un dato más de la
+ * planilla, y con el mismo fondo que los demás campos se perdían en medio de
+ * ellos.
+ *
+ * La franja de arriba es la solapa del papel. Sin ella es un rectángulo
+ * amarillo más, y es lo único que lo hace parecer un post-it y no un campo
+ * resaltado.
+ *
+ * El campo de escritura va transparente y sin borde para que el texto se
+ * escriba sobre el papel y no dentro de un recuadro dibujado encima. El alto
+ * mínimo de .area-texto no se toca: es lo que lo mantiene táctil.
+ */
+.pos-it {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  padding: var(--espacio-3);
+  background-color: var(--ambar-100);
+  border-block-start: var(--espacio-1) solid var(--ambar-200);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-md);
+}
+
+.pos-it .etiqueta-seccion {
+  color: var(--ambar-700);
+}
+
+.pos-it .area-texto {
+  flex: 1;
+  padding: 0;
+  background-color: transparent;
+  border-color: transparent;
+}
+
 /* El bloque de texto largo que se puede desplazar, como el detalle de un
    producto con muchos precios. */
 .bloque-datos {

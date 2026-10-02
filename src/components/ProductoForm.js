@@ -379,32 +379,6 @@ export class ProductoForm {
             </div>
           </div>
           
-          <!-- Proveedor -->
-          <div>
-            <label for="proveedor" class="etiqueta">🚚 Proveedor</label>
-            <input
-              type="text"
-              id="proveedor"
-              name="proveedor"
-              class="campo"
-              placeholder="Ej: Distribuidora del Sur"
-              value="${escAttr(this.producto?.proveedor || '')}"
-              autocomplete="off"
-            >
-          </div>
-          
-          <!-- Notas -->
-          <div>
-            <label for="notas" class="etiqueta">📝 Notas</label>
-            <textarea
-              id="notas"
-              name="notas"
-              class="campo area-texto"
-              rows="3"
-              placeholder="Ej: este distribuidor me trae los productos ordenados"
-            >${esc(this.producto?.notas || '')}</textarea>
-          </div>
-          
           <!-- Costo -->
           <div>
             <label for="costo" class="etiqueta">💵 Costo (${unidadBase})</label>
@@ -507,6 +481,36 @@ export class ProductoForm {
             >
               ➕ Agregar otro precio
             </button>
+          </div>
+          
+          <!--
+            Proveedor y notas van al final del formulario, no antes de los
+            precios. Las notas son texto libre del usuario, un papel aparte:
+            metidas en medio de los campos se perdían entre el costo y la
+            calculadora, y no era el último dato que completaba.
+          -->
+          <div>
+            <label for="proveedor" class="etiqueta">🚚 Proveedor</label>
+            <input
+              type="text"
+              id="proveedor"
+              name="proveedor"
+              class="campo"
+              placeholder="Ej: Distribuidora del Sur"
+              value="${escAttr(this.producto?.proveedor || '')}"
+              autocomplete="off"
+            >
+          </div>
+          
+          <div class="pos-it">
+            <label for="notas" class="etiqueta-seccion">📝 Notas de este producto</label>
+            <textarea
+              id="notas"
+              name="notas"
+              class="area-texto"
+              rows="3"
+              placeholder="Ej: este distribuidor me trae los productos ordenados"
+            >${esc(this.producto?.notas || '')}</textarea>
           </div>
           
           <!-- Espacio para que no se tape el botón sticky -->

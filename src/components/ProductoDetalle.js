@@ -161,7 +161,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar }) {
         </table>
 
         ${notas ? `
-          <div class="recuadro recuadro-marca apilado">
+          <div class="pos-it">
             <div class="etiqueta-seccion">📝 Notas</div>
             <p class="detalle">${esc(notas)}</p>
           </div>
