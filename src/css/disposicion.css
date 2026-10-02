@@ -330,10 +330,30 @@
   gap: var(--espacio-2);
 }
 
-.cuadricula-3 {
+/*
+ * La misma cuadrícula, pero de una sola columna en el teléfono.
+ *
+ * El corte está en 480px y no en 768px porque la medida no la da la pantalla sino
+ * la fila de controles que tiene que entrar adentro. La fila de stock es un
+ * botón de 52px, un campo y otro botón de 52px, y el campo no baja de 36px
+ * aunque le quede el ancho justo: 52 + 6 + 36 + 6 + 52 son 152px, más los 32px
+ * de relleno del diálogo. En dos columnas a 320px de pantalla cada una quedaba
+ * de 124px y el botón de sumar se salía de la caja.
+ *
+ * Por eso las dos cuadrículas del formulario usan esta y no la de arriba: la del
+ * catálogo sí aguanta dos columnas en un teléfono angosto, porque cada hijo es un
+ * renglón de texto y no tres controles de 52px.
+ */
+.cuadricula-apilada {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--espacio-2);
+}
+
+@media (min-width: 480px) {
+  .cuadricula-apilada {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* =================================================================

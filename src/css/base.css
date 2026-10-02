@@ -22,13 +22,16 @@
  * La herencia es lo que hace que el CSS sea corto, pero tiene un límite: el
  * tamaño y el color sí se heredan, y las propiedades de caja no. Por eso los
  * botones y los campos, que reciben color del contenedor pero traen su propio
- * tamaño y su propio fondo, secorrigen más abajo.
+ * tamaño y su propio fondo, se corrigen más abajo.
  * ================================================================= */
 
 html {
   box-sizing: border-box;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Nada se sale de la pantalla en horizontal, ni la página ni el html. */
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 *,
@@ -43,6 +46,8 @@ body {
   line-height: var(--texto-base-al);
   color: var(--color-texto);
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 
   /*
    * En una pantalla de PC la app se dibuja en una columna angosta centrada, y
@@ -178,8 +183,7 @@ fieldset {
 }
 
 /* Sólo para lectores de pantalla: el texto existe, no se ve. Vive en
-   disposicion.css y no acá, porque base.css todavía no se carga y mientras tanto
-   estas etiquetas se veían en pantalla. */
+   disposicion.css y no acá. */
 
 /* Quita el margen de toque doble de los controles, sin dejarlo sin efecto. */
 .sin-toque-doble {
@@ -191,8 +195,8 @@ fieldset {
 /* =================================================================
  * Animaciones
  *
- * Estaban en este archivo y acá no se cargan todavía, así que los diálogos y
- * los avisos aparecían sin movimiento. Ahora viven en superficies.css, que sí
- * está cargado, y el reinicio de este archivo los va a pisar si se deixa
- * duplicados acá.
+ * No hay nada acá a propósito. Las animaciones de entrada y de salida viven en
+ * superficies.css, junto a los diálogos y a los avisos que se mueven. Este
+ * archivo es el reinicio: si también tuviera las suyas, la última en escribirse
+ * ganaría y el orden en que se cargan los dos dejaría de importar.
  * ================================================================= */

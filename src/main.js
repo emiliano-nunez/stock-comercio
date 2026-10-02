@@ -3,26 +3,27 @@
  * aplica de arriba abajo: lo que se escribe después gana cuando dos reglas dicen
  * lo mismo con el mismo peso.
  *
- *   1. main.css     - los estilos viejos, con Tailwind. Se va al final de la
- *                     migración.
- *   2. tokens.css   - las variables: colores, tamaños, espacios.
- *   3. disposicion  - el armazón: columna, cabecera, pestañas, rejilla.
- *   4. controles    - botones y campos.
- *   5. superficies  - tarjetas, diálogos, insignias, avisos.
- *   6. tipografia   - tamaños de texto y estados vacíos.
- *   7. espacios     - rellenos y márgenes sueltos.
- *   8. app.css      - lo propio de esta app y no de la app en general.
+ *   1. tokens.css   - las variables: colores, tamaños, espacios.
+ *   2. disposicion  - el armazón: columna, cabecera, pestañas, rejilla.
+ *   3. controles    - botones y campos.
+ *   4. superficies  - tarjetas, diálogos, insignias, avisos.
+ *   5. tipografia   - tamaños de texto y estados vacíos.
+ *   6. espacios     - rellenos y márgenes sueltos.
+ *   7. base.css     - el reinicio y los valores que se heredan.
  *
- * Falta base.css, que es el reinicio: entra recién cuando ya no quede nada de
- * Tailwind, porque pisa su preflight.
+ * El reinicio va AL FINAL a propósito, que es lo único aquí que parece al revés.
+ * Todo lo de arriba da por hecho que base.css ya hizo su trabajo: los botones y
+ * los campos sacan más abajo su propio fondo y su propio borde, y el tamaño de
+ * un título lo pone el selector de la etiqueta y no una clase. Si el reinicio
+ * entrara primero, las capas de arriba lo pisarían y quedaría a medias.
  */
-import './main.css';
 import './css/tokens.css';
 import './css/disposicion.css';
 import './css/controles.css';
 import './css/superficies.css';
 import './css/tipografia.css';
 import './css/espacios.css';
+import './css/base.css';
 import './App.js';
 
 /**

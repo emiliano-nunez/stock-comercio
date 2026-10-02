@@ -132,9 +132,23 @@ function clasesDelValor(valor) {
 const porArchivo = [];
 const total = new Map();
 
+function reportar(archivo, texto, valor, inicio) {
+  const encontradas = new Map();
+  for (const limpio of clasesDelValor(valor)) {
+    if (!esUtilidad(limpio)) continue;
+    const linea = texto.slice(0, inicio).split('\n').length;
+    if (!encontradas.has(limpio)) encontradas.set(limpio, new Set());
+    encontradas.get(limpio).add(linea);
+    total.set(limpio, (total.get(limpio) || 0) + 1);
+  }
+  if (encontradas.size) {
+    porArchivo.push({ archivo, encontradas, suma: [...encontradas.values()].reduce((a, s) => a + s.size, 0) });
+  }
+}
+
 for (const archivo of archivos(RAIZ)) {
   const texto = readFileSync(archivo, 'utf8');
-  const encontradas = new Map();
+  const antes = porArchivo.length;
 
   /*
    * Se buscan los atributos class. Hay dos formas porque el valor puede traer
@@ -145,17 +159,21 @@ for (const archivo of archivos(RAIZ)) {
   const re = /class=(?:"([^"\n]*)"|'([^'\n]*)')/g;
   for (const m of texto.matchAll(re)) {
     const valor = m[1] !== undefined ? m[1] : m[2];
-    for (const limpio of clasesDelValor(valor)) {
-      if (!esUtilidad(limpio)) continue;
-      const linea = texto.slice(0, m.index + m[0].indexOf(valor)).split('\n').length;
-      if (!encontradas.has(limpio)) encontradas.set(limpio, new Set());
-      encontradas.get(limpio).add(linea);
-      total.set(limpio, (total.get(limpio) || 0) + 1);
-    }
+    reportar(archivo, texto, valor, m.index);
   }
 
-  if (encontradas.size) {
-    porArchivo.push({ archivo, encontradas, suma: [...encontradas.values()].reduce((a, s) => a + s.size, 0) });
+  /*
+   * Y también las asignaciones de JavaScript: `x.className = '...'` y
+   * `x.className = \`...\``. Estas NO son atributos class, así que el barrido de
+   * arriba no las veía, y por ahí se colaron las clases de Tailwind de los
+   * avisos flotantes: el verificador decía cero utilidades mientras la app
+   * seguía sirviéndolas desde main.css. Un punto ciego que se lee "todo bien" es
+   * peor que no tener el verificador.
+   */
+  const reAsignacion = /\.className\s*=\s*(?:"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`)/g;
+  for (const m of texto.matchAll(reAsignacion)) {
+    const valor = m[1] ?? m[2] ?? m[3];
+    reportar(archivo, texto, valor, m.index);
   }
 }
 

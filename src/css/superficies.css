@@ -290,6 +290,12 @@
  * Recuadros
  *
  * Un bloque con borde y sin sombra, para agrupar datos que no son una tarjeta.
+ *
+ * Los dos de abajo son MODIFICADORES: no funcionan solos. Sólo cambian el fondo y
+ * el color del borde, y esperan que `.recuadro` ya haya puesto el relleno, el
+ * borde y la esquina. Puestos solos se ven igual de claro y no tienen nada de lo
+ * otro, que es justo lo que pasó con las filas de categoría y con las del pedido
+ * de faltantes: se perdieron 12px de relleno sin que nadie lo notara.
  * ================================================================= */
 
 .recuadro {
@@ -556,9 +562,6 @@
  * porque lo que se anima no siempre es el mismo elemento: el diálogo se
  * reemplaza entero, y por eso el código le saca una clase y le pone la otra en
  * vez de alternar un estado.
- *
- * Estas reglas estuvieron en base.css, que todavía no se carga. Con los
- * diálogos y los avisos apareciéndose sin movimiento.
  * ================================================================= */
 
 @keyframes aparecer {
@@ -693,7 +696,6 @@
  * El título de un grupo con su cantidad, y el contenido abajo. Es el patrón que
  * usan el catálogo agrupado por stock y la lista de categorías.
  * ================================================================= */
-
 .seccion {
   margin-bottom: var(--espacio-6);
 }
@@ -721,27 +723,90 @@
 
 /* =================================================================
  * Avisos flotantes
+ *
+ * Son los mensajes que aparecen y se van solos ("Producto guardado", "No se
+ * pudo eliminar"). Los arma toast.js y se apilan solos en una columna pegada
+ * abajo.
+ *
+ * El contenedor NO se puede tocar, aunque los avisos sí: hace falta para que el
+ * dedo pueda seguir bajando por la lista mientras hay un aviso en pantalla, y
+ * no quede una franja invisible que se come el toque. Por eso el `pointer-events`
+ * está apagado en la pila y prendido en cada aviso.
  * ================================================================= */
 
-.aviso-flotante {
+.pila-avisos {
   position: fixed;
-  bottom: var(--espacio-16);
+  /*
+   * La separación de abajo NO es un número redondo: es la altura del botón de
+   * agregar más la suya, más un aire. Ese botón es fijo abajo a la derecha y
+   * ocupa desde los 24px del borde hasta los 80px, así que una pila apoyada en
+   * los 64px le tapaba los últimos 16 píxeles, y como la pila va por encima en
+   * el orden de capas, no sólo lo tapaba: se comía el toque y el usuario no
+   * podía agregar un producto con un aviso en pantalla.
+   */
+  bottom: calc(
+    var(--espacio-6) + env(safe-area-inset-bottom) + var(--toque-flotante) + var(--espacio-2)
+  );
   left: var(--espacio-3);
   right: var(--espacio-3);
   z-index: var(--capa-aviso);
 
-  padding: var(--espacio-3) var(--espacio-4);
-  border-radius: var(--radio-lg);
-  box-shadow: var(--sombra-lg);
-  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--espacio-2);
+
+  pointer-events: none;
 }
 
 @media (min-width: 768px) {
-  .aviso-flotante {
+  .pila-avisos {
     left: auto;
     right: var(--espacio-3);
     width: 24rem;
   }
+}
+
+/* El aviso en sí. Ocupa todo el ancho de la pila en el teléfono, que es lo que
+   lo hace legible, y en la pantalla grande toma lo que le deja el contenedor. */
+.aviso {
+  width: 100%;
+  padding: var(--espacio-3) var(--espacio-4);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-lg);
+  background-color: var(--gris-800);
+  color: var(--color-texto-invertido);
+  pointer-events: auto;
+}
+
+/* El color según el tipo de aviso. El del error es el más fuerte a propósito:
+   es el único que el usuario necesita ver antes que se vaya solo. */
+.aviso-ok      { background-color: var(--verde-600); }
+.aviso-error   { background-color: var(--rojo-500); }
+.aviso-alerta  { background-color: var(--ambar-600); }
+.aviso-info    { background-color: var(--gris-800); }
+
+/*
+ * Un aviso SIN botón cabe en una línea angosta. Uno CON botón necesita el botón
+ * a 52px de alto, y con el ancho de una línea el mensaje quedaba en un tercio
+ * de espacio y se partía en tres renglones. Por eso los de botón se apilan en
+ * vertical y toman el ancho disponible.
+ */
+.aviso-con-boton {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--espacio-3);
+}
+
+@media (min-width: 768px) {
+  .aviso-con-boton {
+    max-width: 24rem;
+  }
+}
+
+.aviso-sin-boton {
+  max-width: 20rem;
 }
 
 /* =================================================================

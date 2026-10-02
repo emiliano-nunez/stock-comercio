@@ -276,7 +276,7 @@ export class ProductoForm {
           </div>
           
           <!-- Stock y Stock Mínimo -->
-          <div class="cuadricula">
+          <div class="cuadricula-apilada">
             <div>
               <label for="stock" class="etiqueta">
                 📦 Stock actual ${tipoActual.icon}
@@ -440,7 +440,7 @@ export class ProductoForm {
           <div id="calculadora-precio" class="recuadro recuadro-marca">
             <div class="etiqueta-seccion">🧮 Calculadora de Precio</div>
             
-            <div class="cuadricula con-margen-abajo">
+            <div class="cuadricula-apilada con-margen-abajo">
               <div>
                 <label for="ivaPorcentaje" class="etiqueta">📊 IVA %</label>
                 <div class="posicionado">
@@ -852,7 +852,7 @@ export class ProductoForm {
       <div class="dialogo">
         <div class="dialogo-cabecera">
           <h2 class="titulo">➕ Agregar precio para</h2>
-          <button class="btn-fantasma btn-icono" onclick="this.closest('.modal-overlay').remove()">✕</button>
+          <button class="btn-fantasma btn-icono" id="cerrar-selector-unidad" aria-label="Cerrar">✕</button>
         </div>
         <div class="dialogo-cuerpo apilado">
           ${opciones.map(opt => `
@@ -870,6 +870,7 @@ export class ProductoForm {
     `;
     document.body.appendChild(modal);
     
+    modal.querySelector('#cerrar-selector-unidad').addEventListener('click', () => modal.remove());
     modal.querySelectorAll('[data-value]').forEach(btn => {
       btn.addEventListener('click', () => {
         const opt = opciones.find(o => o.value === btn.dataset.value);
