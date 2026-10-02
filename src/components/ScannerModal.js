@@ -35,28 +35,25 @@ export class ScannerModal {
   
   crearModal() {
     const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
+    modal.className = 'velo';
     modal.innerHTML = `
-      <div class="modal-content relative overflow-hidden">
+      <div class="dialogo dialogo-sin-desplazar">
         <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-primary-50 rounded-t-2xl">
-          <h2 class="text-touch-lg font-bold text-gray-900">🔍 Escanear Código</h2>
-          <button id="cerrar-scanner" class="btn-ghost p-2" aria-label="Cerrar escáner">
+        <div class="dialogo-cabecera">
+          <h2 class="titulo">🔍 Escanear Código</h2>
+          <button id="cerrar-scanner" class="btn-fantasma btn-icono" aria-label="Cerrar escáner">
             ✕
           </button>
         </div>
         
         <!-- Visor del escáner -->
-        <div class="relative bg-black p-2">
-          <div id="scanner-container" class="w-full aspect-square rounded-xl overflow-hidden"></div>
+        <div class="marco-video">
+          <div id="scanner-container" class="visor-video"></div>
           
           <!-- Marco de escaneo visual -->
-          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div class="w-3/4 h-3/4 border-4 border-primary-500/50 rounded-xl 
-                        before:content-[''] before:absolute before:top-[-6px] before:left-[-6px] before:w-8 before:h-8 before:border-t-4 before:border-l-4 before:border-primary-500
-                        after:content-[''] after:absolute after:top-[-6px] after:right-[-6px] after:w-8 after:h-8 after:border-t-4 after:border-r-4 after:border-primary-500
-                        relative">
-              <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 text-white text-xs bg-black/70 px-2 py-1 rounded whitespace-nowrap">
+          <div class="capa-centrada">
+            <div class="marco-escaner">
+              <div class="pista">
                 Coloca el código dentro del marco
               </div>
             </div>
@@ -64,7 +61,7 @@ export class ScannerModal {
         </div>
         
         <!-- Estado -->
-        <div id="scanner-status" class="p-4 text-center text-sm text-gray-500 bg-gray-50">
+        <div id="scanner-status" class="dialogo-cuerpo centro-texto detalle apagado pie-suave">
           Iniciando cámara...
         </div>
       </div>
@@ -144,7 +141,7 @@ export class ScannerModal {
       this.isScanning = true;
       const statusEl = this.modal.querySelector('#scanner-status');
       statusEl.textContent = 'Apunta la cámara al código de barras';
-      statusEl.className = 'p-4 text-center text-sm text-primary-600 bg-primary-50';
+      statusEl.className = 'dialogo-cuerpo centro-texto detalle texto-marca pie-suave';
       
     } catch (error) {
       console.error('Error iniciando escáner:', error);
@@ -169,15 +166,15 @@ export class ScannerModal {
     const statusEl = this.modal?.querySelector('#scanner-status');
     if (!statusEl) return;
     
-    statusEl.className = 'p-4 text-center text-sm text-danger-600 bg-danger-50 space-y-3';
+    statusEl.className = 'dialogo-cuerpo centro-texto detalle texto-peligro apilado-3';
     statusEl.innerHTML = `
       <p>${mensaje}</p>
-      ${reintentable ? '<button id="btn-reintentar-scanner" class="btn-secondary text-sm">🔄 Reintentar</button>' : ''}
+      ${reintentable ? '<button id="btn-reintentar-scanner" class="btn-secundario detalle">🔄 Reintentar</button>' : ''}
     `;
     
     if (reintentable) {
       statusEl.querySelector('#btn-reintentar-scanner')?.addEventListener('click', async () => {
-        statusEl.className = 'p-4 text-center text-sm text-gray-500 bg-gray-50';
+        statusEl.className = 'dialogo-cuerpo centro-texto detalle apagado';
         statusEl.textContent = 'Reintentando...';
         try {
           await this.iniciarEscaneo();
@@ -204,7 +201,7 @@ export class ScannerModal {
     // Actualizar UI
     const statusEl = this.modal.querySelector('#scanner-status');
     statusEl.textContent = `✅ Código detectado: ${codigo}`;
-    statusEl.className = 'p-4 text-center text-sm text-primary-800 bg-primary-100';
+    statusEl.className = 'dialogo-cuerpo centro-texto detalle texto-marca-fuerte';
     
     // Verificar si el código ya existe en la base de datos.
     // Se piden TODOS los que coinciden, no sólo el primero: el índice de
@@ -279,8 +276,8 @@ export class ScannerModal {
     
     if (!this.modal) return Promise.resolve();
     
-    this.modal.classList.add('animate-slide-down');
-    this.modal.classList.remove('animate-slide-up');
+    this.modal.classList.add('anim-bajar');
+    this.modal.classList.remove('anim-subir');
     
     return new Promise((resolve) => {
       setTimeout(() => {

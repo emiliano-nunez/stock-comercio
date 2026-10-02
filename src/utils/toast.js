@@ -59,16 +59,16 @@ export class ToastManager {
     // interfaz y justo el que más necesita ser fácil de acertar.
     toast.innerHTML = action
       ? `
-        <div class="flex items-center gap-3">
-          <span class="text-lg">${icons[type]}</span>
-          <span class="flex-1 text-sm">${esc(message)}</span>
+        <div class="fila fila-amplia">
+          <span class="mediano">${icons[type]}</span>
+          <span class="crece detalle">${esc(message)}</span>
         </div>
-        <button class="min-h-touch w-full rounded-xl font-semibold text-sm bg-white/15 hover:bg-white/25 active:scale-95 transition-transform">${esc(action)}</button>
+        <button class="btn-transparente">${esc(action)}</button>
       `
       : `
-        <div class="flex items-center gap-3">
-          <span class="text-lg">${icons[type]}</span>
-          <span class="flex-1 text-sm">${esc(message)}</span>
+        <div class="fila fila-amplia">
+          <span class="mediano">${icons[type]}</span>
+          <span class="crece detalle">${esc(message)}</span>
         </div>
       `;
     
@@ -93,8 +93,8 @@ export class ToastManager {
   remove(id) {
     const toast = this.toasts.get(id);
     if (toast) {
-      toast.classList.add('animate-slide-down');
-      toast.classList.remove('animate-slide-up');
+      toast.classList.add('anim-bajar');
+      toast.classList.remove('anim-subir');
       setTimeout(() => {
         if (toast.parentNode) toast.remove();
         this.toasts.delete(id);

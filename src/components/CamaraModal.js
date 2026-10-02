@@ -30,39 +30,39 @@ export class CamaraModal {
   // Crear estructura del modal
   crearModal() {
     const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
+    modal.className = 'velo';
     modal.innerHTML = `
-      <div class="modal-content relative overflow-hidden">
+      <div class="dialogo dialogo-sin-desplazar">
         <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-primary-50 rounded-t-2xl">
-          <h2 class="text-touch-lg font-bold text-gray-900">📷 Sacar Foto</h2>
-          <button id="cerrar-camara" class="btn-ghost p-2" aria-label="Cerrar cámara">
+        <div class="dialogo-cabecera">
+          <h2 class="titulo">📷 Sacar Foto</h2>
+          <button id="cerrar-camara" class="btn-fantasma btn-icono" aria-label="Cerrar cámara">
             ✕
           </button>
         </div>
         
         <!-- Visor de cámara -->
-        <div class="relative bg-black p-2">
+        <div class="marco-video">
           <video 
             id="video-camara" 
-            class="w-full aspect-square object-cover rounded-xl" 
+            class="foto-cuadro foto-llena" 
             playsinline 
             muted
             aria-label="Vista previa de la cámara"
           ></video>
           
           <!-- Controles superpuestos -->
-          <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-4">
+          <div class="franja-inferior">
             <button 
               id="cambiar-camara" 
-              class="btn-primary flex items-center gap-2"
+              class="btn-principal fila"
               aria-label="Cambiar cámara"
             >
               🔄 Cambiar
             </button>
             <button 
               id="capturar-foto" 
-              class="btn-primary flex-1 flex items-center justify-center gap-2 text-touch-lg"
+              class="btn-principal btn-crece fila-centro"
               aria-label="Capturar foto"
             >
               📸 Capturar
@@ -71,7 +71,7 @@ export class CamaraModal {
         </div>
         
         <!-- Indicador de ayuda -->
-        <div class="p-4 text-center text-sm text-gray-500 bg-gray-50 rounded-b-2xl">
+        <div class="dialogo-pie centro-texto detalle apagado pie-suave">
           Apunta al producto y toca <strong>Capturar</strong>
         </div>
       </div>
@@ -214,8 +214,8 @@ export class CamaraModal {
     }
     
     if (this.modal) {
-      this.modal.classList.add('animate-slide-down');
-      this.modal.classList.remove('animate-slide-up');
+      this.modal.classList.add('anim-bajar');
+      this.modal.classList.remove('anim-subir');
       
       setTimeout(() => {
         if (this.modal && this.modal.parentNode) {
