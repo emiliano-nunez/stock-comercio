@@ -382,6 +382,42 @@
   font-weight: var(--grosor-fuerte);
 }
 
+/*
+ * Cuando este número es un input y no un texto.
+ *
+ * Antes `.campo-numero` sólo se usaba en un `<span>`, así que no decía nada de
+ * bordes ni de relleno. Al ponerlo en un `<input>` —la cantidad a pedir del
+ * pedido— el navegador le dibujó su propio marco y su relleno, que además es
+ * distinto en cada uno: en Android el número="number" saca los puntitos de los
+ * lados pero en la PC los deja, y el marco gris rompe la fila al lado de los
+ * botones +/−.
+ *
+ * Se quitan los dos. El input queda como el span, y lo que dice el número es lo
+ * único que hay que leer.
+ */
+.campo-numero:is(input, textarea) {
+  appearance: none;
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--color-texto);
+  line-height: 1;
+}
+
+.campo-numero:is(input, textarea)::-webkit-outer-spin-button,
+.campo-numero:is(input, textarea)::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* El foco no se apaga: sin borde ya no hay señal de dónde se está escribiendo,
+   así que se marca con el fondo. */
+.campo-numero:is(input, textarea):focus {
+  background-color: var(--gris-100);
+  border-radius: var(--radio-sm);
+}
+
 /* El texto que va a la derecha del campo, sin ser un campo: la unidad, el
    sufijo. */
 .sufijo-campo {

@@ -153,6 +153,12 @@ miró en un aparato. Casi nada se puede comprobar desde el escritorio.
 - [ ] **El pedido por proveedor.** Que los grupos salgan bien, que copiar un
       proveedor copie sólo el suyo, y que "copiar los que no tienen proveedor"
       no mezcle los otros.
+- [ ] **La cantidad a pedir del pedido.** Ahora es editable con botones y a
+      mano, y el texto copiado sale con ese número. Confirmar que el `−` no baje
+      de cero y que escribir un número raro (35, 100) quede bien.
+- [ ] **El aviso de eliminar un producto.** Se multiplicaba: "Cargar más" sumaba
+      un listener sobre el mismo contenedor, así que un clic borraba N veces y
+      salían N avisos. Ahora los listeners delegados se atan una sola vez.
 - [ ] **El color de categoría al azar:** que dos categorías seguidas casi nunca
       salgan del mismo color.
 - [ ] **Los dos accesos directos** de la pantalla de inicio abren el escáner y el

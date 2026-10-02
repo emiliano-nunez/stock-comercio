@@ -1041,13 +1041,33 @@ export class App {
     document.getElementById('btn-ver-catalogo-completo')?.addEventListener('click', () => this.verCatalogoCompleto());
     document.getElementById('btn-agregar-en-categoria')?.addEventListener('click', () => this.nuevoProducto(this.categoriaVista));
     
-    document.getElementById('contenido-principal')?.addEventListener('click', (e) => {
+    /*
+    * Los dos listeners de abajo van por delegación sobre `#contenido-principal`,
+    * y por eso se atan UNA sola vez.
+    *
+    * El resto de bindEvents() ata listeners a elementos que están DENTRO del
+    * contenedor y que se recrean en cada render, así que hay que volver a
+    * atarlos. Este elemento no: `render()` lo recrea (hace `app.innerHTML = ...`)
+    * pero `renderVista()` sólo le cambia el contenido interior, así que el
+    * elemento sigue siendo el mismo.
+    *
+    * Con `_eventsBound` reiniciado en cada render, cada llamada a `renderVista()`
+    * —que es lo que hace "Cargar más"— sumaba un listener nuevo sobre el mismo
+    * elemento. Un clic en "Eliminar" disparaba el borrado N veces y con él N
+    * avisos de "eliminado". Por eso el flag se guarda acá y no en `_eventsBound`:
+    * si el elemento es el mismo, los listeners ya están.
+    */
+    const contenedor = document.getElementById('contenido-principal');
+    if (!contenedor || contenedor === this._contenidoConDelegacion) return;
+    this._contenidoConDelegacion = contenedor;
+
+    contenedor.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
-      
+
       const id = btn.dataset.id;
       const action = btn.dataset.action;
-      
+
       switch (action) {
         case 'increment':
           this.ajustarStock(id, 1);
@@ -1073,7 +1093,7 @@ export class App {
     // Las tarjetas se pueden tocar y también enfocar. Sin esto, el atributo
     // role="button" sería una mentira para quien navega con el teclado: tendría
     // el foco puesto en la tarjeta y el Enter no abriría nada.
-    document.getElementById('contenido-principal')?.addEventListener('keydown', (e) => {
+    contenedor.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const btn = e.target.closest('[data-action]');
       if (!btn) return;

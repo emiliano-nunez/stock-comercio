@@ -107,7 +107,7 @@ export class HistorialModal {
               </div>
               <div class="crece ancho-cero">
                 <p class="fuerte cortado">${esc(this.formatearMotivo(item.motivo))}</p>
-                <p class="detalle apagado">${esc(this.formatearFecha(item.fecha))}</p>
+                <p class="micro">📅 ${esc(this.formatearFecha(item.fecha))}</p>
               </div>
               <span class="detalle tenue">${item.snapshotProductos?.length || 0} productos</span>
             </button>
@@ -326,15 +326,23 @@ export class HistorialModal {
     return modal;
   }
   
-  formatearFecha(fechaISO) {
-    const fecha = new Date(fechaISO);
-    return fecha.toLocaleString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  /**
+ * La fecha de un punto de restauración, como DD/MM/AAAA HH:MM.
+ *
+ * Se arma a mano y no con `toLocaleString` porque el resultado de ese cambia
+ * según el aparato: en unos sale "02/10/2026, 16:37" y en otros
+ * "10/2/2026, 04:37 p. m.". Una lista de fechas tiene que seguir el mismo
+ * formato en todos los teléfonos, porque el orden de los puntos es lo que dice
+ * cuál es más reciente.
+ *
+ * Sale de la fecha local, no de la de UTC: el horario que importa es el del
+ * que restoreó, no el de Greenwich.
+ */
+formatearFecha(fechaISO) {
+    const d = fechaISO instanceof Date ? fechaISO : new Date(fechaISO);
+    if (Number.isNaN(d.getTime())) return 'Sin fecha';
+    const dos = n => String(n).padStart(2, '0');
+    return `${dos(d.getDate())}/${dos(d.getMonth() + 1)}/${d.getFullYear()} ${dos(d.getHours())}:${dos(d.getMinutes())}`;
   }
   
   formatearMotivo(motivo) {

@@ -2,9 +2,8 @@ import { dbUtils, getUnidadBase, claveProveedor } from '../db.js';
 import { toast } from '../utils/toast.js';
 import { esc, escAttr } from '../utils/html.js';
 
-// El título que se manda arriba de todo cuando se copia o se envía el pedido
-// entero. El mismo prefijo para WhatsApp y para el portapapeles, para que el
-// texto sea reconocible de dónde salió en los dos casos.
+// El título que se manda arriba de todo del texto copiado, para que el
+// proveedor reconozca de qué lista viene.
 const TITULO_PEDIDO = '*PEDIDO DE FALTANTES - Mi Comercio*';
 
 // Los productos sin proveedor no van con los demás: no son un proveedor más,
@@ -13,16 +12,29 @@ const TITULO_PEDIDO = '*PEDIDO DE FALTANTES - Mi Comercio*';
 const TITULO_SIN_PROVEEDOR = 'SIN PROVEEDOR ASIGNADO';
 
 /**
+ * Cuánto pedir de un producto si el usuario no dijo otra cosa.
+ *
+ * Es la diferencia entre el mínimo y lo que hay, redondeada hacia arriba y con
+ * un 50% de margen. El mínimo es lo que el usuario escribió como "a partir de
+ * acá me falta", así que la diferencia ya es lo que hay que reponer; el margen
+ * es para que el mismo faltante no vuelva a aparecer la semana que viene.
+ */
+function sugerido(p) {
+  const faltante = Math.max(0, (p.stockMinimo || 0) - (p.stock || 0));
+  return Math.ceil(faltante * 1.5);
+}
+
+/**
  * Cuánto pedir de un producto.
  *
- * Se calcula por producto y no por grupo para que la lista de la pantalla y el
- * texto que se copia no puedan desincronizarse entre sí.
+ * El valor sale de `cantidades`, que es lo que el usuario tocó en pantalla. Si
+ * no tocó nada, es el sugerido. El sugerido no se vuelve a calcular al copiar:
+ * si se recalculara, cambiar el stock desde el pedido haría que la cantidad
+ * saltara sola mientras el usuario está escribiendo el mensaje al proveedor.
  */
-function lineaPedido(p) {
+function lineaPedido(p, cantidad) {
   const unidad = getUnidadBase(p.tipoVenta);
-  const faltante = Math.max(0, (p.stockMinimo || 0) - (p.stock || 0));
-  const sugerido = Math.ceil(faltante * 1.5);
-  return `- ${p.nombre}: ${sugerido} ${unidad}`;
+  return `- ${p.nombre}: ${cantidad} ${unidad}`;
 }
 
 /**
@@ -67,8 +79,10 @@ function agruparPorProveedor(productos) {
  * línea, una lista de veinte productos sin nombres de fábrica no dice a quién
  * hay que pedirle cada cosa.
  */
-function textoGrupo(grupo) {
-  const lineas = grupo.productos.map(lineaPedido).join('\n');
+function textoGrupo(grupo, cantidades) {
+  const lineas = grupo.productos
+    .map(p => lineaPedido(p, cantidades.get(p.id) ?? sugerido(p)))
+    .join('\n');
   const titulo = grupo.clave ? grupo.nombre.toUpperCase() : TITULO_SIN_PROVEEDOR;
   return `${titulo}\n${lineas}`;
 }
@@ -79,16 +93,21 @@ export class PedidoModal {
     this.modal = null;
     this.productos = [];
     this.grupos = [];
+    // Lo que el usuario pidió de cada producto. Se arma con el sugerido y se
+    // cambia a mano. Vive sólo en esta sesión: es un borrador del pedido de hoy,
+    // no un dato del producto, así que no se guarda en la base.
+    this.cantidades = new Map();
   }
-  
+
   async abrir() {
     this.productos = await dbUtils.getProductosStockBajo();
     this.grupos = agruparPorProveedor(this.productos);
+    this.cantidades = new Map(this.productos.map(p => [p.id, sugerido(p)]));
     this.modal = this.crearModal();
     document.body.appendChild(this.modal);
-    
+
     await new Promise(r => requestAnimationFrame(r));
-    
+
     this.handleKeydown = (e) => {
       if (e.key === 'Escape') this.cerrar();
     };
@@ -135,20 +154,14 @@ export class PedidoModal {
           </div>
           
           <div class="dialogo-pie dialogo-pie-fija apilado">
-            <div class="fila">
-              <button id="btn-copiar" class="btn-principal btn-crece">
-                📋 Copiar todo
-              </button>
-              <button id="btn-whatsapp" class="btn-secundario btn-crece fila-centro">
-                <svg class="flecha-medio" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.454.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378 9.86 9.86 0 01-1.118-6.435 9.874 9.874 0 013.956-8.36 9.872 9.872 0 016.342 2.154 9.864 9.864 0 012.162 6.323 9.87 9.87 0 01-2.162 7.575c-.263.166-.547.298-.792.347-.13.024-.372.025-.52-.024zm3.707-10.154c-1.134.915-2.416 1.643-3.502 1.967-.45.137-.917.19-1.232.083-.44-.173-.862-.47-1.365-.958-.426-.41-.685-.788-.78-.97-.099-.173-.198-.359-.198-.52 0-.198.087-.33.25-.497.174-.163.733-.732 1.19-.83.117-.025.234-.024.336.049.106.074.198.173.33.273.297.223 1.134 1.152 1.365 1.355.163.149.149.313.1.437-.025.11-.249.223-.436.248l-.57.074c-.693.098-2.006.373-2.705 1.297-.75.978-.737 2.454-.668 2.793.084.39.33.713.669.94.436.297 1.212.388 1.84.273.766-.15 2.315-.732 2.766-2.097.33-1.004.05-2.035-.644-2.888z"/></svg>
-              WhatsApp
-            </button>
-            </div>
             ${haySinProveedor ? `
               <button id="btn-copiar-sin-proveedor" class="btn-secundario btn-ancho">
                 📋 Copiar los ${this.grupos.find(g => !g.clave).productos.length} que no tienen proveedor
               </button>
             ` : ''}
+            <button id="btn-copiar" class="btn-principal btn-ancho">
+              📋 Copiar el pedido entero
+            </button>
           </div>
         </div>
       `;
@@ -156,8 +169,7 @@ export class PedidoModal {
     
     modal.querySelector('#cerrar-pedido')?.addEventListener('click', () => this.cerrar());
     modal.querySelector('#cerrar-pedido-ok')?.addEventListener('click', () => this.cerrar());
-    modal.querySelector('#btn-whatsapp')?.addEventListener('click', () => this.enviarWhatsApp());
-    modal.querySelector('#btn-copiar')?.addEventListener('click', () => this.copiar(this.textoTodo(), 'Pedido completo copiado'));
+    modal.querySelector('#btn-copiar')?.addEventListener('click', () => this.copiar(this.textoTodo(), 'Pedido copiado'));
     modal.querySelector('#btn-copiar-sin-proveedor')?.addEventListener('click', () => {
       this.copiar(this.textoGrupo(this.grupos.find(g => !g.clave)), 'Copiados los que no tienen proveedor');
     });
@@ -169,7 +181,26 @@ export class PedidoModal {
     modal.querySelectorAll('.btn-copiar-grupo').forEach(btn => {
       btn.addEventListener('click', () => {
         const grupo = this.grupos[Number(btn.dataset.grupo)];
-        this.copiar(textoGrupo(grupo), `Copiado el pedido de ${grupo.nombre || 'los que no tienen proveedor'}`);
+        this.copiar(this.textoGrupo(grupo), `Copiado el pedido de ${grupo.nombre || 'los que no tienen proveedor'}`);
+      });
+    });
+
+    // Los botones de la cantidad a pedir. Se atan por delegación sobre el
+    // diálogo y no uno por botón porque la lista se vuelve a pintar cada vez
+    // que cambia un número.
+    modal.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-pedido="cantidad"]');
+      if (!btn) return;
+      this.cambiarCantidad(btn.dataset.id, Number(btn.dataset.delta));
+    });
+
+    // El campo de cantidad a pedir también se puede escribir con el teclado, no
+    // sólo con los botones.
+    modal.querySelectorAll('.campo-cantidad').forEach(campo => {
+      campo.addEventListener('change', () => {
+        const n = Math.max(0, Math.round(Number(campo.value) || 0));
+        campo.value = n;
+        this.cantidades.set(campo.dataset.id, n);
       });
     });
     
@@ -208,27 +239,72 @@ export class PedidoModal {
         `}
         
         <div class="apilado">
-          ${grupo.productos.map(p => {
-            const unidad = getUnidadBase(p.tipoVenta);
-            const stock = p.stock || 0;
-            const minimo = p.stockMinimo || 0;
-            const faltante = Math.max(0, minimo - stock);
-            const sugerido = Math.ceil(faltante * 1.5);
-            return `
-              <div class="recuadro recuadro-suave fila fila-separada">
-                <div class="crece ancho-cero">
-                  <p class="medio cortado">${esc(p.nombre)}</p>
-                  <p class="detalle apagado">Stock: <span class="fuerte ${stock === 0 ? 'texto-peligro' : 'texto-aviso'}">${stock} ${unidad}</span> / Mín: ${minimo} ${unidad}</p>
-                </div>
-                <span class="marca con-margen-izquierda">Pedir: ${sugerido}</span>
-              </div>
-            `;
-          }).join('')}
+          ${grupo.productos.map(p => this.renderFilaHTML(p)).join('')}
         </div>
       </section>
     `;
   }
-  
+
+  /**
+   * Un producto del pedido: el stock se lee, la cantidad a pedir se ajusta.
+   *
+   * El stock NO lleva botones. Ajustarlo desde acá lo ponía a la misma altura
+   * que la cantidad a pedir, que es lo que uno viene a cambiar, y hacía dudar
+   * de cuál de los dos números estaba editando. El ajuste de stock vive en la
+   * hoja del producto, donde el usuario lo está mirando con todos los datos
+   * al lado.
+   *
+   * El de "Pedir" sí lleva botones de más y menos porque se usa mucho y con el
+   * dedo, y además acepta escritura directa: hay cantidades que con botones de
+   * a uno hay que tocar treinta veces.
+   */
+  renderFilaHTML(p) {
+    const unidad = getUnidadBase(p.tipoVenta);
+    const stock = p.stock || 0;
+    const minimo = p.stockMinimo || 0;
+    const cantidad = this.cantidades.get(p.id) ?? sugerido(p);
+    const estadoStock = stock === 0 ? 'texto-peligro' : stock <= minimo ? 'texto-aviso' : 'texto-marca';
+
+    return `
+      <div class="recuadro recuadro-suave fila fila-separada fila-amplia envuelto">
+        <div class="crece ancho-cero">
+          <p class="medio cortado">${esc(p.nombre)}</p>
+          <p class="micro apagado">
+            Tenés <span class="fuerte ${estadoStock}">${stock} ${esc(unidad)}</span> · mínimo ${minimo}
+          </p>
+        </div>
+
+        <div class="fila no-crece">
+          <span class="micro tenue">Pedir</span>
+          <div class="fila fila-corta">
+            <button type="button" class="btn-resta" data-pedido="cantidad" data-id="${escAttr(p.id)}" data-delta="-1"
+              aria-label="Pedir menos ${escAttr(p.nombre)}">−</button>
+            <input type="number" class="campo-numero campo-cantidad" data-id="${escAttr(p.id)}"
+              value="${cantidad}" min="0" inputmode="numeric"
+              aria-label="Cantidad a pedir de ${escAttr(p.nombre)}">
+            <button type="button" class="btn-suma" data-pedido="cantidad" data-id="${escAttr(p.id)}" data-delta="1"
+              aria-label="Pedir más ${escAttr(p.nombre)}">+</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Cambia la cantidad a pedir de un producto.
+   *
+   * Sólo repinta el número de esa fila, no la lista entera: repintar todo
+   * mientras el usuario va tocando producto por producto lo haría saltar, y en
+   * una lista de veinte eso es inservizable.
+   */
+  cambiarCantidad(id, delta) {
+    const actual = this.cantidades.get(id) ?? 0;
+    const nuevo = Math.max(0, actual + delta);
+    this.cantidades.set(id, nuevo);
+    const campo = this.modal.querySelector(`.campo-cantidad[data-id="${CSS.escape(id)}"]`);
+    if (campo) campo.value = nuevo;
+  }
+
   /**
    * El pedido entero, con los proveedores de título.
    *
@@ -237,12 +313,11 @@ export class PedidoModal {
    * tiene que ordenar a mano antes de escribirlo.
    */
   textoTodo() {
-    return `${TITULO_PEDIDO}\n\n${this.grupos.map(textoGrupo).join('\n\n')}`;
+    return `${TITULO_PEDIDO}\n\n${this.grupos.map(g => this.textoGrupo(g)).join('\n\n')}`;
   }
-  
-  enviarWhatsApp() {
-    window.open(`https://wa.me/?text=${encodeURIComponent(this.textoTodo())}`, '_blank');
-    toast.success('Abriendo WhatsApp...');
+
+  textoGrupo(grupo) {
+    return textoGrupo(grupo, this.cantidades);
   }
   
   async copiar(texto, mensaje) {
@@ -282,6 +357,11 @@ export class PedidoModal {
   }
 }
 
+/**
+ * Abre el pedido de faltantes.
+ *
+ * @param {Function} onClose  se llama al cerrar
+ */
 export async function abrirPedido(onClose) {
   const modal = new PedidoModal(onClose);
   await modal.abrir();
