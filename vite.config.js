@@ -42,7 +42,13 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      // Lo que hay que meter en la precarga a mano son los archivos que
+      // index.html pide y que no entran ni por el manifiesto ni por el
+      // agrupado de los assets. Antes pedía 'apple-touch-icon.png', que no
+      // existe: el ícono de Apple es 'icons/icon-192x192.png', y el favicon
+      // ahora sí está. Un nombre que no existe no rompe el build, sólo no
+      // precarga nada.
+      includeAssets: ['favicon.ico', 'icons/icon.svg', 'icons/icon-192x192.png'],
       manifest: {
         name: 'Stock Comercio',
         short_name: 'Stock',

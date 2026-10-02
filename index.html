@@ -9,6 +9,22 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Stock Comercio">
+  <!--
+    El ícono de la pestaña. Las dos líneas hacen falta, y el orden también: los
+    navegadores se quedan con el último <link rel="icon"> que pueden mostrar, así
+    que el .ico va primero como respaldo y el SVG después, que es el que se ve
+    nítido a cualquier tamaño. Al revés, el ICO de 72x72 tapaba al SVG y la
+    pestaña se veía borroso.
+
+    Con cualquiera de los dos declarados el navegador deja de pedir
+    /favicon.ico por su cuenta, que era el 404 de cada carga.
+
+    Las rutas van relativas a propósito, como la de apple-touch-icon de abajo:
+    así apuntan a donde la app está publicada, sea en la raíz o en un
+    subdirectorio, sin depender de la configuración de Vite.
+  -->
+  <link rel="icon" href="favicon.ico" sizes="72x72">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
   <!--
     El manifiesto lo inyecta vite-plugin-pwa a partir de la ruta de publicación.
