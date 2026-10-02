@@ -73,7 +73,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
     let conflictos = productos.map(p => ({ ...p }));
 
     const box = document.createElement('div');
-    box.className = 'modal-overlay';
+    box.className = 'velo';
 
     const cerrar = (valor) => {
       box.remove();
@@ -91,33 +91,33 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       // el badge de acá tiene que decir lo mismo que el grupo del catálogo donde
       // va a aparecer este mismo producto.
       const ETIQUETA = {
-        ok: { clase: 'stock-ok', texto: 'OK' },
-        poco: { clase: 'stock-low', texto: 'Poco' },
-        vacio: { clase: 'stock-out', texto: 'Agotado' }
+        ok: { clase: 'insignia-ok', texto: 'OK' },
+        poco: { clase: 'insignia-poco', texto: 'Poco' },
+        vacio: { clase: 'insignia-sin', texto: 'Agotado' }
       };
       const badge = ETIQUETA[estadoStock(p)];
 
       // Sólo el escáner ofrece abrir. En el formulario, abrir otro producto
       // taparía lo que el usuario viene escribiendo sin avisar.
       const acciones = origen === 'escaner'
-        ? `<button class="btn-secondary flex-1 min-h-touch" data-accion="abrir" data-indice="${indice}">Abrir</button>`
+        ? `<button class="btn-secundario btn-crece" data-accion="abrir" data-indice="${indice}">Abrir</button>`
         : '';
 
       return `
-        <div class="card-touch p-3 space-y-2" data-fila="${indice}">
-          <div class="flex items-start justify-between gap-2">
-            <div class="min-w-0">
-              <p class="font-semibold text-gray-900 text-touch truncate">${esc(p.nombre)}</p>
-              <p class="text-sm text-gray-500 mt-0.5">
+        <div class="tarjeta apilado" data-fila="${indice}">
+          <div class="fila fila-arriba fila-separada">
+            <div class="ancho-cero">
+              <p class="subtitulo cortado">${esc(p.nombre)}</p>
+              <p class="detalle apagado con-margen-arriba-mini">
                 ${esc(getUnidadBase(p.tipoVenta))} · Stock ${stock}
                 ${minimo > 0 ? ` / mínimo ${minimo}` : ''} · ${esc(fmtPrecio(p.precio))}
               </p>
             </div>
-            <span class="stock-badge ${badge.clase} shrink-0">${badge.texto}</span>
+            <span class="insignia insignia-pequena no-crece ${badge.clase}">${badge.texto}</span>
           </div>
-          <div class="flex gap-2">
+          <div class="fila">
             ${acciones}
-            <button class="btn-danger flex-1 min-h-touch" data-accion="preguntar-borrar" data-indice="${indice}">Borrar</button>
+            <button class="btn-peligro btn-crece" data-accion="preguntar-borrar" data-indice="${indice}">Borrar</button>
           </div>
         </div>
       `;
@@ -128,14 +128,14 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
     // nombre es como se borran productos equivocados.
     function filaConfirmando(p, indice) {
       return `
-        <div class="card-touch p-3 border-danger-200 bg-danger-50 space-y-2" data-fila="${indice}">
-          <p class="text-touch text-danger-900">
+        <div class="tarjeta apilado tarjeta-peligro" data-fila="${indice}">
+          <p class="titulo-peligro">
             ¿Borrar <strong>${esc(p.nombre)}</strong>?
           </p>
-          <p class="text-sm text-danger-700">Se puede recuperar desde el historial.</p>
-          <div class="flex gap-2">
-            <button class="btn-secondary flex-1 min-h-touch" data-accion="cancelar-borrar" data-indice="${indice}">No, dejarlo</button>
-            <button class="btn-danger flex-1 min-h-touch" data-accion="borrar" data-indice="${indice}">Sí, borrar</button>
+          <p class="detalle texto-peligro">Se puede recuperar desde el historial.</p>
+          <div class="fila">
+            <button class="btn-secundario btn-crece" data-accion="cancelar-borrar" data-indice="${indice}">No, dejarlo</button>
+            <button class="btn-peligro btn-crece" data-accion="borrar" data-indice="${indice}">Sí, borrar</button>
           </div>
         </div>
       `;
@@ -153,64 +153,64 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       // pregunta es con qué código se guarda.
       const pie = origen === 'escaner'
         ? `
-          <div class="p-4 border-t border-gray-100 space-y-2">
-            <p class="text-sm text-gray-500">
+          <div class="dialogo-pie apilado">
+            <p class="detalle apagado">
               Un mismo código no puede identificar a dos productos. Abrí el que
               corresponde, o creá uno nuevo si ninguno es el que buscabas.
             </p>
-            <button class="btn-primary w-full min-h-touch" data-accion="crear">
+            <button class="btn-principal btn-ancho" data-accion="crear">
               Crear producto nuevo con este código
             </button>
-            <button class="btn-secondary w-full min-h-touch" data-accion="cancelar">Cancelar</button>
+            <button class="btn-secundario btn-ancho" data-accion="cancelar">Cancelar</button>
           </div>
         `
         : `
-          <div class="p-4 border-t border-gray-100 space-y-2">
-            <p class="text-sm text-gray-500">
+          <div class="dialogo-pie apilado">
+            <p class="detalle apagado">
               Un mismo código no puede identificar a dos productos. Podés
               distinguirlo con un sufijo, guardarlo sin código, o borrar el
               producto de abajo que lo tenía.
             </p>
-            <div class="flex gap-2">
-              <button class="btn-secondary flex-1 min-h-touch" data-accion="sin-codigo">Sin código</button>
-              <button class="btn-primary flex-1 min-h-touch" data-accion="guardar">Guardar igual</button>
+            <div class="fila">
+              <button class="btn-secundario btn-crece" data-accion="sin-codigo">Sin código</button>
+              <button class="btn-principal btn-crece" data-accion="guardar">Guardar igual</button>
             </div>
-            <button class="btn-secondary w-full min-h-touch" data-accion="sufijo" data-cargando="0">
-              <span class="js-texto-sufijo">Distinguir con sufijo</span>
+            <button class="btn-secundario btn-ancho" data-accion="sufijo" data-cargando="0">
+              <span class="sufijo-campo">Distinguir con sufijo</span>
             </button>
-            <button class="btn-ghost w-full min-h-touch" data-accion="cancelar">Cancelar</button>
+            <button class="btn-fantasma btn-ancho" data-accion="cancelar">Cancelar</button>
           </div>
         `;
 
       box.innerHTML = `
-        <div class="modal-content max-w-md">
-          <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-warning-50 rounded-t-2xl">
-            <h2 class="text-touch-lg font-bold text-gray-900 flex items-center gap-2 min-w-0">
+        <div class="dialogo">
+          <div class="dialogo-cabecera dialogo-cabecera-aviso">
+            <h2 class="titulo fila ancho-cero">
               <span>⚠️</span>
-              <span class="truncate">Código repetido</span>
+              <span class="cortado">Código repetido</span>
             </h2>
-            <button class="btn-ghost p-2 min-w-touch min-h-touch shrink-0" data-accion="cancelar" aria-label="Cerrar">✕</button>
+            <button class="btn-fantasma btn-icono no-crece" data-accion="cancelar" aria-label="Cerrar">✕</button>
           </div>
 
-          <div class="p-4 space-y-3">
-            <div class="rounded-xl bg-gray-50 border border-gray-200 p-3">
-              <p class="text-sm text-gray-600">
+          <div class="dialogo-cuerpo apilado-3">
+            <div class="recuadro">
+              <p class="detalle con-medio">
                 ${muchos
                   ? `Estos <strong>${total}</strong> productos usan el código`
                   : 'Este producto usa el código'}
               </p>
-              <p class="font-mono text-touch-lg font-bold text-gray-900 mt-1 break-all">${esc(codigo)}</p>
+              <p class="mono fuerte con-margen-arriba rompe-palabras">${esc(codigo)}</p>
             </div>
 
-            <div class="space-y-2">
+            <div class="apilado">
               ${aMostrar.map((p, i) => filaProducto(p, i)).join('')}
             </div>
 
             ${ocultos > 0
-              ? `<p class="text-sm text-gray-500 text-center">y ${ocultos} producto(s) más con este código</p>`
+              ? `<p class="detalle apagado centro-texto">y ${ocultos} producto(s) más con este código</p>`
               : ''}
 
-            <p class="text-sm text-gray-500">
+            <p class="detalle apagado">
               ${origen === 'escaner'
                 ? 'El escáner no puede saber cuál de los dos es: lo decidís vos.'
                 : 'Ningún lector se va a perder: el código se sigue usando.'}
