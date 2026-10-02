@@ -1,4 +1,4 @@
-import { db, dbUtils, categoriasDe } from '../db.js';
+import { db, dbUtils, categoriasDe, normalizarProveedor } from '../db.js';
 
 /**
  * Poner un producto en la forma que la app usa hoy, sin perderle nada.
@@ -14,7 +14,11 @@ import { db, dbUtils, categoriasDe } from '../db.js';
  *
  *   - `proveedor` y `notas` no existían antes, así que llegan ausentes. Se
  *     rellenan con cadena vacía, que es como los guarda el formulario, y no
- *     con null: null obliga a repetir el `|| ''` en cada lugar que los lea.
+ *     con null: null obliga a repetir el `|| ''` en cada lugar que los lea. El
+ *     proveedor además pasa por `normalizarProveedor()`, que es lo que hace el
+ *     formulario: importar un backup con "  Lácteos  del sur " y volver a
+ *     importarlo con "Lácteos del Sur" tiene que dar el mismo grupo en el
+ *     pedido, no dos.
  *
  * Lo que NO se toca son los snapshots del historial: son una foto del pasado del
  * usuario, y reescribirlos para que calcen con el código de hoy sería mentir
@@ -25,7 +29,7 @@ function normalizarProducto(p) {
   return {
     ...resto,
     categoriaIds: categoriasDe(p),
-    proveedor: typeof resto.proveedor === 'string' ? resto.proveedor : '',
+    proveedor: normalizarProveedor(resto.proveedor),
     notas: typeof resto.notas === 'string' ? resto.notas : ''
   };
 }

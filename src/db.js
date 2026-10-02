@@ -147,6 +147,50 @@ export function tieneCategoria(producto, categoriaId) {
   return categoriasDe(producto).includes(categoriaId);
 }
 
+/**
+ * Deja el nombre del proveedor como lo escribió el usuario, pero parejo.
+ *
+ * Recorta los bordes, corre los espacios repetidos y le pone mayúscula a la
+ * primera letra. Nada de esto cambia lo que el usuario quiso decir: es lo mismo
+ * nombre, escrito un poco más prolijo.
+ *
+ * Importa porque el pedido de faltantes se manda por proveedor. Si
+ * "  distribuidora   del sur " y "Distribuidora del Sur" se guardaran
+ * distintos, el pedido saldría partido en dos grupos que son el mismo cliente, y
+ * el usuario tendría que mandarle dos listas al mismo lugar.
+ *
+ * Sólo se unifica lo que no cambia el nombre. Las palabras siguen en minúscula
+ * porque "Distribuidora del Sur" y "Distribuidora Del Sur" se reconocen solos;
+ * poner mayúscula en cada palabra produce "Distribuidora Del Sur", que es
+ * escribir mal.
+ */
+export function normalizarProveedor(nombre) {
+  const texto = (nombre ?? '').toString().replace(/\s+/g, ' ').trim();
+  if (!texto) return '';
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/**
+ * Clave para saber si dos nombres de proveedor son el mismo.
+ *
+ * Ésta no se guarda: sólo se usa para agrupar. Los productos que ya estaban
+ * cargados pueden traer el mismo proveedor escrito con otra mayúscula, y
+ * agrupar por el texto exacto los separaría. La tilde y la eñe también cuentan
+ * como iguales, porque "lacteos" y "lácteos" son el mismo proveedor escrito
+ * apurado, no dos.
+ *
+ * El nombre que se muestra es el primero que aparece, no el que gana la
+ * comparación: el primero es el que el usuario tiene anotado.
+ */
+export function claveProveedor(nombre) {
+  return (nombre ?? '').toString()
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
 // Nota sobre hooks:
 // Se eliminó el hook 'deleting' que tenía dos defectos:
 //   1) Accedía a trans.imagenes / trans.historial, pero la transacción que abre

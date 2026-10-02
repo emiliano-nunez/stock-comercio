@@ -1,4 +1,4 @@
-import { db, dbUtils, TIPOS_VENTA, categoriasDe } from '../db.js';
+import { db, dbUtils, TIPOS_VENTA, categoriasDe, normalizarProveedor } from '../db.js';
 import { imagenUtils } from '../utils/imagen.js';
 import { abrirCamara } from './CamaraModal.js';
 import { abrirScanner } from './ScannerModal.js';
@@ -1259,7 +1259,10 @@ export class ProductoForm {
       .filter(Boolean);
     // Proveedor y notas son texto libre. Se guardan sin espacios en los bordes
     // para que no se comparen distintos dos productos con el mismo proveedor.
-    const proveedor = formData.get('proveedor')?.toString().trim() || '';
+    // El proveedor además se normaliza: el pedido de faltantes se manda por
+    // proveedor y "distribuidora del sur" escrito con minúscula tiene que caer
+    // en el mismo grupo que "Distribuidora del Sur".
+    const proveedor = normalizarProveedor(formData.get('proveedor'));
     const notas = formData.get('notas')?.toString().trim() || '';
 
     // Código de barras repetido (si cambió)
