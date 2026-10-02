@@ -46,7 +46,7 @@ export class HistorialModal {
   
   crearModal() {
     const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
+    modal.className = 'velo';
     
     // El cuerpo y el footer con los botones de backup se construyen siempre,
     // incluso sin historial. Antes el footer (y el input[type=file] que dispara
@@ -55,32 +55,32 @@ export class HistorialModal {
     // cuando el usuario más lo necesita para recuperar datos.
     const cuerpo = this.historial.length === 0
       ? `
-        <div class="p-8 text-center">
-          <span class="text-5xl">📭</span>
-          <h3 class="text-touch font-semibold text-gray-700 mt-4">Sin historial</h3>
-          <p class="text-gray-500 mt-2">No hay puntos de restauración disponibles.<br>Podés importar un backup para recuperar tu inventario.</p>
+        <div class="dialogo-cuerpo centro-texto">
+          <span class="vacio-icono">📭</span>
+          <h3 class="subtitulo con-margen-arriba-amplia">Sin historial</h3>
+          <p class="apagado con-margen-arriba">No hay puntos de restauración disponibles.<br>Podés importar un backup para recuperar tu inventario.</p>
         </div>
       `
       : `
-        <div class="p-2 max-h-[60vh] overflow-y-auto">
+        <div class="dialogo-cuerpo dialogo-cuerpo-scroll">
           ${this.historial.map((item, index) => `
             <button 
               type="button"
-              class="w-full text-left p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors flex items-center gap-3 ${index === 0 ? 'bg-primary-50 border-primary-200' : ''}"
+              class="entrada-lista ${index === 0 ? 'entrada-lista-destacada' : ''}"
               data-snapshot-id="${escAttr(item.id)}"
             >
-              <div class="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
-                <span class="text-xl">🔄</span>
+              <div class="miniatura miniatura-marca">
+                <span class="mediano">🔄</span>
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="font-semibold text-gray-900 truncate">${esc(this.formatearMotivo(item.motivo))}</p>
-                <p class="text-sm text-gray-500">${esc(this.formatearFecha(item.fecha))}</p>
+              <div class="crece ancho-cero">
+                <p class="fuerte cortado">${esc(this.formatearMotivo(item.motivo))}</p>
+                <p class="detalle apagado">${esc(this.formatearFecha(item.fecha))}</p>
               </div>
-              <span class="text-sm text-gray-400">${item.snapshotProductos?.length || 0} productos</span>
+              <span class="detalle tenue">${item.snapshotProductos?.length || 0} productos</span>
             </button>
           `).join('')}
         </div>
-        <p class="text-center text-sm text-gray-500">Toca un estado para restaurar el inventario</p>
+        <p class="centro-texto detalle apagado">Toca un estado para restaurar el inventario</p>
       `;
     
     // Botones de limpieza de fotos. Deliberadamente con el número adelante: el
@@ -91,14 +91,14 @@ export class HistorialModal {
     const sueltas = this.fotosSueltas || { cantidad: 0, megas: 0 };
     const delHistorial = this.fotosDelHistorial || { cantidad: 0, megas: 0 };
     const limpiezaHTML = (sueltas.cantidad > 0 || delHistorial.cantidad > 0) ? `
-      <div class="pt-1 space-y-0.5">
+      <div class="apilado-chico">
         ${sueltas.cantidad > 0 ? `
-          <button id="btn-limpiar-fotos" class="w-full btn-ghost text-xs text-gray-500 hover:text-danger-600 py-2">
+          <button id="btn-limpiar-fotos" class="btn-fantasma btn-ancho micro apagado btn-peligro-suave">
             🧹 Liberar ${sueltas.cantidad} foto(s) suelta(s) (${sueltas.megas.toFixed(1)} MB)
           </button>
         ` : ''}
         ${delHistorial.cantidad > 0 ? `
-          <button id="btn-limpiar-fotos-historial" class="w-full btn-ghost text-xs text-gray-500 hover:text-danger-600 py-2">
+          <button id="btn-limpiar-fotos-historial" class="btn-fantasma btn-ancho micro apagado btn-peligro-suave">
             🗄️ Liberar ${delHistorial.cantidad} foto(s) de productos borrados (${delHistorial.megas.toFixed(1)} MB)
           </button>
         ` : ''}
@@ -106,19 +106,19 @@ export class HistorialModal {
     ` : '';
     
     modal.innerHTML = `
-      <div class="modal-content max-w-md">
-        <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-primary-50 rounded-t-2xl">
-          <h2 class="text-touch-lg font-bold text-gray-900">🔄 Volver Atrás</h2>
-          <button id="cerrar-historial" class="btn-ghost p-2" aria-label="Cerrar">✕</button>
+      <div class="dialogo">
+        <div class="dialogo-cabecera">
+          <h2 class="titulo">🔄 Volver Atrás</h2>
+          <button id="cerrar-historial" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
         </div>
         ${cuerpo}
-        <div class="p-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl space-y-2">
-          <div class="flex gap-2">
-            <button id="btn-exportar-backup" class="btn-secondary flex-1 text-sm">📤 Exportar Backup</button>
-            <button id="btn-importar-backup" class="btn-primary flex-1 text-sm">📥 Importar Backup</button>
+        <div class="dialogo-pie apilado pie-suave">
+          <div class="fila">
+            <button id="btn-exportar-backup" class="btn-secundario btn-crece detalle">📤 Exportar Backup</button>
+            <button id="btn-importar-backup" class="btn-principal btn-crece detalle">📥 Importar Backup</button>
           </div>
           ${limpiezaHTML}
-          <input type="file" id="input-importar-backup" accept=".json,application/json" class="hidden">
+          <input type="file" id="input-importar-backup" accept=".json,application/json" class="oculto">
         </div>
       </div>
     `;
@@ -196,11 +196,11 @@ export class HistorialModal {
             (${s.megas.toFixed(1)} MB) que no están en ningún producto ni en
             ningún punto de restauración.
           </p>
-          <p class="text-sm text-gray-500">
+          <p class="detalle apagado">
             Suelen ser fotos que reemplazaste o de productos que ya borraste.
             Si la de algún producto sigue en pie, <strong>no</strong> aparece acá.
           </p>
-          <p class="text-sm text-warning-700">
+          <p class="detalle texto-aviso">
             ⚠️ Esto no se puede deshacer. Si querés asegurarte, exportá un
             backup antes.
           </p>
@@ -236,21 +236,21 @@ export class HistorialModal {
             (${s.megas.toFixed(1)} MB) que son de productos que ya eliminaste.
             Están guardadas sólo para que "Volver Atrás" te las devuelva.
           </p>
-          <div class="p-3 bg-primary-50 border border-primary-200 rounded-xl text-sm">
-            <p class="font-semibold text-gray-900 mb-1">Esto NO toca:</p>
-            <ul class="list-disc list-inside text-gray-700">
+          <div class="aviso aviso-info detalle">
+            <p class="fuerte con-margen-abajo-chica">Esto NO toca:</p>
+            <ul class="lista">
               <li>Las fotos de los productos que tenés ahora.</li>
               <li>Los productos borrados: si restaurás, vuelven igual.</li>
             </ul>
           </div>
-          <div class="p-3 bg-danger-50 border border-danger-200 rounded-xl text-sm">
-            <p class="font-semibold text-gray-900 mb-1">Esto SÍ:</p>
-            <ul class="list-disc list-inside text-gray-700">
+          <div class="aviso aviso-peligro detalle">
+            <p class="fuerte con-margen-abajo-chica">Esto SÍ:</p>
+            <ul class="lista">
               <li>Las fotos se van para siempre.</li>
               <li>Si restaurás un producto borrado, <strong>vuelve sin foto</strong>.</li>
             </ul>
           </div>
-          <p class="text-sm text-gray-500">
+          <p class="detalle apagado">
             Lo borrás <strong>vos</strong>, a propósito, y queda anotado en el
             historial. Si más adelante te faltan esas fotos, no se perdieron
             solas: acá está escrito que las liberaste vos. Si sólo querés
@@ -348,19 +348,19 @@ export class HistorialModal {
   pedirConfirmacion({ titulo, cuerpo, aceptar = 'Aceptar', aceptarDeshabilitado = false, alAceptar = null }) {
     return new Promise((resolve) => {
       const box = document.createElement('div');
-      box.className = 'modal-overlay';
+      box.className = 'velo';
       box.innerHTML = `
-        <div class="modal-content max-w-md">
-          <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-warning-50 rounded-t-2xl">
-            <h2 class="text-touch-lg font-bold text-gray-900 flex items-center gap-2">
+        <div class="dialogo">
+          <div class="dialogo-cabecera dialogo-cabecera-aviso">
+            <h2 class="titulo fila">
               <span>⚠️</span> ${esc(titulo)}
             </h2>
-            <button class="btn-ghost p-2" data-accion="cancelar" aria-label="Cerrar">✕</button>
+            <button class="btn-fantasma btn-icono" data-accion="cancelar" aria-label="Cerrar">✕</button>
           </div>
-          <div class="p-4 text-touch text-gray-700 space-y-3">${cuerpo}</div>
-          <div class="p-4 border-t border-gray-100 flex gap-2">
-            <button class="btn-secondary flex-1" data-accion="cancelar">Cancelar</button>
-            <button class="btn-primary flex-1" data-accion="aceptar" ${aceptarDeshabilitado ? 'disabled' : ''}>${esc(aceptar)}</button>
+          <div class="dialogo-cuerpo apilado-3">${cuerpo}</div>
+          <div class="dialogo-pie">
+            <button class="btn-secundario btn-crece" data-accion="cancelar">Cancelar</button>
+            <button class="btn-principal btn-crece" data-accion="aceptar" ${aceptarDeshabilitado ? 'disabled' : ''}>${esc(aceptar)}</button>
           </div>
         </div>
       `;
@@ -430,30 +430,30 @@ export class HistorialModal {
     const lista = (listaProductos) => {
       const MAX = 6;
       const visibles = listaProductos.slice(0, MAX)
-        .map(p => `<li class="truncate">• ${esc(p.nombre)}</li>`)
+        .map(p => `<li class="cortado">• ${esc(p.nombre)}</li>`)
         .join('');
       const resto = listaProductos.length - MAX;
       return visibles + (resto > 0
-        ? `<li class="text-gray-500">… y ${resto} producto(s) más</li>`
+        ? `<li class="apagado">… y ${resto} producto(s) más</li>`
         : '');
     };
     
     const vuelvenHTML = cambios.vuelven.length > 0 ? `
-      <div class="p-3 bg-primary-50 border border-primary-200 rounded-xl">
-        <p class="text-sm font-semibold text-gray-900 mb-1">
+      <div class="aviso aviso-info">
+        <p class="detalle fuerte con-margen-abajo-chica">
           ↩️ Vuelven ${cambios.vuelven.length} producto(s) que borraste después de esa fecha
         </p>
-        <ul class="text-sm text-gray-700 space-y-0.5">${lista(cambios.vuelven)}</ul>
+        <ul class="detalle apilado-chico">${lista(cambios.vuelven)}</ul>
       </div>
     ` : '';
     
     const seVanHTML = cambios.seVan.length > 0 ? `
-      <div class="p-3 bg-danger-50 border border-danger-200 rounded-xl">
-        <p class="text-sm font-semibold text-gray-900 mb-1">
+      <div class="aviso aviso-peligro">
+        <p class="detalle fuerte con-margen-abajo-chica">
           🗑️ Desaparecen ${cambios.seVan.length} producto(s) que cargaste o cambiaste después
         </p>
-        <ul class="text-sm text-gray-700 space-y-0.5">${lista(cambios.seVan)}</ul>
-        <p class="text-xs text-gray-500 mt-1">
+        <ul class="detalle apilado-chico">${lista(cambios.seVan)}</ul>
+        <p class="micro apagado con-margen-arriba-chica">
           No se pierden: antes de aplicar se guarda este estado como un punto
           nuevo, así que podés volver atrás desde acá mismo.
         </p>
@@ -472,17 +472,17 @@ export class HistorialModal {
           <strong>${esc(this.formatearFecha(item.fecha))}</strong>
           (${esc(this.formatearMotivo(item.motivo))}), con ${total} producto(s).
         </p>
-        ${total === 0 ? '<p class="text-sm text-danger-600">Este punto no contiene productos, no se puede aplicar.</p>' : ''}
+        ${total === 0 ? '<p class="detalle texto-peligro">Este punto no contiene productos, no se puede aplicar.</p>' : ''}
         ${vuelvenHTML}
         ${seVanHTML}
-        ${sinCambios ? '<p class="text-sm text-gray-500">No hay diferencias de productos: sólo cambian precios o stocks.</p>' : ''}
+        ${sinCambios ? '<p class="detalle apagado">No hay diferencias de productos: sólo cambian precios o stocks.</p>' : ''}
         ${resumen.conFoto > 0 ? `
-          <label class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer select-none">
+          <label class="opcion">
             <input type="checkbox" id="restaurar-fotos" checked
-                   class="w-6 h-6 mt-0.5 flex-shrink-0 accent-primary-600">
-            <span class="text-sm">
-              <span class="font-semibold text-gray-900">Traer también las fotos</span>
-              <span class="block text-gray-500">
+                   class="casilla">
+            <span class="detalle">
+              <span class="fuerte">Traer también las fotos</span>
+              <span class="apagado">
                 ${resumen.disponibles} de ${resumen.conFoto} producto(s) con foto
                 pueden volver con su imagen.
               </span>
@@ -490,12 +490,12 @@ export class HistorialModal {
           </label>
         ` : ''}
         ${perdidas > 0 ? `
-          <p class="text-sm text-warning-700">
+          <p class="detalle texto-aviso">
             ⚠️ ${perdidas} de esas fotos ya no están en el dispositivo, así que
             esos productos van a volver sin imagen.
           </p>
         ` : ''}
-        <p class="text-sm text-gray-500">Los cambios que hagas después de restaurar no se podrán deshacer desde aquí.</p>
+        <p class="detalle apagado">Los cambios que hagas después de restaurar no se podrán deshacer desde aquí.</p>
       `,
       alAceptar: (box) => ({
         conFotos: box.querySelector('#restaurar-fotos')?.checked !== false
@@ -531,17 +531,17 @@ export class HistorialModal {
           <strong>${esc(nombreArchivo)}</strong> contiene
           ${resumen.productos} producto(s) y ${resumen.categorias} categoría(s).
         </p>
-        ${resumen.fecha ? `<p class="text-sm text-gray-500">Backup del ${esc(this.formatearFecha(resumen.fecha))}.</p>` : ''}
+        ${resumen.fecha ? `<p class="detalle apagado">Backup del ${esc(this.formatearFecha(resumen.fecha))}.</p>` : ''}
         ${hayDatos > 0
-          ? `<p class="text-danger-600">
+          ? `<p class="texto-peligro">
                Se <strong>reemplazarán los ${hayDatos} producto(s) que tenés ahora</strong>,
                incluidas sus categorías e imágenes.
              </p>
-             <p class="text-sm text-gray-500">
+             <p class="detalle apagado">
                No pasa nada: antes de importar se guarda un punto de restauración
                con tu inventario actual, y podés volver con "Volver Atrás".
              </p>`
-          : '<p class="text-sm text-gray-500">Tu base está vacía, no se pierde nada.</p>'}
+          : '<p class="detalle apagado">Tu base está vacía, no se pierde nada.</p>'}
       `
     });
   }
@@ -584,8 +584,8 @@ export class HistorialModal {
     this._cerrando = true;
     
     if (this.modal) {
-      this.modal.classList.add('animate-slide-down');
-      this.modal.classList.remove('animate-slide-up');
+      this.modal.classList.add('anim-bajar');
+      this.modal.classList.remove('anim-subir');
       
       setTimeout(() => {
         if (this.modal && this.modal.parentNode) {
