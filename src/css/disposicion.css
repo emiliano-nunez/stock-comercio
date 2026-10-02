@@ -184,6 +184,26 @@
   }
 }
 
+/*
+ * La rejilla del inventario: 1 columna en el teléfono y 2 a partir de 768px.
+ *
+ * La tarjeta de inventario lleva miniatura a la izquierda y tres filas de
+ * controles a la derecha. Necesita más ancho que la del catálogo, que sólo
+ * tiene la foto y el nombre. Con 1 columna en móvil y 2 en escritorio cada
+ * tarjeta tiene el espacio que su contenido pide.
+ */
+.rejilla-inventario {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espacio-3);
+}
+
+@media (min-width: 768px) {
+  .rejilla-inventario {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* =================================================================
  * Filas
  *

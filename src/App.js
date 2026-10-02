@@ -389,7 +389,7 @@ export class App {
     // de eliminar se caería de la fila. Con md, la columna ya mide 768px y cada
     // tarjeta 370px, que es lo que la tarjeta esperaba.
     return `
-      <div class="rejilla">
+      <div class="rejilla-inventario">
         ${visibles.map(p => this.renderProductoHTML(p)).join('')}
       </div>
     ` + this.renderCargarMasHTML(visibles);
