@@ -413,6 +413,39 @@
 }
 
 /* =================================================================
+ * Una fila que se toca para ir a otro lado
+ *
+ * Un botón con apariencia de fila: el área de toque es toda la fila y no sólo
+ * el texto, que es lo que hace cómodo tocarla en un teléfono. Se usa para
+ * abrir una categoría en el catálogo, donde al lado van también los botones de
+ * editar y de borrar.
+ *
+ * El relleno va acá y no en el reinicio, así la fila se ve bien aunque el botón
+ * heredara el fondo y el borde del navegador.
+ * ================================================================= */
+
+.fila-tocable {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--toque-min);
+  padding: var(--espacio-2) var(--espacio-3);
+  border: none;
+  border-radius: var(--radio-md);
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fila-tocable:active {
+  background-color: var(--gris-100);
+}
+
+/* =================================================================
  * La muestra de un color
  * ================================================================= */
 

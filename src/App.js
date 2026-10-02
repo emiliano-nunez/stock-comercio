@@ -43,6 +43,8 @@ export class App {
     this.ordenarPor = 'nombre';
     this.ordenDireccion = 'asc';
     this.vistaActual = 'inventario';
+    // Categoría abierta en el catálogo. Es null cuando se ve el catálogo entero.
+    this.categoriaVista = null;
     this.ultimoEliminado = null;
     this.timeoutDeshacer = null;
     this.categoriaEditando = null;
@@ -396,13 +398,29 @@ export class App {
    * grupo "Sin stock" podía quedar con la cabecera en "(12)" y cero tarjetas
    * debajo, que es peor que no mostrarlo, porque el contador miente.
    */
+  /*
+   * Los productos que le tocan a la vista actual.
+   *
+   * Abrir una categoría es mirar el catálogo de esa categoría, no una búsqueda:
+   * por eso el filtro vive acá y no en aplicarFiltroYOrden(), que alimenta las
+   * tres vistas. SiViviera allí, cambiar de pestaña llevaría el filtro puesto y
+   * el inventario mostraría un solo grupo de productos sin avisar.
+   */
+  productosDeLaVista() {
+    if (this.vistaActual === 'catalogo' && this.categoriaVista) {
+      return this.productosFiltrados.filter(p => p.categoriaId === this.categoriaVista);
+    }
+    return this.productosFiltrados;
+  }
+
   productosVisibles() {
+    const base = this.productosDeLaVista();
     if (this.vistaActual !== 'catalogo') {
-      return this.productosFiltrados.slice(0, this._limiteRender);
+      return base.slice(0, this._limiteRender);
     }
 
     const porEstado = new Map(App.ESTADOS_STOCK.map(e => [e.clave, []]));
-    for (const p of this.productosFiltrados) {
+    for (const p of base) {
       porEstado.get(estadoStock(p)).push(p);
     }
 
@@ -434,12 +452,12 @@ export class App {
     // catálogo el reparto por grupos deja huecos sin usar cuando un grupo es
     // chico, y con _limiteRender el botón anunciaba más productos de los que
     // aparecían.
-    const faltan = this.productosFiltrados.length - visibles.length;
+    const faltan = this.productosDeLaVista().length - visibles.length;
     if (faltan <= 0) return '';
 
     return `
       <div class="centro-texto">
-        <p class="detalle apagado con-margen-abajo">Mostrando ${visibles.length} de ${this.productosFiltrados.length}</p>
+        <p class="detalle apagado con-margen-abajo">Mostrando ${visibles.length} de ${this.productosDeLaVista().length}</p>
         <button id="btn-cargar-mas" class="btn-secundario">
           Cargar ${Math.min(faltan, App.LIMITE_RENDER)} más
         </button>
@@ -448,6 +466,24 @@ export class App {
   }
   
   renderCatalogoHTML() {
+    // Con una categoría abierta y sin productos, el mensaje tiene que decir que
+    // la que está vacía es la categoría: si dijera "Catálogo vacío" el usuario
+    // pensaría que perdió el inventario.
+    if (this.categoriaVista && this.productosDeLaVista().length === 0) {
+      const cat = this.categorias.find(c => c.id === this.categoriaVista);
+      return `
+        <div class="apilado-4">
+          ${this.renderFiltroCategoriaHTML()}
+          <div class="vacio">
+            <span class="vacio-icono-grande">${this.categoriaVacia(cat) ? '📭' : '🗂️'}</span>
+            <h2 class="subtitulo con-margen-arriba-amplia">${esc(cat?.nombre || 'Esta categoría')} está vacía</h2>
+            <p class="detalle apagado con-margen-arriba">Todavía no tiene ningún producto</p>
+            <button class="btn-principal con-margen-arriba" id="btn-agregar-en-categoria">➕ Agregar producto</button>
+          </div>
+        </div>
+      `;
+    }
+
     if (this.productosFiltrados.length === 0) {
       return `
         <div class="vacio">
@@ -475,7 +511,7 @@ export class App {
     // Se agrupan sólo los productos que se van a pintar, no todos. Con el tope
     // de render, meter el resto haría que un grupo quedara con la cabecera en
     // "(12)" y cero tarjetas debajo, y el contador miente.
-    return App.ESTADOS_STOCK
+    return this.renderFiltroCategoriaHTML() + App.ESTADOS_STOCK
       .filter(estado => porEstado.get(estado.clave).length > 0)
       .map(estado => {
         const productos = porEstado.get(estado.clave);
@@ -491,6 +527,50 @@ export class App {
         </section>
       `;
       }).join('') + this.renderCargarMasHTML(visibles);
+  }
+
+  // El aviso de que se está mirando una sola categoría, con la salida. Sin él el
+  // catálogo filtrado parece el catálogo entero y el usuario no encuentra por
+  // qué le faltan productos.
+  renderFiltroCategoriaHTML() {
+    const cat = this.categorias.find(c => c.id === this.categoriaVista);
+    if (!this.categoriaVista) return '';
+    const total = this.productosDeLaVista().length;
+    return `
+      <div class="recuadro recuadro-marca fila fila-separada con-margen-abajo-amplia">
+        <span class="fila fila-amplia no-crece">
+          <span class="punto-chico" style="background-color: ${this.getCategoriaColor(cat)}"></span>
+          <span class="medio">${esc(cat?.nombre || 'Categoría')}</span>
+        </span>
+        <span class="detalle apagado no-crece">${total} ${total === 1 ? 'producto' : 'productos'}</span>
+        <button id="btn-ver-catalogo-completo" class="btn-secundario detalle">
+          Ver todo
+        </button>
+      </div>
+    `;
+  }
+
+  // Un emoji para el estado vacío de una categoría: la que se creó y todavía no
+  // tiene nada es distinta de la que tenía productos y se vació, y el ícono lo
+  // dice sin leer.
+  categoriaVacia(cat) {
+    return this.contarProductosCategoria(cat?.id) === 0;
+  }
+
+  // Abrir una categoría en el catálogo.
+  abrirCategoria(categoriaId) {
+    this.categoriaVista = categoriaId;
+    this.vistaActual = 'catalogo';
+    this._limiteRender = App.LIMITE_RENDER;
+    this.render();
+    // El catálogo arranca arriba, que es donde está el nombre de la categoría.
+    document.getElementById('contenido-principal')?.scrollIntoView({ block: 'start' });
+  }
+
+  verCatalogoCompleto() {
+    this.categoriaVista = null;
+    this._limiteRender = App.LIMITE_RENDER;
+    this.render();
   }
   
   // La rama que aceptaba un string y sacaba un color por hash del nombre quedó
@@ -563,14 +643,21 @@ export class App {
           <div class="apilado">
             ${this.categorias.map(cat => `
               <div class="fila fila-separada recuadro-suave">
-                <div class="fila fila-amplia">
+                <button
+                  class="fila-tocable"
+                  data-id="${escAttr(cat.id)}"
+                  aria-label="Ver los productos de ${escAttr(cat.nombre)} en el catálogo"
+                >
                   <span class="punto" style="background-color: ${this.getCategoriaColor(cat)}"></span>
-                  <div>
-                    <p class="medio">${esc(cat.nombre)}</p>
-                    <p class="micro apagado">${this.contarProductosCategoria(cat.id)} productos</p>
-                  </div>
-                </div>
-                <div class="fila">
+                  <span class="columna crece">
+                    <span class="medio">${esc(cat.nombre)}</span>
+                    <span class="micro apagado">
+                      ${this.contarProductosCategoria(cat.id)} ${this.contarProductosCategoria(cat.id) === 1 ? 'producto' : 'productos'}
+                      · Ver en el catálogo ›
+                    </span>
+                  </span>
+                </button>
+                <div class="fila no-crece">
                   <button class="btn-fantasma btn-icono texto-marca editar-categoria" data-id="${escAttr(cat.id)}" aria-label="Editar ${escAttr(cat.nombre)}">
                     ✏️
                   </button>
@@ -756,6 +843,10 @@ export class App {
     document.querySelectorAll('.pestana').forEach(btn => {
       btn.addEventListener('click', () => {
         this.vistaActual = btn.dataset.vista;
+        // La categoría abierta es una forma de mirar el catálogo. Al salirse del
+        // catálogo se suelta, para que volver a Inventario muestre el inventario
+        // entero y no el último grupo que se miró.
+        this.categoriaVista = null;
         this._limiteRender = App.LIMITE_RENDER;
         this.render();
       });
@@ -774,6 +865,11 @@ export class App {
     document.querySelectorAll('.eliminar-categoria').forEach(btn => {
       btn.addEventListener('click', () => this.eliminarCategoria(btn.dataset.id));
     });
+    document.querySelectorAll('.fila-tocable[data-id]').forEach(btn => {
+      btn.addEventListener('click', () => this.abrirCategoria(btn.dataset.id));
+    });
+    document.getElementById('btn-ver-catalogo-completo')?.addEventListener('click', () => this.verCatalogoCompleto());
+    document.getElementById('btn-agregar-en-categoria')?.addEventListener('click', () => this.nuevoProducto(this.categoriaVista));
     
     document.getElementById('contenido-principal')?.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
@@ -885,13 +981,16 @@ export class App {
     this.editarProducto(productoExistente.id);
   }
   
-  nuevoProducto() {
+  nuevoProducto(categoriaId = null) {
     if (this._productoFormAbierto) return;
     this._productoFormAbierto = true;
     abrirFormularioProducto(
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
       () => { this._productoFormAbierto = false; },
-      null,
+      // La categoría viaja como producto semilla para que el formulario la traiga
+      // elegida. Agregar desde una categoría vacía es agregar dentro de ella, y no
+      // dejar el producto en "Sin categoría" al otro lado de la app.
+      categoriaId ? { categoriaId } : null,
       (p) => this._alVerProductoExistente(p),
       (p) => this.eliminarProducto(p.id)
     );
