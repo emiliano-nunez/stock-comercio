@@ -4,12 +4,12 @@ export const db = new Dexie('StockComercioDB');
 
 // Historial de esquemas de la BD.
 //
-// El esquema vigente es el de la v5. Las versiones intermedias se declaran
+// El esquema vigente es el de la v6. Las versiones intermedias se declaran
 // aunque ya no se usen: Dexie sólo necesita los índices declarados en cada
 // versión para reindexar las BDs existentes, y saltarse números deja huecos que
-// confunden al diagnosticar ("¿por qué mi BD dice 1 y el código dice 5?").
+// confunden al diagnosticar ("¿por qué mi BD dice 1 y el código dice 6?").
 //
-// Indices que se quitaron de uso y por qué, está en la nota de la v5 más abajo.
+// Índices que se quitaron de uso y por qué, está en la nota de la v5 más abajo.
 db.version(1).stores({
   productos: 'id, nombre, categoriaId, codigoBarras, tipoVenta',
   categorias: 'id, nombre',
@@ -71,6 +71,81 @@ db.version(5).stores({
   imagenes: 'id',
   historial: 'id, fecha'
 });
+
+/*
+ * v6: un producto puede estar en varias categorías, y se le agregan proveedor y
+ * notas.
+ *
+ * Antes el campo era categoriaId y guardaba UN id. Un producto que es a la vez
+ * "Lácteos" y "Frescos" tenía que elegir uno, y el otro grupo no lo encontraba.
+ * Ahora es categoriaIds y es una lista.
+ *
+ * Por qué NO se indexa categoriaIds:
+ *   - Un índice sobre un campo que es una lista crea UNA ENTRADA POR ELEMENTO
+ *     (ver la nota de la v5 sobre precios). Con 3 categorías son 3 filas por
+ *     producto.
+ *   - Y, sobre todo, no hay ninguna consulta que lo use. Todo el filtrado pasa
+ *     por App.aplicarFiltroYOrden() y por productosDeLaVista(), que filtran en
+ *     memoria sobre el inventario ya cargado. El índice se pagaría en cada
+ *     escritura y no se cobraría nunca.
+ *
+ * Se saca el índice de categoriaId porque ese campo ya no existe. Dexie
+ * rebuilda los índices al cambiar de versión, así que dejarlo sería un índice
+ * sobre una columna siempre vacía.
+ *
+ * La migración mueve el valor viejo a una lista de un solo elemento. Es
+ * reversible: nada se borra de la foto ni del historial, y el campo nuevo
+ * contiene exactamente lo que tenía el anterior.
+ */
+db.version(6)
+  .stores({
+    productos: 'id, codigoBarras, tipoVenta, costo, fechaCompra',
+    categorias: 'id, nombre, color',
+    imagenes: 'id',
+    historial: 'id, fecha'
+  })
+  .upgrade(async tx => {
+    await tx.table('productos').toCollection().modify(producto => {
+      // Se borra el campo viejo en la misma pasada, en vez de dejarlo puesto:
+      // un producto que tuviera las dos formas sería el peor estado posible,
+      // porque cada lugar que leyera una leería la otra.
+      if (!Array.isArray(producto.categoriaIds)) {
+        producto.categoriaIds = producto.categoriaId ? [producto.categoriaId] : [];
+      }
+      delete producto.categoriaId;
+
+      // Los dos campos nuevos nacen vacíos, no en null: se comparan y se
+      // concatenan como texto en la interfaz, y "" se puede pintar sin que cada
+      // lugar se acuerde del caso.
+      if (typeof producto.proveedor !== 'string') producto.proveedor = '';
+      if (typeof producto.notas !== 'string') producto.notas = '';
+    });
+  });
+
+/**
+ * Las categorías de un producto, siempre como lista de ids.
+ *
+ * Un producto puede estar en varias. Se lee tolerando las dos formas porque hay
+ * dos caminos por los que un producto viejo vuelve a aparecer con la forma
+ * anterior: restaurar un punto de restauración tomado antes de esta versión, e
+ * importar un backup viejo. Los snapshots del historial no se reescriben (son
+ * el estado de otra fecha, y modificarlos sería mentir sobre ese estado), y un
+ * backup pertenece al usuario tal como lo exportó.
+ *
+ * @param {{categoriaIds?: string[], categoriaId?: string}} producto
+ * @returns {string[]} puede estar vacía: un producto sin categoría es válido.
+ */
+export function categoriasDe(producto) {
+  if (Array.isArray(producto?.categoriaIds)) return producto.categoriaIds.filter(Boolean);
+  if (producto?.categoriaId) return [producto.categoriaId];
+  return [];
+}
+
+/** Un producto que está en la categoría dada, aunque tenga varias. */
+export function tieneCategoria(producto, categoriaId) {
+  if (!categoriaId) return false;
+  return categoriasDe(producto).includes(categoriaId);
+}
 
 // Nota sobre hooks:
 // Se eliminó el hook 'deleting' que tenía dos defectos:
@@ -444,7 +519,7 @@ export const dbUtils = {
     //
     // Sin esto, restaurar un punto viejo era una operación de un solo sentido
     // salvo por suerte. El inventario actual sólo sobrevive si por casualidad
-    // alguno de los 10 puntos guardados lo contiene, y la últimamilleta no la
+    // alguno de los 10 puntos guardados lo contiene, y la última milleta no la
     // genera nada: si el usuario agregó productos y no cambió ningún precio ni
     // borró nada, no hubo ningún motivo que disparara un snapshot, y al
     // restaurar desaparecían esos productos sin dejar rastro en ninguna parte.
