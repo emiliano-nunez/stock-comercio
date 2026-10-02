@@ -5,6 +5,7 @@ import { abrirScanner } from './ScannerModal.js';
 import { abrirCodigoDuplicado } from './CodigoDuplicado.js';
 import { toast } from '../utils/toast.js';
 import { esc, escAttr } from '../utils/html.js';
+import { normalizarTexto } from '../utils/texto.js';
 
 export class ProductoForm {
   constructor(onSave, onClose, producto = null, onScanExistente = null, onBorrarProducto = null) {
@@ -68,6 +69,7 @@ export class ProductoForm {
     await this.cargarImagenCompleta();
     
     await this.cargarCategorias();
+    await this.cargarProveedores();
     this.modal = this.crearModal();
     document.body.appendChild(this.modal);
     
@@ -84,6 +86,133 @@ export class ProductoForm {
   async cargarCategorias() {
     this.categorias = await db.categorias.toArray();
     // No categorías por defecto - solo las que el usuario creó
+  }
+  
+  /**
+   * Los proveedores que ya usa el inventario, para el buscador del campo.
+   *
+   * Se leen de la base y no de la app porque el formulario ya carga solo las
+   * categorías: no hace falta pasar nada por parámetro para que sepa qué hay.
+   *
+   * Se agrupan por clave normalizada, así que "Lácteos del Sur" y "lácteos del
+   * sur" salen como una sola sugerencia, y se muestra la forma con mayúscula
+   * que alguien escribió. Un proveedor que nadie usa no aparece: la lista no
+   * crece con lo que el usuario pruebe.
+   */
+  async cargarProveedores() {
+    const productos = await db.productos.toArray();
+    const vistos = new Map();
+    for (const p of productos) {
+      const nombre = (p.proveedor || '').trim();
+      if (!nombre) continue;
+      const clave = normalizarTexto(nombre);
+      if (!vistos.has(clave)) vistos.set(clave, nombre);
+    }
+    this.proveedores = [...vistos.values()].sort((a, b) =>
+      normalizarTexto(a).localeCompare(normalizarTexto(b), 'es')
+    );
+  }
+
+  /**
+   * El buscador de proveedores: escribir y que salga lo que ya se usó.
+   *
+   * El campo sigue siendo un input de texto común, no un select. Escribir un
+   * proveedor nuevo tiene que ser igual de fácil que elegir uno viejo: si el
+   * campo obligara a elegir de la lista, no se podría dar de alta al primero.
+   *
+   * Por eso la lista aparece con lo que hay escrito, no desde el principio.
+   * Con el campo vacío no se muestra nada: son veinte nombres y ninguno es el
+   * que el usuario quiere todavía. Recién con dos letras hay algo que filtrar.
+   *
+   * El filtro no se parece en mayúsculas ni en tildes, igual que la búsqueda
+   * principal. Si el usuario busca "sur" tiene que salir "Distribuidora del Sur".
+   */
+  bindProveedor(modal) {
+    const campo = modal.querySelector('#proveedor');
+    const lista = modal.querySelector('#proveedor-lista');
+    if (!campo || !lista) return;
+
+    const cerrarLista = () => {
+      lista.classList.add('oculto');
+      lista.hidden = true;
+      lista.innerHTML = '';
+      campo.setAttribute('aria-expanded', 'false');
+    };
+
+    const elegir = (nombre) => {
+      campo.value = nombre;
+      cerrarLista();
+      campo.focus();
+    };
+
+    // Un solo carácter ya filtra más de la mitad de la lista, así que no se
+    // espera más que eso.
+    const MINIMO = 2;
+    const MAXIMO = 6;
+
+    const filtrar = () => {
+      const escrito = normalizarTexto(campo.value);
+
+      if (escrito.length < MINIMO || !this.proveedores?.length) {
+        cerrarLista();
+        return;
+      }
+
+      const encontrados = this.proveedores
+        .filter(nombre => normalizarTexto(nombre).includes(escrito))
+        .slice(0, MAXIMO);
+
+      if (!encontrados.length) {
+        // Sin resultados no se muestra un desplegable vacío: el usuario está
+        // escribiendo un proveedor nuevo y lo que necesita es seguir escribiendo.
+        cerrarLista();
+        return;
+      }
+
+      // El que está escrito exacto va primero: si ya lo escribió entero,
+      // probablemente quiere ése y no otro que lo contiene.
+      const exacto = encontrados.findIndex(n => normalizarTexto(n) === escrito);
+      if (exacto > 0) {
+        const [primero] = encontrados.splice(exacto, 1);
+        encontrados.unshift(primero);
+      }
+
+      lista.innerHTML = encontrados.map(nombre => `
+        <li>
+          <button type="button" class="desplegable-item" role="option"
+            aria-selected="false">${esc(nombre)}</button>
+        </li>
+      `).join('');
+      lista.classList.remove('oculto');
+      lista.hidden = false;
+      campo.setAttribute('aria-expanded', 'true');
+
+      lista.querySelectorAll('.desplegable-item').forEach(btn => {
+        btn.addEventListener('click', () => elegir(btn.textContent.trim()));
+      });
+    };
+
+    campo.addEventListener('input', filtrar);
+    campo.addEventListener('focus', () => { if (campo.value.trim().length >= MINIMO) filtrar(); });
+
+    // Escape cierra la lista sin tocar el texto. Sin esto, Escape cerraba el
+    // formulario entero y el usuario perdía lo que había escrito del proveedor.
+    campo.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !lista.hidden) {
+        e.stopPropagation();
+        cerrarLista();
+      }
+    });
+
+    // El clic por fuera cierra la lista. Se escucha en el documento y no en el
+    // campo porque el toque puede caer en cualquier lado, y con un retardo
+    // porque si no el clic que elige una opción llega después del blur y no
+    // cuenta.
+    document.addEventListener('click', (e) => {
+      if (lista.hidden) return;
+      if (e.target.closest('#proveedor-lista') || e.target === campo) return;
+      cerrarLista();
+    });
   }
 
   /**
@@ -491,15 +620,22 @@ export class ProductoForm {
           -->
           <div>
             <label for="proveedor" class="etiqueta">🚚 Proveedor</label>
-            <input
-              type="text"
-              id="proveedor"
-              name="proveedor"
-              class="campo"
-              placeholder="Ej: Distribuidora del Sur"
-              value="${escAttr(this.producto?.proveedor || '')}"
-              autocomplete="off"
-            >
+            <div class="posicionado">
+              <input
+                type="text"
+                id="proveedor"
+                name="proveedor"
+                class="campo"
+                placeholder="Empezá a escribir y elegí de la lista"
+                value="${escAttr(this.producto?.proveedor || '')}"
+                autocomplete="off"
+                role="combobox"
+                aria-expanded="false"
+                aria-autocomplete="list"
+                aria-controls="proveedor-lista"
+              >
+              <ul id="proveedor-lista" class="desplegable oculto" role="listbox" aria-label="Proveedores que ya usás" hidden></ul>
+            </div>
           </div>
           
           <div class="pos-it">
@@ -536,6 +672,8 @@ export class ProductoForm {
   
   bindEvents(modal) {
     const form = modal.querySelector('#form-producto');
+    
+    this.bindProveedor(modal);
     
     // Cerrar
     modal.querySelector('#cerrar-form').addEventListener('click', () => this.cerrar());

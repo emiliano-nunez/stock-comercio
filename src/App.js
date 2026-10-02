@@ -7,6 +7,7 @@ import { abrirCodigoDuplicado } from './components/CodigoDuplicado.js';
 import { abrirDetalleProducto } from './components/ProductoDetalle.js';
 import { toast } from './utils/toast.js';
 import { esc, escAttr, fmtPrecio } from './utils/html.js';
+import { normalizarTexto } from './utils/texto.js';
 
 // Clave interna para ordenar los productos sin categoría al final.
 // Se usa '\uFFFF' (el último código Unicode) en vez de un texto legible: antes
@@ -170,22 +171,41 @@ export class App {
   
   aplicarFiltroYOrden() {
     let resultado = [...this.productos];
-    
-    const query = this.busqueda.toLowerCase().trim();
+
+    /*
+     * La búsqueda normaliza las dos puntas: lo que escribió el usuario y lo que
+     * tiene el producto. Con un toLowerCase() solo, "limon" no encontraba
+     * "Limón" y el producto quedaba escondido sin aviso de por qué, que es la
+     * peor forma de no encontrar algo: el usuario ve que hay más productos y no
+     * los ve.
+     *
+     * Busca por nombre, código de barras, categoría y proveedor. Los dos
+     * últimos no estaban y son lo que uno escribe cuando recuerda de dónde
+     * compró algo en vez de cómo se llama.
+     */
+    const query = normalizarTexto(this.busqueda);
     if (query) {
-      resultado = resultado.filter(p => 
-        p.nombre.toLowerCase().includes(query) ||
-        (p.codigoBarras && p.codigoBarras.toLowerCase().includes(query))
-      );
+      resultado = resultado.filter(p => {
+        if (normalizarTexto(p.nombre).includes(query)) return true;
+        if (p.codigoBarras && normalizarTexto(p.codigoBarras).includes(query)) return true;
+        if (p.proveedor && normalizarTexto(p.proveedor).includes(query)) return true;
+        return categoriasDe(p).some(id => {
+          const cat = this.categorias.find(c => c.id === id);
+          return cat && normalizarTexto(cat.nombre).includes(query);
+        });
+      });
     }
-    
+
     resultado.sort((a, b) => {
       let valA, valB;
-      
+
       switch (this.ordenarPor) {
         case 'nombre':
-          valA = a.nombre.toLowerCase();
-          valB = b.nombre.toLowerCase();
+          // Ordenar por texto normalizado y no por el crudo: si no, "Limon"
+          // queda antes que "Limón" por el acento y no por la letra, y el
+          // orden cambia según cómo se escribió cada nombre.
+          valA = normalizarTexto(a.nombre);
+          valB = normalizarTexto(b.nombre);
           break;
         case 'stock':
           valA = a.stock || 0;
@@ -196,16 +216,16 @@ export class App {
           valB = b.precio || 0;
           break;
         case 'categoria':
-          valA = this.getCategoriaOrden(a).toLowerCase();
-          valB = this.getCategoriaOrden(b).toLowerCase();
+          valA = normalizarTexto(this.getCategoriaOrden(a));
+          valB = normalizarTexto(this.getCategoriaOrden(b));
           break;
         case 'fecha':
           valA = new Date(a.actualizadoEl || 0).getTime();
           valB = new Date(b.actualizadoEl || 0).getTime();
           break;
         default:
-          valA = a.nombre.toLowerCase();
-          valB = b.nombre.toLowerCase();
+          valA = normalizarTexto(a.nombre);
+          valB = normalizarTexto(b.nombre);
       }
       
       if (valA < valB) return this.ordenDireccion === 'asc' ? -1 : 1;

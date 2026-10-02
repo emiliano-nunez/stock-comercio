@@ -1,4 +1,5 @@
 import Dexie from 'dexie';
+import { normalizarTexto } from './utils/texto.js';
 
 export const db = new Dexie('StockComercioDB');
 
@@ -183,12 +184,7 @@ export function normalizarProveedor(nombre) {
  * comparación: el primero es el que el usuario tiene anotado.
  */
 export function claveProveedor(nombre) {
-  return (nombre ?? '').toString()
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+  return normalizarTexto(nombre);
 }
 
 // Nota sobre hooks:
