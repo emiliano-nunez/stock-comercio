@@ -1619,84 +1619,40 @@ export class App {
     }
   }
 
-  /**
-   * Avisa cuando hay una versión nueva esperando, y la aplica cuando el usuario
-   * lo decide.
+/**
+   * Avisa que ya se descargó una versión nueva y que un toque la trae.
    *
-   * Con `registerType: 'prompt'` el service worker nuevo NO se activa solo: queda
-   * esperando a un lado y el control sigue siendo del viejo. Por eso hay algo
-   * que avisar, y por eso el aviso puede ser una tarjeta y no un refresco
-   * silencioso.
+   * La app NO queda atrapada en una versión vieja: con `registerType:
+   * 'autoUpdate'` el service worker nuevo entra solo. Lo que pasa es otro: la
+   * página que está abierta sigue corriendo el código viejo, porque ese código
+   * ya se cargó y cambiarlo necesita recargar.
    *
-   * Dos momentos en que puede haber algo esperando:
+   * `controllerchange` es el aviso de eso, y está disponible desde siempre.
    *
-   *   - la app abre y ya había uno esperando de la visita anterior. Es el caso
-   *     más común: el usuario cerró la app sin terminar de actualizar.
-   *
-   *   - la app está abierta y llega una versión nueva. Sale del evento
-   *     `updatefound`, que dispara el navegador cuando descarga un worker
-   *     distinto al que está activo.
-   *
-   * La tarjeta es un botón y no un aviso flotante porque no se puede perder: si
-   * el usuario la ignora, sigue ahí en cada pantalla.
+   * El modo `prompt` dejaba esto más lindo pero ataba a la app en un bucle: la
+   * tarjeta vive dentro del bundle, así que el usuario con la versión vieja, que
+   * es a quien hay que avisarle, no tiene el código que avisa. Nunca la veía, y
+   * como nada se activaba solo, se quedaba en la versión vieja sin enterarse.
+   * La versión al pie del inventario es la que dice en qué está cada uno.
    */
   vigilarActualizacion() {
     if (!('serviceWorker' in navigator)) return;
     // En desarrollo no hay service worker: /sw.js sólo existe después del build,
-    // y tratar de registrarlo acá tiraría un error de MIME type en la consola.
+    // y registrarlo acá tiraría un error de MIME type en la consola.
     if (import.meta.env.DEV) return;
 
-    const avisar = () => {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
       this.hayActualizacion = true;
       this.render();
-    };
-
-    const vigilar = (registro) => {
-      if (!registro) return;
-
-      // Ya había uno esperando de antes.
-      if (registro.waiting) {
-        avisar();
-        return;
-      }
-
-      registro.addEventListener('updatefound', () => {
-        const entrante = registro.installing;
-        if (!entrante) return;
-        entrante.addEventListener('statechange', () => {
-          // 'installed' con un control previo significa que hay una versión
-          // nueva esperando. Sin control previo es la primera instalación de
-          // todo, y en ese caso no hay nada que actualice.
-          if (entrante.state === 'installed' && navigator.serviceWorker.controller) {
-            avisar();
-          }
-        });
-      });
-    };
-
-    // El registro lo hace vite-plugin-pwa desde registerSW.js, en el evento
-    // 'load'. init() es async y puede terminar antes o después de ese evento, así
-    // que se consulta el registro varias veces en vez de esperar a un evento que
-    // puede que ya haya pasado.
-    let intentos = 0;
-    const consultar = () => {
-      navigator.serviceWorker.getRegistration().then(registro => {
-        if (registro) {
-          vigilar(registro);
-        } else if (++intentos < 20) {
-          setTimeout(consultar, 500);
-        }
-      });
-    };
-    consultar();
+    });
   }
 
   /**
-   * Aplica la versión que estaba esperando y recarga.
+   * Recarga y entra la versión nueva.
    *
-   * No se recarga antes de que el worker nuevo tome el control: si se recargara
-   * con el viejo todavía activo, la página volvería a pedir los archivos viejos
-   * y la actualización no pasaría. Por eso se espera al `controllerchange`.
+   * No hay que pedirle nada al service worker: con autoUpdate ya está activo y
+   * tomando el control. Recargar es lo único que cambia el código que está
+   * corriendo la página.
    */
   aplicarActualizacion() {
     const boton = document.getElementById('btn-actualizar-ahora');
@@ -1704,41 +1660,30 @@ export class App {
       boton.disabled = true;
       boton.textContent = 'Actualizando...';
     }
-
-    navigator.serviceWorker.getRegistration().then(registro => {
-      const entrante = registro?.waiting;
-      if (!entrante) {
-        // No hay nada esperando: se recarga igual, porque el worker viejo ya
-        // quedó sin control y en la próxima carga toma el nuevo.
-        location.reload();
-        return;
-      }
-      navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), { once: true });
-      entrante.postMessage({ type: 'SKIP_WAITING' });
-    });
+    location.reload();
   }
 
   /**
-   * La tarjeta de "hay una versión nueva".
+   * La tarjeta de actualización, arriba de todo.
    *
-   * Va arriba de todo y no abajo de un desplegable porque es lo único que
-   * cambia solo en la pantalla sin que el usuario haga nada: si queda escondida,
-   * se pierde, y una actualización perdida es la app vieja sin explicación.
+   * Arriba y no escondida porque es lo único que cambia solo en la pantalla sin
+   * que el usuario haga nada. Abajo de un desplegable o dentro de un modal se
+   * pierde, y perderse es volver a la versión vieja.
    */
   renderTarjetaActualizacionHTML() {
     if (!this.hayActualizacion) return '';
     return `
       <div class="recuadro recuadro-marca apilado">
-        <div class="etiqueta-seccion">⬇️ Hay una versión nueva</div>
+        <div class="etiqueta-seccion">⬇️ Se descargó una versión nueva</div>
         <p class="detalle">
-          La app se actualiza sola, pero necesita que la cierres y la abras de
-          nuevo. Tus productos no se pierden: están guardados en este aparato.
+          Tocá el botón y seguís trabajando con la misma información. Tus
+          productos no se pierden: están guardados en este aparato.
         </p>
         <button
           type="button"
           id="btn-actualizar-ahora"
           class="btn-principal btn-ancho con-margen-arriba"
-        >Actualizar ahora</button>
+        >Ver la versión nueva</button>
       </div>
     `;
   }
