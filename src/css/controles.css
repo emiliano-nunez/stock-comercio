@@ -15,7 +15,23 @@
  * Botones
  * ================================================================= */
 
-.btn {
+/*
+ * Un solo grupo para la base y para todas las variantes.
+ *
+ * El selector lista los dos casos a propósito. Con `.btn` sola, cada botón
+ * tendría que llevar las dos clases y el HTML repetiría "btn" ochenta veces
+ * para decir siempre lo mismo. Con la lista, el HTML dice una clase por botón
+ * y el estilo base está igual para todos. Es la misma herencia que en el
+ * documento, aplicada al selector: las reglas de color van después y pisan.
+ */
+.btn,
+.btn-principal,
+.btn-secundario,
+.btn-peligro,
+.btn-fantasma,
+.btn-icono,
+.btn-chico,
+.btn-texto {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -142,11 +158,110 @@
   color: var(--color-peligro);
 }
 
+/* El botón de borrar precio: chiquito y sin borde, contra el campo. */
+.btn-mini {
+  min-width: 0;
+  min-height: 0;
+  padding: var(--espacio-1);
+  color: var(--color-peligro);
+  font-size: var(--texto-base);
+}
+
+.btn-mini:active {
+  background-color: var(--rojo-50);
+}
+
+/* Cuadrado, para los botones de editar y eliminar de la cabecera de la ficha. */
+.btn-cuadro {
+  min-width: var(--toque-min);
+  min-height: var(--toque-min);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/*
+ * Los botones de sumar y restar stock.
+ *
+ * Son los que más se tocan de toda la app, muchas veces seguidas y con la otra
+ * mano ocupada. Por eso no llevan etiqueta sino un signo grande, no se mueven
+ * de lugar, y se hunden apenas en vez de desplazarse: un botón que se mueve
+ * uno o dos píxeles hace fallar el siguiente toque, porque el dedo ya estaba
+ * donde era.
+ */
+.btn-suma,
+.btn-resta {
+  padding: 0;
+  min-width: var(--toque-min);
+  min-height: var(--toque-min);
+  border-radius: var(--radio-lg);
+  font-size: var(--texto-xl);
+  line-height: 1;
+  font-weight: var(--grosor-fuerte);
+  user-select: none;
+  touch-action: manipulation;
+  transition: transform var(--transicion-rapida), background-color var(--transicion-rapida);
+}
+
+.btn-suma {
+  background-color: var(--color-marca);
+  color: var(--color-texto-invertido);
+}
+
+.btn-suma:hover:not(:disabled) {
+  background-color: var(--color-marca-fuerte);
+}
+
+.btn-resta {
+  background-color: var(--gris-100);
+  color: var(--gris-800);
+}
+
+.btn-resta:hover:not(:disabled) {
+  background-color: var(--gris-200);
+}
+
+.btn-suma:active:not(:disabled),
+.btn-resta:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* El botón transparente, sobre el video de la cámara. */
+.btn-transparente {
+  min-height: var(--toque-min);
+  width: 100%;
+  border-radius: var(--radio-lg);
+  background-color: rgb(255 255 255 / 15%);
+  color: var(--color-texto-invertido);
+  font-size: var(--texto-sm);
+  font-weight: var(--grosor-fuerte);
+}
+
+.btn-transparente:hover {
+  background-color: rgb(255 255 255 / 25%);
+}
+
+.btn-transparente:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Un botón fantasma que se pone rojo al tocarlo. */
+.btn-peligro-suave {
+  color: var(--gris-500);
+}
+
+.btn-peligro-suave:hover {
+  color: var(--color-peligro);
+}
+
 /* =================================================================
  * Campos
  * ================================================================= */
 
-.campo {
+/* Igual que en los botones: la base y las variantes en un solo selector, para
+   que un campo lleve una sola clase. */
+.campo,
+.selector,
+.area-texto {
   display: block;
   width: 100%;
   min-height: var(--toque-min);
@@ -188,6 +303,186 @@
   min-height: 5rem;
   resize: vertical;
   line-height: var(--texto-sm-al);
+}
+
+/* =================================================================
+ * Variantes de campo
+ * ================================================================= */
+
+/* Con un ícono arriba: deja el hueco del ícono a la izquierda. */
+.campo-con-icono {
+  padding-inline-start: 1.75rem;
+}
+
+/* El campo del buscador, con hueco para la lupa y para el botón del escáner. */
+.buscador-campo {
+  padding-inline-start: 2.5rem;
+  padding-inline-end: 2.75rem;
+}
+
+/* Un campo con un valor y un botón pegado a la derecha, como el que muestra la
+   unidad de venta o el que abre el selector de categoría. */
+.campo-boton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+  /* El mismo relleno que los campos, para que el texto del selector quede
+     alineado con la etiqueta de arriba. El lado derecho lleva menos porque
+     adentro va la flecha pegada al borde. */
+  padding: var(--relleno-control);
+  padding-inline-end: var(--espacio-1);
+  background-color: var(--color-superficie);
+  border: 2px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  color: var(--color-texto);
+  font-size: var(--texto-base);
+  min-height: var(--toque-min);
+  width: 100%;
+  text-align: left;
+}
+
+/* El campo corto y angosto del número de stock, dentro de la tarjeta. */
+.campo-numero {
+  width: 3rem;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: var(--grosor-fuerte);
+}
+
+/* El texto que va a la derecha del campo, sin ser un campo: la unidad, el
+   sufijo. */
+.sufijo-campo {
+  color: var(--color-texto-suave);
+  font-size: var(--texto-sm);
+  line-height: var(--texto-sm-al);
+  font-weight: var(--grosor-medio);
+  white-space: nowrap;
+}
+
+/* =================================================================
+ * La casilla de verificar
+ * ================================================================= */
+
+.casilla {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+  accent-color: var(--color-marca);
+}
+
+/* =================================================================
+ * Opciones para tocar
+ *
+ * Una fila que se elige, no un campo. Se usa para el tipo de venta y para la
+ * categoría. Es pulsable como un botón, así que hereda su forma.
+ * ================================================================= */
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  width: 100%;
+  padding: var(--espacio-3) var(--espacio-4);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--color-superficie);
+  color: var(--color-texto);
+  font-size: var(--texto-base);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transicion-rapida), border-color var(--transicion-rapida);
+}
+
+.opcion:active {
+  background-color: var(--gris-50);
+}
+
+.opcion-elegida {
+  background-color: var(--color-marca-tenue);
+  border-color: var(--verde-200);
+  color: var(--verde-800);
+}
+
+/* El borde de un botón deshabilitado sin perder la forma: el de `.btn`, que ya
+   baja la opacidad. */
+.btn-apagado {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =================================================================
+ * La muestra de un color
+ * ================================================================= */
+
+.muestra-color {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radio-full);
+  border: 2px solid var(--gris-200);
+  cursor: pointer;
+  transition: transform var(--transicion-rapida), box-shadow var(--transicion-rapida);
+}
+
+.muestra-color-elegida {
+  box-shadow: 0 0 0 2px var(--color-superficie), 0 0 0 4px var(--color-marca);
+  transform: scale(1.1);
+}
+
+/* =================================================================
+ * La lista que se abre debajo de un campo
+ * ================================================================= */
+
+.desplegable {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: var(--capa-flotante);
+  max-height: 12rem;
+  overflow-y: auto;
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-lg);
+}
+
+/* El ítem que se puede tocar de la lista. */
+.desplegable-item {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  width: 100%;
+  min-height: var(--toque-min);
+  padding: var(--espacio-2) var(--espacio-3);
+  text-align: left;
+  color: var(--color-texto);
+  font-size: var(--texto-base);
+  cursor: pointer;
+}
+
+.desplegable-item:active {
+  background-color: var(--gris-100);
+}
+
+/* =================================================================
+ * El mensaje que aparece arriba de un campo
+ * ================================================================= */
+
+.pista {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: var(--espacio-2);
+  padding: var(--espacio-1) var(--espacio-2);
+  background-color: var(--gris-900);
+  color: var(--color-texto-invertido);
+  font-size: var(--texto-xs);
+  border-radius: var(--radio-sm);
+  white-space: nowrap;
+  z-index: var(--capa-dialogo);
 }
 
 /* =================================================================

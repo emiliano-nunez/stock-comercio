@@ -18,7 +18,14 @@
   -->
   <title>Stock Comercio</title>
 </head>
-<body class="bg-primary-50 min-h-screen text-gray-900">
+<!--
+    El body no lleva clases: el fondo, la altura y el color los pone base.css,
+    que entra al final de la migración. Con las clases de Tailwind que tenía
+    antes, el fondo verde se quedaba pegado aunque el resto del color pasara a
+    variables, y base.css ya no lo tapaba porque body no tiene prioridad por
+    encima de una clase.
+  -->
+<body>
   <div id="app"></div>
   <script type="module" src="/src/main.js"></script>
 </body>

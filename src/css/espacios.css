@@ -1,0 +1,166 @@
+/*
+ * Espacios: márgenes y rellenos.
+ *
+ * Es el archivo menos elegante y el que más se usa, y está aparte a propósito.
+ *
+ * Por qué existe: el espaciado es la única cosa que no se puede deduplicar con
+ * herencia. El color de un texto lo hereda el padre, el tipo de letra también,
+ * pero un espacio entre dos cosas depende de la pareja concreta. Cualquier
+ * sistema de estilos tiene que resolverlo de alguna manera, y lo más honesto es
+ * una lista corta con nombre.
+ *
+ * Los nombres dicen el tamaño en la escala, no en píxeles: "con-margen-arriba-4"
+ * son 16px, y si mañana la escala cambia, todos los usos cambian con ella. Por eso
+ * los nombres llevan número y no medidas.
+ *
+ * Se lee así:
+ *   con-margen-{lado}-{tamaño}   separación hacia afuera
+ *   relleno-{lado}-{tamaño}      espacio hacia adentro
+ *
+ * Lados: arriba, abajo, izquierda, derecha, arriba-mini, vertical, horizontal.
+ */
+
+/* =================================================================
+ * Márgenes
+ * ================================================================= */
+
+.con-margen-arriba {
+  margin-block-start: var(--espacio-2);
+}
+
+.con-margen-arriba-mini {
+  margin-block-start: 0.125rem;
+}
+
+.con-margen-arriba-chica {
+  margin-block-start: var(--espacio-1);
+}
+
+.con-margen-arriba-amplia {
+  margin-block-start: var(--espacio-4);
+}
+
+.con-margen-abajo {
+  margin-block-end: var(--espacio-2);
+}
+
+.con-margen-abajo-chica {
+  margin-block-end: var(--espacio-1);
+}
+
+.con-margen-abajo-amplia {
+  margin-block-end: var(--espacio-4);
+}
+
+.con-margen-izquierda {
+  margin-inline-start: var(--espacio-2);
+}
+
+.con-margen-izquierda-media {
+  margin-inline-start: var(--espacio-3);
+}
+
+/*
+ * El margen de arriba que se lleva el espacio de su propio padre. En una tarjeta
+ * con dos filas de acciones, la segunda arranca con un borde arriba y necesita
+ * aire por encima de ese borde, no por debajo.
+ */
+.con-margen-arriba-auto {
+  margin-block-start: auto;
+}
+
+/* =================================================================
+ * Rellenos
+ * ================================================================= */
+
+.relleno-1 {
+  padding: var(--espacio-1);
+}
+
+.relleno-1-5 {
+  padding: 0.375rem;
+}
+
+.relleno-2 {
+  padding: var(--espacio-2);
+}
+
+.relleno-3 {
+  padding: var(--espacio-3);
+}
+
+.relleno-4 {
+  padding: var(--espacio-4);
+}
+
+.relleno-6 {
+  padding: var(--espacio-6);
+}
+
+.relleno-8 {
+  padding: var(--espacio-8);
+}
+
+.relleno-vertical-2 {
+  padding-block: var(--espacio-2);
+}
+
+.relleno-vertical-3 {
+  padding-block: var(--espacio-3);
+}
+
+.relleno-vertical-12 {
+  padding-block: var(--espacio-12);
+}
+
+.relleno-vertical-chico {
+  padding-block: 0.125rem;
+}
+
+.relleno-horizontal-2 {
+  padding-inline: var(--espacio-2);
+}
+
+.relleno-horizontal-3 {
+  padding-inline: var(--espacio-3);
+}
+
+.relleno-horizontal-4 {
+  padding-inline: var(--espacio-4);
+}
+
+.relleno-superior-1 {
+  padding-block-start: var(--espacio-1);
+}
+
+.relleno-superior-2 {
+  padding-block-start: var(--espacio-2);
+}
+
+.relleno-izquierdo-7 {
+  padding-inline-start: 1.75rem;
+}
+
+.relleno-izquierdo-10 {
+  padding-inline-start: 2.5rem;
+}
+
+.relleno-derecho-2 {
+  padding-inline-end: var(--espacio-2);
+}
+
+.relleno-derecho-10 {
+  padding-inline-end: 2.75rem;
+}
+
+/* =================================================================
+ * La línea que separa
+ *
+ * Un borde arriba de un bloque. Se llama así y no "borde-arriba" porque casi
+ * siempre acompaña a un margen: es la parte de abajo de un grupo, no el marco de
+ * algo.
+ * ================================================================= */
+
+.separador-arriba {
+  border-block-start: 1px solid var(--color-borde-tenue);
+}

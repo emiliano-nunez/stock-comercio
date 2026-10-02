@@ -9,15 +9,20 @@
  *   3. disposicion  - el armazón: columna, cabecera, pestañas, rejilla.
  *   4. controles    - botones y campos.
  *   5. superficies  - tarjetas, diálogos, insignias, avisos.
- *   6. base.css     - el reinicio y la tipografía por etiqueta. Se carga cuando
- *                     ya no quede nada de Tailwind, porque reinicia los estilos
- *                     base del navegador y pisa los de Tailwind.
+ *   6. tipografia   - tamaños de texto y estados vacíos.
+ *   7. espacios     - rellenos y márgenes sueltos.
+ *   8. app.css      - lo propio de esta app y no de la app en general.
+ *
+ * Falta base.css, que es el reinicio: entra recién cuando ya no quede nada de
+ * Tailwind, porque pisa su preflight.
  */
 import './main.css';
 import './css/tokens.css';
 import './css/disposicion.css';
 import './css/controles.css';
 import './css/superficies.css';
+import './css/tipografia.css';
+import './css/espacios.css';
 import './App.js';
 
 /**

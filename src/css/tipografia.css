@@ -1,0 +1,197 @@
+/*
+ * Tipografía: los papeles que puede tener un texto.
+ *
+ * Antes cada elemento decía sus tres cosas: tamaño, grosor y color. "text-sm
+ * text-gray-500" aparece cuarenta veces, y si mañana el texto secundario cambia
+ * de color hay que buscar las cuarenta.
+ *
+ * Ahora hay un nombre por papel. .detalle es "el texto que acompaña al
+ * principal", .apagado es "el color de lo que no pide atención", y el color solo
+ * se escribe en el papel, nunca junto al tamaño. Por eso casi ningún nombre
+ * dice un color y un tamaño a la vez: son cosas que se combinan.
+ *
+ * El orden es de mayor a menor importancia, que es como se eligen.
+ */
+
+/* =================================================================
+ * Títulos
+ * ================================================================= */
+
+.titulo {
+  font-size: var(--texto-lg);
+  line-height: var(--texto-lg-al);
+  font-weight: var(--grosor-fuerte);
+  color: var(--color-texto);
+}
+
+.subtitulo {
+  font-size: var(--texto-base);
+  line-height: var(--texto-base-al);
+  font-weight: var(--grosor-fuerte);
+  color: var(--gris-700);
+}
+
+/* Título de un grupo dentro de una pantalla, con una línea abajo. */
+.titulo-seccion {
+  font-size: var(--texto-base);
+  line-height: var(--texto-base-al);
+  font-weight: var(--grosor-fuerte);
+  color: var(--color-texto);
+  padding-bottom: var(--espacio-1);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.titulo-peligro {
+  font-size: var(--texto-base);
+  line-height: var(--texto-base-al);
+  font-weight: var(--grosor-fuerte);
+  color: var(--rojo-900);
+}
+
+/* Títulos grandes de los diálogos y del estado vacío. */
+.grande {
+  font-size: var(--texto-lg);
+  line-height: var(--texto-lg-al);
+  font-weight: var(--grosor-fuerte);
+}
+
+.mediano {
+  font-size: var(--texto-lg);
+  line-height: var(--texto-lg-al);
+}
+
+/* =================================================================
+ * El cuerpo y sus dos medidas chicas
+ * ================================================================= */
+
+.detalle {
+  font-size: var(--texto-sm);
+  line-height: var(--texto-sm-al);
+}
+
+/* Lo más chico que se lee sin esfuerzo: unidades, códigos, notas al pie. */
+.micro {
+  font-size: var(--texto-xs);
+  line-height: var(--texto-xs-al);
+}
+
+/* =================================================================
+ * Color
+ *
+ * El color va aparte del tamaño a propósito. .detalle apagado son 14px grises;
+ * .micro apagado son 12px grises. Dos clases, un color escrito una vez.
+ * ================================================================= */
+
+.apagado {
+  color: var(--color-texto-suave);
+}
+
+.tenue {
+  color: var(--color-texto-tenue);
+}
+
+.con-medio {
+  color: var(--gris-600);
+}
+
+.texto-marca {
+  color: var(--color-marca-fuerte);
+}
+
+.texto-marca-fuerte {
+  color: var(--verde-800);
+}
+
+.texto-peligro {
+  color: var(--color-peligro-fuerte);
+}
+
+.texto-peligro-fuerte {
+  color: var(--rojo-900);
+}
+
+.texto-aviso {
+  color: var(--ambar-700);
+}
+
+.texto-invertido {
+  color: var(--color-texto-invertido);
+}
+
+/* =================================================================
+ * Grosor
+ * ================================================================= */
+
+.medio {
+  font-weight: var(--grosor-medio);
+}
+
+.fuerte {
+  font-weight: var(--grosor-fuerte);
+}
+
+/* =================================================================
+ * Cómo se acomoda el texto
+ * ================================================================= */
+
+/*
+ * El código de barras no tiene palabras: son 13 dígitos que no tienen por dónde
+ * partirse. Sin romper, el número entero se sale de la tarjeta.
+ */
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.cortado {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rompe-palabras {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.centro-texto {
+  text-align: center;
+}
+
+.texto-izquierda {
+  text-align: left;
+}
+
+/* Un texto que no debería ocupar nunca todo el ancho, como el nombre de una
+   categoría al lado del punto de color. */
+.ancho-etiqueta {
+  max-width: 5rem;
+}
+
+/* =================================================================
+ * Estados vacíos
+ * ================================================================= */
+
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-1);
+  padding: var(--espacio-12) var(--espacio-4);
+  text-align: center;
+  color: var(--color-texto-suave);
+}
+
+.vacio-icono {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.vacio-icono-grande {
+  font-size: 3.75rem;
+  line-height: 1;
+}
+
+.vacio-icono-pequeno {
+  font-size: 1.875rem;
+  line-height: 1;
+}

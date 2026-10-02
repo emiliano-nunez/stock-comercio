@@ -10,7 +10,13 @@
  * Tarjetas
  * ================================================================= */
 
+/*
+ * El relleno va en la tarjeta y no en una clase aparte. La tarjeta del producto
+ * siempre lo lleva, así que ponerlo en la tarjeta base evita acordarse de
+ * escribir dos clases.
+ */
 .tarjeta {
+  padding: var(--espacio-4);
   background-color: var(--color-superficie);
   border: 1px solid var(--color-borde-tenue);
   border-radius: var(--radio-xl);
@@ -18,8 +24,10 @@
   overflow: hidden;
 }
 
-.tarjeta-padded {
-  padding: var(--espacio-4);
+/* La variante sin relleno, para las tarjetas que traen una imagen o un mapa que
+   tienen que llegar hasta el borde. */
+.tarjeta-sin-relleno {
+  padding: 0;
 }
 
 .tarjeta-cuerpo {
@@ -45,6 +53,275 @@
     width: 5rem;
     height: 5rem;
   }
+}
+
+.miniatura-marca {
+  width: 3rem;
+  height: 3rem;
+  background-color: var(--verde-100);
+  font-size: 1.25rem;
+}
+
+/*
+ * La foto de una categoría: cuadrada. El borde punteado marca el lugar donde se
+ * puede tocar para agregar, que es lo que un rectángulo vacío no dice.
+ */
+.marco-foto {
+  width: 100%;
+  aspect-ratio: 1;
+  background-color: var(--gris-100);
+  border-radius: var(--radio-lg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.marco-foto-centrado {
+  max-width: 20rem;
+  margin-inline: auto;
+  margin-block-end: var(--espacio-2);
+}
+
+.marco-foto-vacio {
+  border: 2px dashed var(--gris-300);
+}
+
+.foto-cuadro {
+  border-radius: var(--radio-lg);
+}
+
+/* La imagen que llena su marco sin deformarse. */
+.foto-llena {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* El marco del video de la cámara, negro para que se vea la imagen. */
+.marco-video {
+  position: relative;
+  background-color: var(--gris-900);
+  padding: var(--espacio-2);
+  border-radius: var(--radio-lg);
+  overflow: hidden;
+}
+
+/* Donde entra el video de la cámara. Cuadrado y sin bordes propios: lo que se ve
+   es el video, y el marco del escáner va encima. */
+.visor-video {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radio-md);
+  overflow: hidden;
+  background-color: var(--gris-900);
+}
+
+/*
+ * El recuadro que le dice al usuario dónde poner el código. Las esquinas de
+ * arriba se dibujan con dos pseudo-elementos, y por eso hace falta
+ * position: relative en el recuadro: sin él los pseudo-elementos se acomodan
+ * contra el ancestro con posición y las esquinas quedan arriba de la pantalla.
+ */
+.marco-escaner {
+  position: relative;
+  width: 75%;
+  height: 75%;
+  border: 4px solid color-mix(in srgb, var(--color-marca) 50%, transparent);
+  border-radius: var(--radio-lg);
+}
+
+.marco-escaner::before,
+.marco-escaner::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  width: 2rem;
+  height: 2rem;
+  border: 4px solid var(--color-marca);
+}
+
+.marco-escaner::before {
+  left: -6px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.marco-escaner::after {
+  right: -6px;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+/* La etiqueta que va por encima de la foto, abajo a la izquierda. */
+.marca-foto {
+  position: absolute;
+  bottom: var(--espacio-1);
+  left: var(--espacio-1);
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  padding: 0.125rem var(--espacio-2);
+  background-color: rgb(255 255 255 / 90%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: var(--radio-full);
+  font-size: var(--texto-xs);
+  line-height: var(--texto-xs-al);
+  color: var(--gris-700);
+}
+
+/* El botón de cerrar la foto, arriba a la derecha. */
+.boton-cerrar-foto {
+  position: absolute;
+  top: var(--espacio-2);
+  right: var(--espacio-2);
+  z-index: 1;
+  min-width: var(--toque-min);
+  min-height: var(--toque-min);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radio-full);
+  background-color: var(--color-peligro);
+  color: var(--color-texto-invertido);
+  font-size: var(--texto-lg);
+  line-height: 1;
+}
+
+/* Un diálogo cuyo contenido no se desplaza: el cuerpo ya trae su propio
+   desplazamiento y dejarlo así acá hace que la página entera se mueva. */
+.dialogo-sin-desplazar {
+  overflow: hidden;
+}
+
+/* Una tarjeta que ocupa toda la altura de su celda en la grilla. */
+.tarjeta-alta {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* La tarjeta de un producto marcado para borrar, con borde rojo. */
+.tarjeta-peligro {
+  border-color: var(--rojo-200);
+  background-color: var(--color-peligro-tenue);
+}
+
+/* La etiqueta chica y neutra, como el precio de lista al lado del de venta. */
+.etiqueta-tenue {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem var(--espacio-2);
+  background-color: var(--gris-50);
+  border-radius: var(--radio-sm);
+  font-size: var(--texto-xs);
+  line-height: var(--texto-xs-al);
+  color: var(--color-texto-suave);
+}
+
+/* Un texto del color de la marca. */
+.marca {
+  color: var(--color-marca-fuerte);
+}
+
+/* =================================================================
+ * Puntos de color
+ *
+ * El puntito de una categoría o de un estado de stock. El color lo pone el
+ * código con `style` inline, y la clase sólo dice tamaño y forma: así un punto
+ * puede ser de cualquier color sin que el CSS tenga que conocerlos todos.
+ * ================================================================= */
+
+.punto,
+.punto-medio {
+  /*
+   * El display no es decorativo: un <span> es en línea y a un elemento en línea
+   * el ancho y el alto no se le aplican, así que el punto se dibujaba de cero
+   * píxeles y el color de la categoría no se veía.
+   */
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radio-full);
+  flex-shrink: 0;
+}
+
+.punto-chico {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radio-full);
+  flex-shrink: 0;
+}
+
+/* Las flechas de los selectores. No son puntos de color: van con el color del
+   texto que heredan y no llevan fondo. */
+.flecha,
+.flecha-medio {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.flecha-medio {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.punto-mini {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--radio-full);
+  flex-shrink: 0;
+}
+
+/* =================================================================
+ * Recuadros
+ *
+ * Un bloque con borde y sin sombra, para agrupar datos que no son una tarjeta.
+ * ================================================================= */
+
+.recuadro {
+  padding: var(--espacio-3);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  background-color: var(--color-superficie);
+}
+
+.recuadro-suave {
+  background-color: var(--gris-50);
+  border-color: transparent;
+}
+
+.recuadro-marca {
+  background-color: var(--color-marca-tenue);
+  border-color: var(--verde-100);
+}
+
+/* El bloque de texto largo que se puede desplazar, como el detalle de un
+   producto con muchos precios. */
+.bloque-datos {
+  margin-block-start: var(--espacio-4);
+  padding: var(--espacio-3);
+  background-color: var(--gris-100);
+  border-radius: var(--radio-lg);
+  font-size: var(--texto-xs);
+  line-height: var(--texto-xs-al);
+  text-align: left;
+  overflow: auto;
+  max-height: 12rem;
+  white-space: pre-wrap;
+}
+
+/* Una lista con viñetas, para las instrucciones de un diálogo. */
+.lista {
+  list-style: disc;
+  padding-inline-start: var(--espacio-5);
+  color: var(--gris-700);
 }
 
 /*
@@ -107,6 +384,17 @@
   max-width: 40rem;
 }
 
+/*
+ * El diálogo que ocupa casi toda la pantalla, como el del escáner. Con columna
+ * para que la cabecera y el pie queden fijos y sólo se desplace el cuerpo.
+ */
+.dialogo-columna {
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+  overflow: hidden;
+}
+
 .dialogo-cabecera {
   display: flex;
   align-items: center;
@@ -114,6 +402,23 @@
   gap: var(--espacio-2);
   padding: var(--espacio-4);
   border-bottom: 1px solid var(--color-borde-tenue);
+}
+
+/*
+ * La cabecera de un diálogo largo no baja con el contenido. Sin esto, en la
+ * pantalla del escáner el título se iba con la lista de productos y la foto
+ * grande, y se perdía el botón de cerrar.
+ */
+.dialogo-cabecera-fija {
+  flex-shrink: 0;
+  background-color: var(--color-marca-tenue);
+  border-top-left-radius: var(--radio-xl);
+  border-top-right-radius: var(--radio-xl);
+}
+
+/* Un diálogo que avisa, con la cabecera en ámbar. */
+.dialogo-cabecera-aviso {
+  background-color: var(--color-aviso-tenue);
 }
 
 .dialogo-titulo {
@@ -146,11 +451,55 @@
   padding: var(--espacio-4);
 }
 
+/*
+ * El cuerpo de un diálogo largo: sólo él se desplaza. El min-height en cero no
+ * es un detalle: sin él, un hijo que crece dentro de una columna se estira hasta
+ * el alto del contenido en vez de desplazarse, y el formulario de producto se
+ * salía de la pantalla sin barra.
+ *
+ * Va como regla del padre y no como clase del cuerpo para que el formulario no
+ * pueda olvidarse de pedirlo.
+ */
+.dialogo-columna > .dialogo-cuerpo {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.dialogo-cuerpo-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+
 .dialogo-pie {
   display: flex;
   gap: var(--espacio-3);
   justify-content: flex-end;
   padding: 0 var(--espacio-4) var(--espacio-4);
+}
+
+/*
+ * El pie de un diálogo largo. Va pegado al borde de abajo y no se desplaza con el
+ * contenido, porque sus botones son la razón de estar del diálogo y si hay que
+ * llegar hasta el final de una lista para encontrarlos, no sirven.
+ */
+.dialogo-pie-fija {
+  position: sticky;
+  bottom: 0;
+  flex-shrink: 0;
+  padding: var(--espacio-3);
+  border-top: 1px solid var(--color-borde-tenue);
+  background-color: rgb(255 255 255 / 95%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Un pie que también es un mensaje, no una fila de botones. */
+.pie-suave {
+  background-color: var(--gris-50);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 /* El diálogo de confirmación usa un título con su propio color. */
@@ -160,6 +509,77 @@
 
 .dialogo-cabecera-peligro .dialogo-titulo {
   color: var(--rojo-900);
+}
+
+/*
+ * Una fila de una lista que además es pulsable, como cada punto de restauración
+ * del historial. Comparte forma con .opcion, pero sin borde propio hasta que se
+ * toca, para que la lista se lea como una lista y no como un grupo de botones.
+ */
+.entrada-lista {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  width: 100%;
+  padding: var(--espacio-4);
+  border: 1px solid transparent;
+  border-radius: var(--radio-lg);
+  background-color: var(--color-superficie);
+  color: var(--color-texto);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transicion-rapida), border-color var(--transicion-rapida);
+}
+
+.entrada-lista:active {
+  background-color: var(--gris-50);
+  border-color: var(--color-borde);
+}
+
+/* La más reciente, que es la que se va a restaurar. */
+.entrada-lista-destacada {
+  background-color: var(--color-marca-tenue);
+  border-color: var(--verde-200);
+}
+
+/* =================================================================
+ * Las apariciones
+ *
+ * Los diálogos y los avisos entran y salen. El movimiento va en clases sueltas
+ * porque lo que se anima no siempre es el mismo elemento: el diálogo se
+ * reemplaza entero, y por eso el código le saca una clase y le pone la otra en
+ * vez de alternar un estado.
+ *
+ * Estas reglas estuvieron en base.css, que todavía no se carga. Con los
+ * diálogos y los avisos apareciéndose sin movimiento.
+ * ================================================================= */
+
+@keyframes aparecer {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes subir {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bajar {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(20px); }
+}
+
+.anim-aparecer { animation: aparecer var(--transicion-media); }
+.anim-subir    { animation: subir var(--transicion-lenta); }
+.anim-bajar    { animation: bajar var(--transicion-media); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* A quien el movimiento le hace mal, no se le muestra. */
+  .anim-aparecer,
+  .anim-subir,
+  .anim-bajar {
+    animation: none;
+  }
 }
 
 /* =================================================================
@@ -184,7 +604,16 @@
   font-size: var(--texto-xs);
 }
 
-/* Estado del stock. El color lo decide el estado, no el que llama a la clase. */
+/* =================================================================
+ * Los tres estados de stock
+ *
+ * El nombre sale de `estadoStock()` en db.js, que es el que decide si un
+ * producto tiene, tiene poco o no tiene. Acá está sólo el color de cada uno.
+ * -----------------------------------------------------------------
+ * La insignia no dice el estado con el color solamente: el texto que trae dice
+ * "3 unidades" o "Agotado". El color es un apoyo para el ojo, no el mensaje.
+ * ================================================================= */
+
 .insignia-ok {
   background-color: var(--verde-100);
   color: var(--verde-800);

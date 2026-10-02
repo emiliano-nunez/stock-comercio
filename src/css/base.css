@@ -177,18 +177,9 @@ fieldset {
   scrollbar-width: none;
 }
 
-/* Sólo para lectores de pantalla: el texto existe, no se ve. */
-.solo-lector {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
+/* Sólo para lectores de pantalla: el texto existe, no se ve. Vive en
+   disposicion.css y no acá, porque base.css todavía no se carga y mientras tanto
+   estas etiquetas se veían en pantalla. */
 
 /* Quita el margen de toque doble de los controles, sin dejarlo sin efecto. */
 .sin-toque-doble {
@@ -199,32 +190,9 @@ fieldset {
 
 /* =================================================================
  * Animaciones
+ *
+ * Estaban en este archivo y acá no se cargan todavía, así que los diálogos y
+ * los avisos aparecían sin movimiento. Ahora viven en superficies.css, que sí
+ * está cargado, y el reinicio de este archivo los va a pisar si se deixa
+ * duplicados acá.
  * ================================================================= */
-
-@keyframes aparecer {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes subir {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes bajar {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(20px); }
-}
-
-.anim-aparecer { animation: aparecer var(--transicion-media); }
-.anim-subir   { animation: subir var(--transicion-lenta); }
-.anim-bajar   { animation: bajar var(--transicion-media); }
-
-@media (prefers-reduced-motion: reduce) {
-  /* A quien el movimiento le hace mal, no se le muestra. */
-  .anim-aparecer,
-  .anim-subir,
-  .anim-bajar {
-    animation: none;
-  }
-}
