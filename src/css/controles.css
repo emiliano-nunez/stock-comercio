@@ -405,6 +405,62 @@
   color: var(--verde-800);
 }
 
+/* =================================================================
+ * El ítem del selector múltiple de categorías
+ *
+ * Reutiliza `.opcion-elegida` para el marcado, así el renglón marcado se ve
+ * igual que en los otros selectores. Lo que suma es la casilla de la derecha:
+ * sin ella no se distingue "marcada" de "la que estás por tocar", y en una
+ * lista de varias el usuario no puede ver de un vistazo qué chose.
+ * ================================================================= */
+.fila-lista {
+  list-style: none;
+  cursor: pointer;
+  transition: background-color var(--transicion-rapida), border-color var(--transicion-rapida);
+}
+
+.fila-lista:active {
+  background-color: var(--gris-50);
+}
+
+.casilla-lista {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--color-borde);
+  border-radius: var(--radio-sm);
+  background-color: var(--color-superficie);
+  color: transparent;
+  font-size: var(--texto-sm);
+  font-weight: var(--grosor-fuerte);
+}
+
+.casilla-lista-marcada {
+  border-color: var(--color-marca);
+  background-color: var(--color-marca);
+  color: var(--color-superficie);
+}
+
+/* Las fichas del botón: una por categoría elegida.
+   No son botones, son el resumen de lo marcado, así que no llevan relleno
+   propio: se distinguen del texto circundante por el punto de color. */
+.ficha-categoria {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  min-width: 0;
+}
+
+/* Una lista desplegable con más opciones que las que entran en 12rem. La altura
+   sube acá y no en la regla base, para que el resto de los selectores sigan
+   midiendo lo mismo. */
+.desplegable-largo {
+  max-height: 20rem;
+}
+
 /* El borde de un botón deshabilitado sin perder la forma: el de `.btn`, que ya
    baja la opacidad. */
 .btn-apagado {

@@ -1,4 +1,4 @@
-import { db, dbUtils, TIPOS_VENTA } from '../db.js';
+import { db, dbUtils, TIPOS_VENTA, categoriasDe } from '../db.js';
 import { imagenUtils } from '../utils/imagen.js';
 import { abrirCamara } from './CamaraModal.js';
 import { abrirScanner } from './ScannerModal.js';
@@ -121,11 +121,17 @@ export class ProductoForm {
     
     const camaraDisponible = this.camaraDisponible;
     
-    // Categoría actual del producto (o null). Se resuelve una vez para no
-    // repetir el find() y para poder escapar nombre y color.
-    const categoriaActual = this.producto?.categoriaId
-      ? this.categorias.find(c => c.id === this.producto.categoriaId) || null
-      : null;
+    // Categorías del producto: un producto puede estar en varias. Se resuelven una
+    // vez, con nombre y color, porque el botón del selector tiene que pintar las
+    // que estén elegidas y las opciones ya traen los suyos en data-.
+    //
+    // El botón muestra las primeras tres y, si sobran, cuántas: un producto en
+    // ocho categorías convertiría el campo en ocho filas y taparía el resto del
+    // formulario. La lista completa queda a un toque, y en la hoja de detalle.
+    const categoriasElegidas = categoriasDe(this.producto)
+      .map(id => this.categorias.find(c => c.id === id))
+      .filter(Boolean);
+    const MAXIMO_EN_EL_BOTON = 3;
     
     const tipoActual = TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0];
     const step = tipoActual.step;
@@ -312,54 +318,91 @@ export class ProductoForm {
             </div>
           </div>
           
-          <!-- Categoría -->
+<!-- Categorías -->
           <div>
-            <div class="etiqueta">📂 Categoría</div>
+            <div class="etiqueta">📂 Categorías</div>
             <div class="posicionado" id="categoria-selector">
-              <button 
+              <button
                 type="button"
                 id="categoria-toggle"
                 class="campo-boton"
                 aria-haspopup="listbox"
                 aria-expanded="false"
               >
-                <span id="categoria-texto" class="fila">
-                  <span class="punto-chico ${categoriaActual ? '' : 'oculto'}" id="categoria-punto" style="background-color: ${escAttr(categoriaActual?.color || '#64748B')}"></span>
-                  <span class="medio" id="categoria-nombre">${esc(categoriaActual?.nombre || 'Sin categoría')}</span>
+                <span id="categoria-texto" class="fila envuelto">
+                  ${
+                    categoriasElegidas.length === 0
+                      ? '<span class="medio tenue">Sin categoría</span>'
+                      : categoriasElegidas.slice(0, MAXIMO_EN_EL_BOTON).map(cat => `
+                        <span class="ficha-categoria">
+                          <span class="punto-chico" style="background-color: ${escAttr(cat.color || '#64748B')}"></span>
+                          <span class="medio">${esc(cat.nombre)}</span>
+                        </span>
+                      `).join('') +
+                        (categoriasElegidas.length > MAXIMO_EN_EL_BOTON
+                          ? `<span class="ficha-categoria"><span class="medio">+${categoriasElegidas.length - MAXIMO_EN_EL_BOTON}</span></span>`
+                          : '')
+                  }
                 </span>
                 <svg class="flecha tenue con-margen-izquierda" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </button>
-              <ul 
-                id="categoria-options" 
-                class="desplegable oculto"
+              <div
+                id="categoria-options"
+                class="desplegable desplegable-largo oculto"
                 role="listbox"
+                aria-multiselectable="true"
               >
-                <li 
-                  class="opcion" 
-                  role="option" 
-                  data-id=""
-                  data-nombre="Sin categoría"
-                  data-color=""
-                  aria-selected="${!this.producto?.categoriaId}"
-                >
-                  Sin categoría
-                </li>
+                ${this.categorias.length === 0 ? `
+                  <p class="micro tenue con-relleno">Primero creá una categoría</p>
+                ` : ''}
                 ${this.categorias.map(cat => `
-                  <li 
-                    class="opcion ${this.producto?.categoriaId === cat.id ? 'opcion-elegida' : ''}" 
-                    role="option" 
+                  <li
+                    class="fila-tocable fila-lista ${categoriasElegidas.some(c => c.id === cat.id) ? 'opcion-elegida' : ''}"
+                    role="option"
                     data-id="${escAttr(cat.id)}"
                     data-nombre="${escAttr(cat.nombre)}"
                     data-color="${escAttr(cat.color || '#64748B')}"
-                    aria-selected="${this.producto?.categoriaId === cat.id}"
+                    aria-selected="${categoriasElegidas.some(c => c.id === cat.id)}"
                   >
                     <span class="punto-chico" style="background-color: ${escAttr(cat.color || '#64748B')}"></span>
-                    <span class="medio">${esc(cat.nombre)}</span>
+                    <span class="medio crece">${esc(cat.nombre)}</span>
+                    <span class="casilla-lista ${categoriasElegidas.some(c => c.id === cat.id) ? 'casilla-lista-marcada' : ''}" aria-hidden="true">✓</span>
                   </li>
                 `).join('')}
-              </ul>
-              <input type="hidden" id="categoriaId" name="categoriaId" value="${escAttr(this.producto?.categoriaId || '')}">
+                ${this.categorias.length > 0 ? `
+                  <button type="button" id="categoria-listo" class="btn-secundario ancho-entero con-margen-arriba-chica">
+                    Listo
+                  </button>
+                ` : ''}
+              </div>
+              <input type="hidden" id="categoriaIds" name="categoriaIds" value="${escAttr(categoriasDe(this.producto).join(','))}">
             </div>
+          </div>
+          
+          <!-- Proveedor -->
+          <div>
+            <label for="proveedor" class="etiqueta">🚚 Proveedor</label>
+            <input
+              type="text"
+              id="proveedor"
+              name="proveedor"
+              class="campo"
+              placeholder="Ej: Distribuidora del Sur"
+              value="${escAttr(this.producto?.proveedor || '')}"
+              autocomplete="off"
+            >
+          </div>
+          
+          <!-- Notas -->
+          <div>
+            <label for="notas" class="etiqueta">📝 Notas</label>
+            <textarea
+              id="notas"
+              name="notas"
+              class="campo area-texto"
+              rows="3"
+              placeholder="Ej: este distribuidor me trae los productos ordenados"
+            >${esc(this.producto?.notas || '')}</textarea>
           </div>
           
           <!-- Costo -->
@@ -562,19 +605,25 @@ export class ProductoForm {
     // Submit form
     form.addEventListener('submit', (e) => this.guardar(e));
     
-    // Custom category selector
+// Selector de categorías: elige varias, y la lista NO se cierra al marcar.
     const categoriaToggle = modal.querySelector('#categoria-toggle');
     const categoriaOptions = modal.querySelector('#categoria-options');
-    const categoriaInput = modal.querySelector('#categoriaId');
+    const categoriaInput = modal.querySelector('#categoriaIds');
     const categoriaTexto = modal.querySelector('#categoria-texto');
-    const categoriaNombre = modal.querySelector('#categoria-nombre');
-    const categoriaPunto = modal.querySelector('#categoria-punto');
+    const categoriaListo = modal.querySelector('#categoria-listo');
+    const abrirCategorias = () => {
+      categoriaOptions.classList.remove('oculto');
+      categoriaToggle.setAttribute('aria-expanded', 'true');
+    };
+    const cerrarCategorias = () => {
+      categoriaOptions.classList.add('oculto');
+      categoriaToggle.setAttribute('aria-expanded', 'false');
+    };
     
     if (categoriaToggle && categoriaOptions) {
       categoriaToggle.addEventListener('click', () => {
-        const isOpen = !categoriaOptions.classList.contains('oculto');
-        categoriaOptions.classList.toggle('oculto');
-        categoriaToggle.setAttribute('aria-expanded', !isOpen);
+        if (categoriaOptions.classList.contains('oculto')) abrirCategorias();
+        else cerrarCategorias();
       });
       
       // Cerrar al hacer click fuera.
@@ -583,41 +632,54 @@ export class ProductoForm {
       // retiene el modal entero ya desconectado del DOM.
       document.addEventListener('click', (e) => {
         if (!categoriaToggle.contains(e.target) && !categoriaOptions.contains(e.target)) {
-          categoriaOptions.classList.add('oculto');
-          categoriaToggle.setAttribute('aria-expanded', 'false');
+          cerrarCategorias();
         }
       }, { signal: this._outsideClick.signal });
       
-      // Seleccionar opción
+      categoriaListo?.addEventListener('click', cerrarCategorias);
+      
+      // Marcar y desmarcar, sin cerrar.
+      //
+      // La lista se queda abierta a propósito: si se cerrara al elegir, marcar
+      // la segunda categoría exigiría volver a abrirla, y elegir tres sería
+      // abrir, marcar, abrir, marcar, abrir, marcar. El botón "Listo" y el
+      // click fuera son las dos salidas.
       categoriaOptions.querySelectorAll('[role="option"]').forEach(option => {
         option.addEventListener('click', () => {
-          const id = option.dataset.id;
-          const nombre = option.dataset.nombre || 'Sin categoría';
-          const color = option.dataset.color || '';
-
-          categoriaInput.value = id;
-          // Se escriben el nombre y el color por separado, y no el textContent
-          // del contenedor. Poner el texto del contenedor borra el punto de
-          // color que está adentro, y el toggle se queda sin el color de la
-          // categoría apenas se elige una.
-          categoriaNombre.textContent = nombre;
-          if (color) {
-            categoriaPunto.style.backgroundColor = color;
-            categoriaPunto.classList.remove('oculto');
-          } else {
-            categoriaPunto.classList.add('oculto');
-          }
-
-          // Actualizar selección visual
-          categoriaOptions.querySelectorAll('[role="option"]').forEach(opt => {
-            opt.classList.remove('opcion-elegida');
-            opt.setAttribute('aria-selected', 'false');
-          });
-          option.classList.add('opcion-elegida');
-          option.setAttribute('aria-selected', 'true');
+          const marcado = option.getAttribute('aria-selected') === 'true';
+          option.setAttribute('aria-selected', String(!marcado));
+          option.classList.toggle('opcion-elegida', !marcado);
+          const casilla = option.querySelector('.casilla-lista');
+          if (casilla) casilla.classList.toggle('casilla-lista-marcada', !marcado);
           
-          categoriaOptions.classList.add('oculto');
-          categoriaToggle.setAttribute('aria-expanded', 'false');
+          // El campo oculto lleva los ids marcados, separados por coma. Es el
+          // único estado que se guarda: el resto es dibujo.
+          const marcadas = [...categoriaOptions.querySelectorAll('[role="option"][aria-selected="true"]')];
+          const ids = marcadas.map(opt => opt.dataset.id).filter(Boolean);
+          // Los ids que ya estaban guardados y no aparecen en la lista (una
+          // categoría borrada deja el id colgando en el producto) se conservan.
+          // Si no, abrir el selector y marcar cualquier cosa los iría borrando
+          // de a poco, sin que el usuario hiciera nada para que eso pasara.
+          const colgados = categoriaInput.value
+            .split(',')
+            .map(id => id.trim())
+            .filter(id => id && !categoriaOptions.querySelector(`[role="option"][data-id="${CSS.escape(id)}"]`));
+          categoriaInput.value = [...ids, ...colgados].join(',');
+          
+          // El botón se repinta con las fichas de las elegidas. Se reemplaza el
+          // contenido entero en vez de tocar el texto del contenedor, porque
+          // el textContent borraría los puntos de color de adentro.
+          const MAXIMO = 3;
+          categoriaTexto.innerHTML = marcadas.length === 0
+            ? '<span class="medio tenue">Sin categoría</span>'
+            : marcadas.slice(0, MAXIMO).map(opt => {
+                const nombre = opt.dataset.nombre || '';
+                const color = opt.dataset.color || '#64748B';
+                return `<span class="ficha-categoria"><span class="punto-chico" style="background-color: ${escAttr(color)}"></span><span class="medio">${esc(nombre)}</span></span>`;
+              }).join('') +
+              (marcadas.length > MAXIMO
+                ? `<span class="ficha-categoria"><span class="medio">+${marcadas.length - MAXIMO}</span></span>`
+                : '');
         });
       });
     }
@@ -1183,7 +1245,17 @@ export class ProductoForm {
     // let y no const: el diálogo de código repetido puede cambiarlo (sufijo o
     // guardarlo sin código) y el valor final es el que se escribe.
     let codigoBarras = formData.get('codigoBarras')?.toString().trim() || null;
-    const categoriaId = formData.get('categoriaId') || null;
+    // Las categorías llegan en un solo campo separadas por coma. Se parte y se
+    // limpian los ids vacíos, porque un id con espacios alrededor rompería
+    // cualquier comparación posterior.
+    const categoriaIds = (formData.get('categoriaIds') || '')
+      .split(',')
+      .map(id => id.trim())
+      .filter(Boolean);
+    // Proveedor y notas son texto libre. Se guardan sin espacios en los bordes
+    // para que no se comparen distintos dos productos con el mismo proveedor.
+    const proveedor = formData.get('proveedor')?.toString().trim() || '';
+    const notas = formData.get('notas')?.toString().trim() || '';
 
     // Código de barras repetido (si cambió)
     //
@@ -1235,7 +1307,9 @@ export class ProductoForm {
       tipoVenta: this.tipoVenta,
       stock,
       stockMinimo,
-      categoriaId,
+      categoriaIds,
+      proveedor,
+      notas,
       codigoBarras,
       imagenId: this.imagenId,
       // Registro silencioso de "este producto está sin foto y el usuario lo

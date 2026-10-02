@@ -1,4 +1,4 @@
-import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, getUnidadBase, getPrecioPrincipal } from './db.js';
+import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, getUnidadBase, getPrecioPrincipal, categoriasDe, tieneCategoria } from './db.js';
 import { abrirFormularioProducto } from './components/ProductoForm.js';
 import { abrirHistorial } from './components/HistorialModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
@@ -190,8 +190,8 @@ export class App {
           valB = b.precio || 0;
           break;
         case 'categoria':
-          valA = this.getCategoriaOrden(a.categoriaId).toLowerCase();
-          valB = this.getCategoriaOrden(b.categoriaId).toLowerCase();
+          valA = this.getCategoriaOrden(a).toLowerCase();
+          valB = this.getCategoriaOrden(b).toLowerCase();
           break;
         case 'fecha':
           valA = new Date(a.actualizadoEl || 0).getTime();
@@ -215,9 +215,18 @@ export class App {
   // NO es una etiqueta para mostrar en la UI. El catálogo agrupa por estado de
   // stock, así que la categoría sólo se muestra en el chip de cada tarjeta, y
   // las categorías sueltas usan su propio nombre.
-  getCategoriaOrden(categoriaId) {
-    if (!categoriaId) return SIN_CATEGORIA_ORDEN;
-    return this.categorias.find(c => c.id === categoriaId)?.nombre || SIN_CATEGORIA_ORDEN;
+  //
+  // Con varias categorías por producto manda la que alfabéticamente viene
+  // primera, y no la primera que eligió el usuario: si mandara esa, dos
+  // productos con las mismas dos categorías en distinto orden quedarían
+  // separados, y el resultado dependería del orden en que el usuario las fue
+  // marcando.
+  getCategoriaOrden(producto) {
+    const nombres = categoriasDe(producto)
+      .map(id => this.categorias.find(c => c.id === id)?.nombre)
+      .filter(Boolean);
+    if (nombres.length === 0) return SIN_CATEGORIA_ORDEN;
+    return nombres.sort((a, b) => a.localeCompare(b))[0];
   }
   
   getStockClass(producto) {
@@ -403,12 +412,12 @@ export class App {
    *
    * Abrir una categoría es mirar el catálogo de esa categoría, no una búsqueda:
    * por eso el filtro vive acá y no en aplicarFiltroYOrden(), que alimenta las
-   * tres vistas. SiViviera allí, cambiar de pestaña llevaría el filtro puesto y
+   * tres vistas. Si viviera allí, cambiar de pestaña llevaría el filtro puesto y
    * el inventario mostraría un solo grupo de productos sin avisar.
    */
   productosDeLaVista() {
     if (this.vistaActual === 'catalogo' && this.categoriaVista) {
-      return this.productosFiltrados.filter(p => p.categoriaId === this.categoriaVista);
+      return this.productosFiltrados.filter(p => tieneCategoria(p, this.categoriaVista));
     }
     return this.productosFiltrados;
   }
@@ -581,7 +590,17 @@ export class App {
   }
   
   renderCatalogoItemHTML(p) {
-    const cat = p.categoriaId ? this.categorias.find(c => c.id === p.categoriaId) : null;
+    // Con varias categorías por producto, el marco de la foto no tiene lugar
+    // para todas: muestra la primera y, si sobran, cuántas son. La lista
+    // completa está en la hoja de detalle del producto y en el formulario.
+    //
+    // Se filtran las que ya no existen (una categoría borrada deja el id
+    // colgando en productos viejos) para que un producto no muestre un punto
+    // sin nombre.
+    const categorias = categoriasDe(p)
+      .map(id => this.categorias.find(c => c.id === id))
+      .filter(Boolean);
+    const cat = categorias[0];
     // Ver la nota de avisoFotoPerdida en renderProductoHTML: el 📦 de siempre
     // no distingue "nunca tuvo foto" de "se le perdió". En la grilla el aviso
     // va como texto bajo el nombre, porque el espacio de la foto lo ocupa la
@@ -605,10 +624,11 @@ export class App {
           <div class="esquina-superior-derecha insignia insignia-pequena ${this.getStockClass(p)}">
             ${this.getStockLabel(p)}
           </div>
-          ${p.categoriaId ? `
+          ${cat ? `
             <div class="marca-foto">
-              <span class="punto-mini" style="background-color: ${escAttr(cat?.color || '#64748B')}"></span>
-              <span class="micro con-medio cortado ancho-etiqueta">${esc(cat?.nombre || '')}</span>
+              <span class="punto-mini" style="background-color: ${escAttr(cat.color || '#64748B')}"></span>
+              <span class="micro con-medio cortado ancho-etiqueta">${esc(cat.nombre)}</span>
+              ${categorias.length > 1 ? `<span class="micro tenue">+${categorias.length - 1}</span>` : ''}
             </div>
           ` : ''}
         </div>
@@ -682,7 +702,7 @@ export class App {
   }
   
   contarProductosCategoria(categoriaId) {
-    return this.productos.filter(p => p.categoriaId === categoriaId).length;
+    return this.productos.filter(p => tieneCategoria(p, categoriaId)).length;
   }
   
   renderProductoHTML(p) {
@@ -990,7 +1010,7 @@ export class App {
       // La categoría viaja como producto semilla para que el formulario la traiga
       // elegida. Agregar desde una categoría vacía es agregar dentro de ella, y no
       // dejar el producto en "Sin categoría" al otro lado de la app.
-      categoriaId ? { categoriaId } : null,
+      categoriaId ? { categoriaIds: [categoriaId] } : null,
       (p) => this._alVerProductoExistente(p),
       (p) => this.eliminarProducto(p.id)
     );
@@ -1267,21 +1287,34 @@ export class App {
   async eliminarCategoria(categoriaId) {
     const cat = this.categorias.find(c => c.id === categoriaId);
     if (!cat) return;
-    
+
     const count = this.contarProductosCategoria(categoriaId);
-    const mensaje = count > 0 
-      ? `¿Eliminar "${cat.nombre}"? Tiene ${count} producto(s). Se quedarán sin categoría.`
-      : `¿Eliminar "${cat.nombre}"?`;
-    
+    const productosAfectados = this.productos.filter(p => tieneCategoria(p, categoriaId));
+    // Cuántos de esos siguen en alguna categoría después de quitar ésta.
+    // El aviso decía "se quedarán sin categoría" para todos, y con productos en
+    // varias categorías eso es falso: la mayoría se queda con las suyas.
+    const conOtra = productosAfectados.filter(p => categoriasDe(p).length > 1).length;
+    const mensaje = count === 0
+      ? `¿Eliminar "${cat.nombre}"?`
+      : `¿Eliminar "${cat.nombre}"? ${count} producto(s) dejan de estar en ella` +
+        (conOtra > 0 ? `. ${conOtra} se quedan con las categorías que ya tenían.` : '.');
+
     const confirmado = await this.mostrarConfirmacion(mensaje, 'Eliminar categoría', '⚠️');
     if (!confirmado) return;
-    
+
     try {
       await db.categorias.delete(categoriaId);
-      const productosAfectados = this.productos.filter(p => p.categoriaId === categoriaId);
+      // Se saca la categoría de la lista de cada producto en vez de dejarla en
+      // null: el producto puede estar en varias, y vaciarle la lista entera
+      // borraría de un plumazo las otras que sí existen.
       for (const p of productosAfectados) {
-        await db.productos.update(p.id, { categoriaId: null });
+        await db.productos.update(p.id, {
+          categoriaIds: categoriasDe(p).filter(id => id !== categoriaId)
+        });
       }
+      // Si se estaba mirando esa categoría en el catálogo, el filtro queda
+      // apuntando a un id que ya no existe y la vista se vacía sin explicación.
+      if (this.categoriaVista === categoriaId) this.categoriaVista = null;
       toast.success('Categoría eliminada');
       await this.cargarTodo();
     } catch (error) {

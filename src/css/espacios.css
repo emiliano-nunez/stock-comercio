@@ -164,3 +164,23 @@
 .separador-arriba {
   border-block-start: 1px solid var(--color-borde-tenue);
 }
+
+/* =================================================================
+ * Cosas que ocupan todo el ancho disponible
+ *
+ * Un botón dentro de una lista desplegable que, sin esto, se mide por su texto
+ * y queda una tirita corta pegada a la izquierda. Con `ancho: 100%` toma el
+ * ancho de la lista, que es lo que se toca.
+ *
+ * `con-relleno` es lo mismo para texto: un renglón de aviso dentro de una lista
+ * que se apoya contra el borde sin aire alrededor.
+ * ================================================================= */
+
+.ancho-entero {
+  width: 100%;
+}
+
+.con-relleno {
+  padding: var(--relleno-control);
+}
+
