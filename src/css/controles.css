@@ -158,16 +158,12 @@
   color: var(--color-peligro);
 }
 
-/* El botón de borrar precio: chiquito y sin borde, contra el campo. */
-.btn-mini {
-  min-width: 0;
-  min-height: 0;
-  padding: var(--espacio-1);
-  color: var(--color-peligro);
-  font-size: var(--texto-base);
-}
-
-.btn-mini:active {
+/*
+ * El botón de borrar un precio se hunde en rojo, no en gris como los demás
+ * fantasmas. Sólo el que además dice texto-peligro: los otros botones rojos de
+ * la app son de una tarjeta entera y hundirse en gris ya se entiende.
+ */
+.btn-fantasma.texto-peligro:active:not(:disabled) {
   background-color: var(--rojo-50);
 }
 

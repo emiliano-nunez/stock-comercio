@@ -834,7 +834,7 @@ export class ProductoForm {
         </div>
         <button 
           type="button" 
-          class="btn-fantasma btn-mini texto-peligro eliminar-precio" 
+          class="btn-fantasma btn-cuadro texto-peligro eliminar-precio" 
           data-unidad="${subUnidad.value}"
           aria-label="Eliminar precio ${subUnidad.label}"
         >
@@ -1451,7 +1451,7 @@ export class ProductoForm {
           </div>
           <button 
             type="button" 
-            class="btn-fantasma btn-mini texto-peligro eliminar-precio" 
+            class="btn-fantasma btn-cuadro texto-peligro eliminar-precio" 
             data-unidad="${escAttr(sub.value)}"
             aria-label="Eliminar precio ${escAttr(sub.label)}"
           >
