@@ -1,4 +1,34 @@
-import { db, dbUtils } from '../db.js';
+import { db, dbUtils, categoriasDe } from '../db.js';
+
+/**
+ * Poner un producto en la forma que la app usa hoy, sin perderle nada.
+ *
+ * Hace falta sólo al importar, y por los backups viejos:
+ *
+ *   - `categoriaId` (una sola categoría) se volvió `categoriaIds` (varias). Un
+ *     backup anterior a eso trae el campo viejo, y `db.productos.update()` no lo
+ *     borra: sólo pisa las claves que le pasan. Sin esta normalización, cada
+ *     producto importado queda con las dos categorías guardadas, la vieja y la
+ *     nueva, y se siguen arrastrando backup tras backup. `categoriasDe()` los
+ *     lee bien mientras tanto, pero es mejor no dejar el campo muerto adentro.
+ *
+ *   - `proveedor` y `notas` no existían antes, así que llegan ausentes. Se
+ *     rellenan con cadena vacía, que es como los guarda el formulario, y no
+ *     con null: null obliga a repetir el `|| ''` en cada lugar que los lea.
+ *
+ * Lo que NO se toca son los snapshots del historial: son una foto del pasado del
+ * usuario, y reescribirlos para que calcen con el código de hoy sería mentir
+ * sobre lo que había en ese momento.
+ */
+function normalizarProducto(p) {
+  const { categoriaId, ...resto } = p;
+  return {
+    ...resto,
+    categoriaIds: categoriasDe(p),
+    proveedor: typeof resto.proveedor === 'string' ? resto.proveedor : '',
+    notas: typeof resto.notas === 'string' ? resto.notas : ''
+  };
+}
 
 /**
  * Exportar backup completo a JSON (con imágenes en base64)
@@ -93,7 +123,9 @@ export async function importarBackup(jsonStr) {
       await db.categorias.bulkPut(backup.categorias);
     }
     if (backup.productos.length) {
-      await db.productos.bulkPut(backup.productos);
+      // Normalizados al importar: un backup viejo trae `categoriaId` y no trae
+      // `proveedor` ni `notas`. Ver normalizarProducto().
+      await db.productos.bulkPut(backup.productos.map(normalizarProducto));
     }
     if (backup.historial?.length) {
       await db.historial.bulkPut(backup.historial);
