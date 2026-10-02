@@ -664,7 +664,7 @@ export class App {
         <div class="tarjeta">
           <div class="apilado">
             ${this.categorias.map(cat => `
-              <div class="fila fila-separada recuadro-suave">
+              <div class="recuadro recuadro-suave fila fila-separada">
                 <button
                   class="fila-tocable"
                   data-id="${escAttr(cat.id)}"
@@ -753,7 +753,7 @@ export class App {
     return `
       <article class="tarjeta tarjeta-alta" data-id="${escAttr(p.id)}" data-action="detalle"
         role="button" tabindex="0" aria-label="Ver la hoja de ${escAttr(p.nombre)}">
-        <div class="fila fila-arriba fila-amplia crece">
+        <div class="fila fila-arriba fila-amplia crece relleno-3">
           <div class="miniatura">
             ${imagenHTML}
           </div>
@@ -771,9 +771,9 @@ export class App {
               </div>
               ${avisoFotoPerdida}
             </div>
-            <div class="fila fila-separada separador-arriba">
-              <span class="micro medio tenue">Ajuste rápido:</span>
-              <div class="fila">
+            <div class="fila fila-separada envuelto separador-arriba relleno-superior-1">
+              <span class="micro medio tenue ancho-entero">Ajuste rápido:</span>
+              <div class="fila ancho-cero">
                 <button class="btn-resta" data-action="decrement" data-id="${escAttr(p.id)}" aria-label="Quitar ${escAttr(step)} ${escAttr(unidad)}">
                   −
                 </button>
@@ -796,7 +796,7 @@ export class App {
               sin esto los botones de cada columna quedan a distinta altura y la
               grilla se ve despareja.
             -->
-            <div class="fila fila-corta con-margen-arriba-auto separador-arriba">
+            <div class="fila fila-corta con-margen-arriba-auto separador-arriba relleno-superior-1">
               <button class="btn-fantasma btn-crece btn-chico" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
                 <span aria-hidden="true">📋</span><span>Duplicar</span>
               </button>
@@ -1262,7 +1262,7 @@ export class App {
             </div>
             <input type="hidden" id="cat-color" value="${cat ? this.getCategoriaColor(cat) : COLORES_CATEGORIAS[0]}">
           </div>
-          <div class="fila fila-amplia con-margen-arriba separador-arriba">
+          <div class="fila fila-amplia separador-arriba relleno-superior-2">
             <button type="button" id="btn-cat-cancelar" class="btn-secundario btn-crece">${esEdicion ? 'Cancelar' : 'Volver'}</button>
             <button type="submit" class="btn-principal btn-crece">${esEdicion ? '💾 Guardar' : '✅ Crear'}</button>
           </div>

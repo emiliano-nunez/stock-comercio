@@ -74,7 +74,7 @@ export class PedidoModal {
                 const faltante = Math.max(0, minimo - stock);
                 const sugerido = Math.ceil(faltante * 1.5);
                 return `
-                  <div class="fila fila-separada recuadro-suave">
+                  <div class="recuadro recuadro-suave fila fila-separada">
                     <div class="crece ancho-cero">
                       <p class="medio cortado">${esc(p.nombre)}</p>
                       <p class="detalle apagado">Stock: <span class="fuerte ${stock === 0 ? 'texto-peligro' : 'texto-aviso'}">${stock} ${unidad}</span> / Mín: ${minimo} ${unidad}</p>

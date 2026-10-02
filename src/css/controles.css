@@ -344,7 +344,17 @@
 
 /* El campo corto y angosto del número de stock, dentro de la tarjeta. */
 .campo-numero {
+  /*
+   * El número que va entre los botones de restar y sumar. Se mide 3rem, que
+   * entra de sobra con cuatro cifras, pero cede si no hay lugar: en un
+   * teléfono de 320px la columna de texto de la tarjeta queda en 162px y los
+   * tres controles necesitan 168px. Los botones no ceden porque tienen el
+   * mínimo táctil de 52px, así que el que cede es el número, y hasta 2.25rem:
+   * por abajo el "-12" ya se ve apretado.
+   */
   width: 3rem;
+  min-width: 2.25rem;
+  flex: 0 1 3rem;
   text-align: center;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-weight: var(--grosor-fuerte);
