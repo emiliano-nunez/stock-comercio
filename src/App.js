@@ -21,10 +21,18 @@ export class App {
   // muestran: lo que hay, lo que se está por acabar, y lo que ya se acabó.
   // El color de cada uno es el mismo que usa el badge de la tarjeta, para que
   // el grupo y su contenido se vean del mismo color.
+  /*
+   * Los tres estados de stock, con el nombre de la clase y el color.
+   *
+   * El color está escrito dos veces a propósito: una vez como clase de CSS y una
+   * vez como valor, porque va por atributo `style` en el punto de color del
+   * catálogo. Si los dos tienen que salir del mismo lugar, cambiar el verde es
+   * cambiar un número en tokens.css y otro acá, y se puede olvidar uno.
+   */
   static ESTADOS_STOCK = [
-    { clave: 'ok', etiqueta: 'Con stock', clase: 'stock-ok', color: '#22c55e' },
-    { clave: 'poco', etiqueta: 'Pocas unidades', clase: 'stock-low', color: '#f59e0b' },
-    { clave: 'vacio', etiqueta: 'Sin stock', clase: 'stock-out', color: '#ef4444' }
+    { clave: 'ok', etiqueta: 'Con stock', clase: 'insignia-ok', color: '#22c55e' },
+    { clave: 'poco', etiqueta: 'Pocas unidades', clase: 'insignia-poco', color: '#f59e0b' },
+    { clave: 'vacio', etiqueta: 'Sin stock', clase: 'insignia-sin', color: '#ef4444' }
   ];
 
   constructor() {
@@ -94,21 +102,21 @@ export class App {
     if (!cont) return;
     
     const detalle = import.meta.env.DEV
-      ? `<pre class="mt-4 p-3 bg-gray-100 rounded-lg text-xs text-left overflow-auto max-h-48 whitespace-pre-wrap">${esc(String(error?.stack || error))}</pre>`
-      : '<p class="text-gray-500 mt-2 text-sm">Si el problema sigue, probá a recargar o a reinstalar la app.</p>';
+      ? `<pre class="bloque-datos">${esc(String(error?.stack || error))}</pre>`
+      : '<p class="detalle apagado con-margen-arriba">Si el problema sigue, probá a recargar o a reinstalar la app.</p>';
     
     cont.innerHTML = `
-      <div class="min-h-screen flex items-center justify-center p-6">
-        <div class="max-w-md text-center">
-          <span class="text-5xl">⚠️</span>
-          <h1 class="text-touch-lg font-bold text-gray-900 mt-4">No se pudo abrir la app</h1>
-          <p class="text-gray-600 mt-2">Tus datos siguen guardados en este dispositivo.</p>
+      <div class="vacio-pantalla">
+        <div class="centro-texto">
+          <span class="vacio-icono">⚠️</span>
+          <h1 class="titulo con-margen-arriba-amplia">No se pudo abrir la app</h1>
+          <p class="con-medio con-margen-arriba">Tus datos siguen guardados en este dispositivo.</p>
           ${detalle}
-          <div class="flex flex-col gap-2 mt-6">
-            <button id="btn-reintentar-carga" class="btn-primary w-full">🔄 Reintentar</button>
-            <button id="btn-descargar-emergencia" class="btn-secondary w-full text-sm">📤 Descargar copia de mis datos</button>
+          <div class="columna con-margen-arriba-amplia">
+            <button id="btn-reintentar-carga" class="btn-principal btn-ancho">🔄 Reintentar</button>
+            <button id="btn-descargar-emergencia" class="btn-secundario btn-ancho detalle">📤 Descargar copia de mis datos</button>
           </div>
-          <p class="text-xs text-gray-400 mt-4">No borres los datos del navegador: puedes perder el inventario.</p>
+          <p class="micro tenue con-margen-arriba-amplia">No borres los datos del navegador: puedes perder el inventario.</p>
         </div>
       </div>
     `;
@@ -234,38 +242,38 @@ export class App {
     
     const app = document.getElementById('app');
     app.innerHTML = `
-      <div class="min-h-screen flex flex-col safe-area-inset bg-gray-50 overflow-x-hidden w-full max-w-3xl mx-auto shadow-sm">
-        <header class="bg-white border-b border-gray-100 sticky top-0 z-40 overflow-x-hidden">
-          <div class="px-3 py-2.5">
-            <div class="flex items-center justify-between gap-2">
-              <h1 class="text-touch-lg font-bold text-gray-900">📦 Stock Comercio</h1>
-              <div class="flex items-center gap-1">
-                <button id="btn-historial" class="btn-ghost p-2" aria-label="Historial y restaurar">
+      <div class="app">
+        <header class="cabecera">
+          <div class="cabecera-cuerpo">
+            <div class="fila fila-separada">
+              <h1 class="titulo">📦 Stock Comercio</h1>
+              <div class="fila fila-corta">
+                <button id="btn-historial" class="btn-fantasma btn-icono" aria-label="Historial y restaurar">
                   🔄
                 </button>
-                <button id="btn-pedido" class="btn-ghost p-2" aria-label="Pedido de faltantes">
+                <button id="btn-pedido" class="btn-fantasma btn-icono" aria-label="Pedido de faltantes">
                   📋
                 </button>
               </div>
             </div>
             
-            <div class="relative mt-2">
-              <label for="buscador" class="sr-only">Buscar productos</label>
+            <div class="posicionado con-margen-arriba">
+              <label for="buscador" class="solo-lector">Buscar productos</label>
               <input 
                 type="search" 
                 id="buscador" 
-                class="input-touch pl-10 pr-10 text-touch" 
+                class="campo buscador-campo" 
                 placeholder="Buscar por nombre o código..."
                 value="${escAttr(this.busqueda)}"
               >
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">🔍</span>
-              <button id="btn-escanear-header" class="absolute right-2 top-1/2 -translate-y-1/2 btn-ghost p-2" aria-label="Escanear código de barras">
-                🔍
+              <span class="buscador-lupa">🔍</span>
+              <button id="btn-escanear-header" class="buscador-boton" aria-label="Escanear código de barras">
+                📷
               </button>
             </div>
             
-            <div class="mt-2">
-              <select id="ordenar-select" class="input-touch text-touch w-full">
+            <div class="con-margen-arriba">
+              <select id="ordenar-select" class="campo">
                 <option value="nombre_asc" ${this.ordenarPor === 'nombre' && this.ordenDireccion === 'asc' ? 'selected' : ''}>🔤 Nombre A-Z</option>
                 <option value="nombre_desc" ${this.ordenarPor === 'nombre' && this.ordenDireccion === 'desc' ? 'selected' : ''}>🔤 Nombre Z-A</option>
                 <option value="stock_asc" ${this.ordenarPor === 'stock' && this.ordenDireccion === 'asc' ? 'selected' : ''}>📦 Stock menor</option>
@@ -278,24 +286,24 @@ export class App {
             </div>
           </div>
           
-          <div class="flex border-t border-gray-100 -mx-3 overflow-x-hidden">
+          <div class="pestanas">
             <button 
               id="tab-inventario" 
-              class="tab-btn ${this.vistaActual === 'inventario' ? 'active' : ''} flex-1 py-2 text-sm font-medium text-center"
+              class="pestana ${this.vistaActual === 'inventario' ? 'pestana-activa' : ''}"
               data-vista="inventario"
             >
               📦 Inventario
             </button>
             <button 
               id="tab-catalogo" 
-              class="tab-btn ${this.vistaActual === 'catalogo' ? 'active' : ''} flex-1 py-2 text-sm font-medium text-center"
+              class="pestana ${this.vistaActual === 'catalogo' ? 'pestana-activa' : ''}"
               data-vista="catalogo"
             >
               📚 Catálogo
             </button>
             <button 
               id="tab-categorias" 
-              class="tab-btn ${this.vistaActual === 'categorias' ? 'active' : ''} flex-1 py-2 text-sm font-medium text-center"
+              class="pestana ${this.vistaActual === 'categorias' ? 'pestana-activa' : ''}"
               data-vista="categorias"
             >
               🏷️ Categorías
@@ -303,17 +311,17 @@ export class App {
           </div>
         </header>
         
-        <main class="flex-1 overflow-y-auto px-3 pb-24 overflow-x-hidden" id="contenido-principal">
+        <main class="contenido" id="contenido-principal">
           ${this.renderVistaHTML()}
         </main>
         
         <button 
           id="btn-agregar-fab" 
-          class="btn-fab btn-primary shadow-xl shadow-primary-600/40 flex items-center justify-center text-touch safe-bottom"
+          class="boton-flotante"
           aria-label="Agregar producto"
           style="width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"
         >
-          <span class="text-2xl" style="line-height: 1;">➕</span>
+          <span class="grande" style="line-height: 1;">➕</span>
         </button>
       </div>
     `;
@@ -335,20 +343,20 @@ export class App {
     if (this.productosFiltrados.length === 0) {
       if (this.busqueda) {
         return `
-          <div class="text-center py-12 text-gray-500">
-            <span class="text-5xl">🔍</span>
-            <p class="text-touch font-medium mt-2">Sin resultados</p>
-            <p class="text-sm mt-1">No se encontró "${esc(this.busqueda)}"</p>
-            <button id="btn-limpiar-busqueda" class="btn-primary mt-4 w-auto">Limpiar búsqueda</button>
+          <div class="vacio">
+            <span class="vacio-icono">🔍</span>
+            <p class="detalle medio con-margen-arriba">Sin resultados</p>
+            <p class="detalle con-margen-arriba-chica">No se encontró "${esc(this.busqueda)}"</p>
+            <button id="btn-limpiar-busqueda" class="btn-principal con-margen-arriba-amplia">Limpiar búsqueda</button>
           </div>
         `;
       }
       
       return `
-        <div class="text-center py-12 text-gray-500">
-          <span class="text-6xl">📦</span>
-          <h2 class="text-touch-lg font-semibold text-gray-700 mt-4">Inventario vacío</h2>
-          <p class="text-sm text-gray-500 mt-2">Toca "Agregar producto" para empezar</p>
+        <div class="vacio">
+          <span class="vacio-icono-grande">📦</span>
+          <h2 class="subtitulo con-margen-arriba-amplia">Inventario vacío</h2>
+          <p class="detalle apagado con-margen-arriba">Toca "Agregar producto" para empezar</p>
         </div>
       `;
     }
@@ -364,7 +372,7 @@ export class App {
     // de eliminar se caería de la fila. Con md, la columna ya mide 768px y cada
     // tarjeta 370px, que es lo que la tarjeta esperaba.
     return `
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div class="rejilla">
         ${visibles.map(p => this.renderProductoHTML(p)).join('')}
       </div>
     ` + this.renderCargarMasHTML(visibles);
@@ -430,9 +438,9 @@ export class App {
     if (faltan <= 0) return '';
 
     return `
-      <div class="text-center py-4">
-        <p class="text-sm text-gray-500 mb-2">Mostrando ${visibles.length} de ${this.productosFiltrados.length}</p>
-        <button id="btn-cargar-mas" class="btn-secondary w-auto min-h-touch">
+      <div class="centro-texto">
+        <p class="detalle apagado con-margen-abajo">Mostrando ${visibles.length} de ${this.productosFiltrados.length}</p>
+        <button id="btn-cargar-mas" class="btn-secundario">
           Cargar ${Math.min(faltan, App.LIMITE_RENDER)} más
         </button>
       </div>
@@ -442,10 +450,10 @@ export class App {
   renderCatalogoHTML() {
     if (this.productosFiltrados.length === 0) {
       return `
-        <div class="text-center py-12 text-gray-500">
-          <span class="text-6xl">📚</span>
-          <h2 class="text-touch-lg font-semibold text-gray-700 mt-4">Catálogo vacío</h2>
-          <p class="text-sm text-gray-500 mt-2">No hay productos para mostrar</p>
+        <div class="vacio">
+          <span class="vacio-icono-grande">📚</span>
+          <h2 class="subtitulo con-margen-arriba-amplia">Catálogo vacío</h2>
+          <p class="detalle apagado con-margen-arriba">No hay productos para mostrar</p>
         </div>
       `;
     }
@@ -472,12 +480,12 @@ export class App {
       .map(estado => {
         const productos = porEstado.get(estado.clave);
         return `
-        <section class="mb-6">
-          <h3 class="text-touch font-bold text-gray-900 flex items-center gap-2 pb-1 border-b border-gray-200">
-            <span class="w-6 h-6 rounded-full flex-shrink-0" style="background-color: ${estado.color}"></span>
+        <section class="con-margen-abajo-amplia">
+          <h3 class="titulo-seccion">
+            <span class="punto" style="background-color: ${estado.color}"></span>
             ${esc(estado.etiqueta)} (${productos.length})
           </h3>
-          <div class="grid grid-cols-2 gap-3 mt-3">
+          <div class="cuadricula con-margen-arriba">
             ${productos.map(p => this.renderCatalogoItemHTML(p)).join('')}
           </div>
         </section>
@@ -499,74 +507,74 @@ export class App {
     // va como texto bajo el nombre, porque el espacio de la foto lo ocupa la
     // categoría y el precio.
     const avisoFotoPerdida = p.fotoPerdida
-      ? `<p class="text-[11px] leading-tight text-warning-700 flex items-center gap-1 mb-1">
-           <span class="flex-shrink-0">⚠️</span>
+      ? `<p class="aviso aviso-atencion fila-corta con-margen-abajo-chica">
+           <span class="no-crece">⚠️</span>
            <span>Falta la foto</span>
          </p>`
       : '';
     const imagenHTML = p.imagenUrl 
-      ? `<img src="${escAttr(p.imagenUrl)}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="${escAttr(p.nombre)}">`
-      : `<span class="text-3xl">${p.fotoPerdida ? '🖼️' : '📦'}</span>`;
+      ? `<img src="${escAttr(p.imagenUrl)}" loading="lazy" decoding="async" class="foto-llena" alt="${escAttr(p.nombre)}">`
+      : `<span class="vacio-icono-pequeno">${p.fotoPerdida ? '🖼️' : '📦'}</span>`;
     const tipo = TIPOS_VENTA.find(t => t.value === p.tipoVenta) || TIPOS_VENTA[0];
     const unidad = tipo.unidadBase || 'unid';
     
     return `
-      <article class="card-touch group">
-        <div class="aspect-square max-w-xs mx-auto sm:max-w-none rounded-xl bg-gray-100 overflow-hidden relative mb-2">
+      <article class="tarjeta">
+        <div class="marco-foto marco-foto-centrado">
           ${imagenHTML}
-          <div class="absolute top-1 right-1 ${this.getStockClass(p)} stock-badge text-xs px-1.5 py-0.5">
+          <div class="esquina-superior-derecha insignia insignia-pequena ${this.getStockClass(p)}">
             ${this.getStockLabel(p)}
           </div>
           ${p.categoriaId ? `
-            <div class="absolute bottom-1 left-1 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-0.5">
-              <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${escAttr(cat?.color || '#64748B')}"></span>
-              <span class="text-xs text-gray-600 truncate max-w-[80px]">${esc(cat?.nombre || '')}</span>
+            <div class="marca-foto">
+              <span class="punto-mini" style="background-color: ${escAttr(cat?.color || '#64748B')}"></span>
+              <span class="micro con-medio cortado ancho-etiqueta">${esc(cat?.nombre || '')}</span>
             </div>
           ` : ''}
         </div>
-        <h4 class="font-semibold text-gray-900 truncate text-sm mb-1">${esc(p.nombre)}</h4>
-        ${p.codigoBarras ? `<p class="text-xs text-gray-400 font-mono truncate mb-1">${esc(p.codigoBarras)}</p>` : ''}
+        <h4 class="detalle fuerte cortado con-margen-abajo-chica">${esc(p.nombre)}</h4>
+        ${p.codigoBarras ? `<p class="micro tenue mono cortado con-margen-abajo-chica">${esc(p.codigoBarras)}</p>` : ''}
         ${avisoFotoPerdida}
         ${p.precios && p.precios.length > 1 ? `
-          <div class="flex flex-wrap gap-1 mb-1">
+          <div class="fila envuelto fila-corta con-margen-abajo-chica">
             ${p.precios.map(pr => `
-              <span class="text-xs bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded">${esc(pr.icon || '📦')} $${fmtPrecio(pr.valor)}/${esc(pr.unidad)}</span>
+              <span class="categoria-chip">${esc(pr.icon || '📦')} $${fmtPrecio(pr.valor)}/${esc(pr.unidad)}</span>
             `).join('')}
           </div>
-        ` : (p.precio ? `<p class="text-primary-700 font-bold text-sm">$${fmtPrecio(p.precio)}/${esc(unidad)}</p>` : '<p class="text-gray-400 text-xs">Sin precio</p>')}
-        <p class="text-xs text-gray-500">Stock: ${p.stock || 0} ${esc(unidad)}</p>
-        ${p.costo ? `<p class="text-xs text-gray-500">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</p>` : ''}
-        ${p.fechaCompra ? `<p class="text-xs text-gray-400">📅 ${new Date(p.fechaCompra).toLocaleDateString('es-ES')}</p>` : ''}
+        ` : (p.precio ? `<p class="marca fuerte detalle">$${fmtPrecio(p.precio)}/${esc(unidad)}</p>` : '<p class="micro tenue">Sin precio</p>')}
+        <p class="micro apagado">Stock: ${p.stock || 0} ${esc(unidad)}</p>
+        ${p.costo ? `<p class="micro apagado">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</p>` : ''}
+        ${p.fechaCompra ? `<p class="micro tenue">📅 ${new Date(p.fechaCompra).toLocaleDateString('es-ES')}</p>` : ''}
       </article>
     `;
   }
   
   renderCategoriasHTML() {
     return `
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-touch-lg font-bold text-gray-900">🏷️ Gestión de Categorías</h2>
-          <button id="btn-nueva-categoria" class="btn-primary text-sm">
+      <div class="apilado-4">
+        <div class="fila fila-separada">
+          <h2 class="titulo">🏷️ Gestión de Categorías</h2>
+          <button id="btn-nueva-categoria" class="btn-principal detalle">
             ➕ Nueva categoría
           </button>
         </div>
         
-        <div class="card-touch">
-          <div class="space-y-2">
+        <div class="tarjeta">
+          <div class="apilado">
             ${this.categorias.map(cat => `
-              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <div class="flex items-center gap-3">
-                  <span class="w-6 h-6 rounded-full flex-shrink-0" style="background-color: ${this.getCategoriaColor(cat)}"></span>
+              <div class="fila fila-separada recuadro-suave">
+                <div class="fila fila-amplia">
+                  <span class="punto" style="background-color: ${this.getCategoriaColor(cat)}"></span>
                   <div>
-                    <p class="font-medium text-gray-900">${esc(cat.nombre)}</p>
-                    <p class="text-xs text-gray-500">${this.contarProductosCategoria(cat.id)} productos</p>
+                    <p class="medio">${esc(cat.nombre)}</p>
+                    <p class="micro apagado">${this.contarProductosCategoria(cat.id)} productos</p>
                   </div>
                 </div>
-                <div class="flex gap-2">
-                  <button class="btn-ghost p-2 text-primary-600 editar-categoria" data-id="${escAttr(cat.id)}" aria-label="Editar ${escAttr(cat.nombre)}">
+                <div class="fila">
+                  <button class="btn-fantasma btn-icono texto-marca editar-categoria" data-id="${escAttr(cat.id)}" aria-label="Editar ${escAttr(cat.nombre)}">
                     ✏️
                   </button>
-                  <button class="btn-ghost p-2 text-danger-500 eliminar-categoria" data-id="${escAttr(cat.id)}" aria-label="Eliminar ${escAttr(cat.nombre)}">
+                  <button class="btn-fantasma btn-icono texto-peligro eliminar-categoria" data-id="${escAttr(cat.id)}" aria-label="Eliminar ${escAttr(cat.nombre)}">
                     🗑️
                   </button>
                 </div>
@@ -576,10 +584,10 @@ export class App {
         </div>
         
         ${this.categorias.length === 0 ? `
-          <div class="text-center py-8 text-gray-500">
-            <span class="text-5xl">📂</span>
-            <p class="text-touch font-medium mt-2">Sin categorías</p>
-            <button id="btn-nueva-categoria-vacia" class="btn-primary mt-4">➕ Crear primera categoría</button>
+          <div class="vacio">
+            <span class="vacio-icono">📂</span>
+            <p class="detalle medio con-margen-arriba">Sin categorías</p>
+            <button id="btn-nueva-categoria-vacia" class="btn-principal con-margen-arriba">➕ Crear primera categoría</button>
           </div>
         ` : ''}
       </div>
@@ -606,17 +614,17 @@ export class App {
     const precio = getPrecioPrincipal(p);
     const stockMinimo = p.stockMinimo || 0;
     const imagenHTML = p.imagenUrl 
-      ? `<img src="${escAttr(p.imagenUrl)}" loading="lazy" decoding="async" class="w-full h-full object-cover" alt="${escAttr(p.nombre)}">`
-      : `<span class="text-3xl">${p.fotoPerdida ? '🖼️' : '📦'}</span>`;
+      ? `<img src="${escAttr(p.imagenUrl)}" loading="lazy" decoding="async" class="foto-llena" alt="${escAttr(p.nombre)}">`
+      : `<span class="vacio-icono-pequeno">${p.fotoPerdida ? '🖼️' : '📦'}</span>`;
     
     // Aviso de foto perdida. Sale SÓLO cuando el producto apunta a una foto que
     // no está en la base (p.fotoPerdida, que marca getAllProductosConImagenes).
     // Un producto que nunca tuvo foto no avisa: se vería con el 📦 de siempre y
     // el usuario no distinguiría una cosa de la otra.
     const avisoFotoPerdida = p.fotoPerdida
-      ? `<p class="text-xs text-warning-700 bg-warning-50 border border-warning-200 rounded-lg px-2 py-1 flex items-center gap-1">
-           <span class="flex-shrink-0">⚠️</span>
-           <span class="truncate">Falta la foto: no se encuentra en el dispositivo</span>
+      ? `<p class="aviso aviso-atencion fila-corta">
+           <span class="no-crece">⚠️</span>
+           <span class="cortado">Falta la foto: no se encuentra en el dispositivo</span>
          </p>`
       : '';
     
@@ -624,41 +632,43 @@ export class App {
     // Las clases js-stock-* son los ganchos que usa actualizarTarjetaStock()
     // para refrescar la tarjeta en el sitio al cambiar el stock, sin
     // re-renderizar el catálogo entero.
-    const stockBadgeClass = stock === 0 
-      ? 'bg-red-100 text-red-800' 
-      : stock <= stockMinimo 
-        ? 'bg-yellow-100 text-yellow-800' 
-        : 'bg-green-100 text-green-800';
+    // El nombre de la clase, no el color. Los tres estados tienen su clase en
+    // superficies.css y el color vive en tokens.css: acá no se escribe un color.
+    const stockBadgeClass = stock === 0
+      ? 'insignia-sin'
+      : stock <= stockMinimo
+        ? 'insignia-poco'
+        : 'insignia-ok';
     const stockBadgeText = stock === 0 ? 'Agotado' : stock <= stockMinimo ? 'Poco' : 'OK';
     
     return `
-      <article class="card-touch bg-white rounded-2xl shadow-sm border border-gray-100 h-full overflow-hidden" data-id="${escAttr(p.id)}">
-        <div class="flex items-start gap-3 p-3 h-full">
-          <div class="relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden">
+      <article class="tarjeta tarjeta-alta" data-id="${escAttr(p.id)}">
+        <div class="fila fila-arriba fila-amplia crece">
+          <div class="miniatura">
             ${imagenHTML}
           </div>
-          <div class="flex-1 min-w-0 flex flex-col gap-2">
-            <div class="min-w-0">
-              <h3 class="font-bold text-gray-900 truncate text-base leading-tight">${esc(p.nombre)}</h3>
-              <div class="flex items-center gap-2 mt-1 flex-wrap">
-                ${precio.valor ? `<span class="text-sm font-semibold text-primary-700">$${fmtPrecio(precio.valor)}/${esc(precio.unidad)}</span>` : ''}
-                ${p.costo ? `<span class="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</span>` : ''}
-                <span class="js-stock-badge inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${stockBadgeClass}">
+          <div class="crece ancho-cero columna apilado">
+            <div class="ancho-cero">
+              <h3 class="fuerte cortado">${esc(p.nombre)}</h3>
+              <div class="fila con-margen-arriba-chica envuelto">
+                ${precio.valor ? `<span class="detalle medio texto-marca">$${fmtPrecio(precio.valor)}/${esc(precio.unidad)}</span>` : ''}
+                ${p.costo ? `<span class="etiqueta-tenue">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</span>` : ''}
+                <span class="js-stock-badge insignia ${stockBadgeClass}">
                   ${stockBadgeText}: ${stock}
                 </span>
-                <span class="text-xs text-gray-500">Mín: ${stockMinimo}</span>
-                ${p.codigoBarras ? `<span class="text-xs text-gray-400 font-mono">${esc(p.codigoBarras)}</span>` : ''}
+                <span class="micro apagado">Mín: ${stockMinimo}</span>
+                ${p.codigoBarras ? `<span class="micro tenue mono">${esc(p.codigoBarras)}</span>` : ''}
               </div>
               ${avisoFotoPerdida}
             </div>
-            <div class="flex items-center justify-between pt-1 border-t border-gray-50">
-              <span class="text-xs font-medium text-gray-400">Ajuste rápido:</span>
-              <div class="flex items-center gap-2">
-                <button class="min-h-touch min-w-touch flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xl rounded-xl active:scale-95 select-none" data-action="decrement" data-id="${escAttr(p.id)}" aria-label="Quitar ${escAttr(step)} ${escAttr(unidad)}">
+            <div class="fila fila-separada separador-arriba">
+              <span class="micro medio tenue">Ajuste rápido:</span>
+              <div class="fila">
+                <button class="btn-resta" data-action="decrement" data-id="${escAttr(p.id)}" aria-label="Quitar ${escAttr(step)} ${escAttr(unidad)}">
                   −
                 </button>
-                <span class="js-stock-numero w-12 text-center font-mono font-bold text-lg text-gray-900">${stock}</span>
-                <button class="min-h-touch min-w-touch flex items-center justify-center bg-primary-600 hover:bg-primary-700 text-white font-bold text-xl rounded-xl active:scale-95 select-none" data-action="increment" data-id="${escAttr(p.id)}" aria-label="Agregar ${escAttr(step)} ${escAttr(unidad)}">
+                <span class="campo-numero">${stock}</span>
+                <button class="btn-suma" data-action="increment" data-id="${escAttr(p.id)}" aria-label="Agregar ${escAttr(step)} ${escAttr(unidad)}">
                   +
                 </button>
               </div>
@@ -676,14 +686,14 @@ export class App {
               sin esto los botones de cada columna quedan a distinta altura y la
               grilla se ve despareja.
             -->
-            <div class="flex items-center gap-1.5 pt-1 border-t border-gray-50 mt-auto">
-              <button class="btn-ghost flex-1 inline-flex items-center justify-center gap-1 text-xs px-2 min-w-touch" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
+            <div class="fila fila-corta con-margen-arriba-auto separador-arriba">
+              <button class="btn-fantasma btn-crece btn-chico" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
                 <span aria-hidden="true">📋</span><span>Duplicar</span>
               </button>
-              <button class="btn-ghost flex-1 inline-flex items-center justify-center gap-1 text-xs px-2 min-w-touch" data-action="edit" data-id="${escAttr(p.id)}" aria-label="Editar ${escAttr(p.nombre)}">
+              <button class="btn-fantasma btn-crece btn-chico" data-action="edit" data-id="${escAttr(p.id)}" aria-label="Editar ${escAttr(p.nombre)}">
                 <span aria-hidden="true">✏️</span><span>Editar</span>
               </button>
-              <button class="btn-ghost flex-1 inline-flex items-center justify-center gap-1 text-xs px-2 min-w-touch text-red-500 hover:text-red-700" data-action="delete" data-id="${escAttr(p.id)}" aria-label="Eliminar ${escAttr(p.nombre)}">
+              <button class="btn-fantasma btn-crece btn-chico texto-peligro" data-action="delete" data-id="${escAttr(p.id)}" aria-label="Eliminar ${escAttr(p.nombre)}">
                 <span aria-hidden="true">🗑️</span><span>Eliminar</span>
               </button>
             </div>
@@ -743,7 +753,7 @@ export class App {
       this.renderVista();
     });
     
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.pestana').forEach(btn => {
       btn.addEventListener('click', () => {
         this.vistaActual = btn.dataset.vista;
         this._limiteRender = App.LIMITE_RENDER;
@@ -852,15 +862,17 @@ export class App {
     const numero = card.querySelector('.js-stock-numero');
     if (numero) numero.textContent = stock;
     
-    // Badge de estado
+    // Insignia de estado. Se reescribe entera con className, así que la clase
+    // de estado va primero y el gancho de JavaScript va con ella: sin el
+    // "js-stock-badge" el próximo ajuste rápido no encontraría la insignia.
     const badge = card.querySelector('.js-stock-badge');
     if (badge) {
       const clases = stock === 0
-        ? 'bg-red-100 text-red-800'
+        ? 'insignia-sin'
         : stock <= stockMinimo
-          ? 'bg-yellow-100 text-yellow-800'
-          : 'bg-green-100 text-green-800';
-      badge.className = `js-stock-badge inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full ${clases}`;
+          ? 'insignia-poco'
+          : 'insignia-ok';
+      badge.className = `js-stock-badge insignia ${clases}`;
       badge.textContent = `${stock === 0 ? 'Agotado' : stock <= stockMinimo ? 'Poco' : 'OK'}: ${stock}`;
     }
   }
@@ -1074,31 +1086,31 @@ export class App {
     const esEdicion = !!cat;
     
     const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
+    modal.className = 'velo';
     modal.innerHTML = `
-      <div class="modal-content max-w-md">
-        <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-primary-50 rounded-t-2xl">
-          <h2 class="text-touch-lg font-bold text-gray-900">${esEdicion ? '✏️ Editar' : '➕ Nueva'} Categoría</h2>
-          <button id="cerrar-cat-modal" class="btn-ghost p-2">✕</button>
+      <div class="dialogo">
+        <div class="dialogo-cabecera">
+          <h2 class="titulo">${esEdicion ? '✏️ Editar' : '➕ Nueva'} Categoría</h2>
+          <button id="cerrar-cat-modal" class="btn-fantasma btn-icono">✕</button>
         </div>
-        <form id="form-categoria" class="p-4 space-y-4">
+        <form id="form-categoria" class="dialogo-cuerpo apilado-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
-            <input type="text" id="cat-nombre" class="input-touch text-touch-lg" value="${escAttr(cat?.nombre || '')}" required autocomplete="off" autofocus placeholder="Ej: Verduras">
+            <label class="etiqueta">Nombre</label>
+            <input type="text" id="cat-nombre" class="campo" value="${escAttr(cat?.nombre || '')}" required autocomplete="off" autofocus placeholder="Ej: Verduras">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
-            <div class="flex flex-wrap gap-2">
+            <label class="etiqueta">Color</label>
+            <div class="fila envuelto">
               ${COLORES_CATEGORIAS.map(color => `
-                <button type="button" class="color-btn w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${cat && this.getCategoriaColor(cat) === color ? 'ring-2 ring-primary-500 scale-110' : 'hover:scale-105'}" data-color="${color}" style="background-color: ${color}; border-color: ${color}40;">
+                <button type="button" class="color-btn muestra-color ${cat && this.getCategoriaColor(cat) === color ? 'muestra-color-elegida' : ''}" data-color="${color}" style="background-color: ${color}; border-color: ${color}40;" aria-label="Color ${color}">
                 </button>
               `).join('')}
             </div>
             <input type="hidden" id="cat-color" value="${cat ? this.getCategoriaColor(cat) : COLORES_CATEGORIAS[0]}">
           </div>
-          <div class="flex gap-3 pt-2 border-t border-gray-100">
-            <button type="button" id="btn-cat-cancelar" class="btn-secondary flex-1">${esEdicion ? 'Cancelar' : 'Volver'}</button>
-            <button type="submit" class="btn-primary flex-1">${esEdicion ? '💾 Guardar' : '✅ Crear'}</button>
+          <div class="fila fila-amplia con-margen-arriba separador-arriba">
+            <button type="button" id="btn-cat-cancelar" class="btn-secundario btn-crece">${esEdicion ? 'Cancelar' : 'Volver'}</button>
+            <button type="submit" class="btn-principal btn-crece">${esEdicion ? '💾 Guardar' : '✅ Crear'}</button>
           </div>
         </form>
       </div>
@@ -1117,11 +1129,14 @@ export class App {
     
     modal.querySelectorAll('.color-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        // Se quita la marca de elegida a todas y se pone sólo a la que se tocó.
+        // El gancho "color-btn" se conserva: sin él el siguiente clic no
+        // encontraría los botones.
         modal.querySelectorAll('.color-btn').forEach(b => {
-          b.className = 'color-btn w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all';
+          b.className = 'color-btn muestra-color';
           b.style.borderColor = b.dataset.color + '40';
         });
-        btn.className = 'color-btn w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ring-2 ring-primary-500 scale-110';
+        btn.className = 'color-btn muestra-color muestra-color-elegida';
         btn.style.borderColor = btn.dataset.color;
         modal.querySelector('#cat-color').value = btn.dataset.color;
       });
@@ -1192,21 +1207,21 @@ export class App {
   mostrarConfirmacion(mensaje, titulo = 'Confirmar', icono = '❓') {
     return new Promise((resolve) => {
       const modal = document.createElement('div');
-      modal.className = 'modal-overlay';
+      modal.className = 'velo';
       modal.innerHTML = `
-        <div class="modal-content max-w-md">
-          <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-primary-50 rounded-t-2xl">
-            <h2 class="text-touch-lg font-bold text-gray-900 flex items-center gap-2">
+        <div class="dialogo">
+          <div class="dialogo-cabecera">
+            <h2 class="titulo fila">
               <span>${esc(icono)}</span>
               ${esc(titulo)}
             </h2>
-            <button class="btn-ghost p-2" data-accion="cancelar" aria-label="Cerrar">✕</button>
+            <button class="btn-fantasma btn-icono" data-accion="cancelar" aria-label="Cerrar">✕</button>
           </div>
-          <div class="p-4">
-            <p class="text-touch text-gray-700 mb-6">${esc(mensaje)}</p>
-            <div class="flex gap-3 justify-end">
-              <button class="btn-secondary flex-1" data-accion="cancelar">Cancelar</button>
-              <button class="btn-danger flex-1" data-accion="aceptar">Eliminar</button>
+          <div class="relleno-4">
+            <p class="subtitulo con-margen-abajo-amplia">${esc(mensaje)}</p>
+            <div class="fila fila-amplia al-final">
+              <button class="btn-secundario btn-crece" data-accion="cancelar">Cancelar</button>
+              <button class="btn-peligro btn-crece" data-accion="aceptar">Eliminar</button>
             </div>
           </div>
         </div>
