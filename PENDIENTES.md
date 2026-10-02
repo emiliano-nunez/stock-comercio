@@ -94,8 +94,28 @@ comprobarlo.
 - [ ] Las cuatro salidas del diálogo: sufijo, sin código, borrar el viejo,
       cancelar. Y que borrar deje punto de restauración y se pueda deshacer.
 - [ ] Cerrar y reabrir la app para probar el punto de restauración diario.
+- [ ] Lo nuevo, que todavía nadie vio en un teléfono: varias categorías en un
+      mismo producto, el campo de proveedor, las notas, y la hoja que se abre
+      al tocar una tarjeta del catálogo.
+- [ ] Cómo quedó el aspecto después de sacar Tailwind. La mayor parte se ve
+      igual, pero hay tres cambios que son de verdad, no de traducción:
+      - Las pestañas de arriba medían 38px de alto y el botón del escáner
+        38px de ancho, los dos por debajo del mínimo táctil. Ahora los dos
+        llegan a 52px.
+      - Las pestañas se salían de la pantalla 12px a cada lado, y el borde de
+        arriba no cerraba con los bordes. Ahora van de borde a borde.
+      - El fondo de la app pasó de verde a gris, y el cuerpo de letra de 16px
+        a 18px. El verde era una clase de Tailwind pegada en el `<body>` y los
+        16px venían del reinicio de Tailwind; los valores de diseño siempre
+        fueron el gris y los 18px.
 
 El resto del checklist de validación está en el README.
+
+### Ya comprobado en el teléfono
+
+El usuario probó la app instalada y confirmó que la cámara abre y que la PWA se
+instala bien. Todo lo demás de las dos listas de arriba sigue sin verse en un
+dispositivo.
 
 ---
 
@@ -110,21 +130,33 @@ que el HTML pide existen, el service worker se registra con el alcance
 `/stock-comercio/`, y el manifiesto que se sirve lleva `start_url`, `scope` y los
 dos accesos directos con la ruta ya puesta.
 
-### Sigue sin probarse en un navegador
+### Ya se miró en un navegador
 
-No hay navegador conectado, así que lo anterior es leer la página publicada, no
-mirarla. Que todos los archivos respondan 200 descarta la causa de la pantalla en
-blanco, que era la de las rutas, pero no dice que la app se vea bien.
+La página publicada se abre ahora en un navegador de verdad, no sólo se lee. Se
+comprueba en ella, y también contra el mismo build servido en un subdirectorio
+como en el despliegue:
 
-Pendiente de mirar de verdad:
+- Que no haya ni un 404 ni un error de página en toda la carga.
+- Que las siete hojas de CSS se carguen y las variables se apliquen, que es
+  donde se ve si el orden de carga quedó bien.
+- Que la app dibuje, con las tres pestañas y el catálogo.
+- Que tocar una tarjeta abra la hoja del producto, con el proveedor, las notas y
+  las dos categorías del producto sembrado.
+- Que el formulario abra con los 18 campos, incluidos los nuevos.
+- Que en 320, 390, 768 y 1280px nada se salga de lado y que todo lo tocable
+  llegue a 52px por los dos lados.
+- Que el CSS que se sirve no traiga ninguna marca de Tailwind.
+
+Esto descarta la pantalla en blanco, que era la de las rutas. No descarta que la
+app se vea fea: eso lo decide una persona mirando su teléfono.
+
+### Sigue sin probarse en un dispositivo
 
 - [ ] La grilla del inventario en una pantalla grande: dos columnas, el tope de
       ancho de 768px, y que el botón flotante quede pegado a la columna y no a
-      la ventana.
-- [ ] La app instalada abre y funciona, y los dos accesos directos de la
-      pantalla de inicio abren el escáner y el formulario.
-- [ ] La cámara con HTTPS, que es la única forma de que funcione: por la red
-      local el navegador la bloquea.
+      la ventana. Las medidas salen bien, el ojo no.
+- [ ] Los dos accesos directos de la pantalla de inicio abren el escáner y el
+      formulario.
 - [ ] La app funciona sin conexión, con la app ya abierta y con la app cerrada.
 - [ ] El service worker con `autoUpdate` puede mostrar la versión anterior durante
       las pruebas. Si un cambio parece no aplicarse, recargar a mano antes de
