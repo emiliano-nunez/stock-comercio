@@ -117,7 +117,7 @@ export class ProductoForm {
   
   crearModal() {
     const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
+    modal.className = 'velo';
     
     const camaraDisponible = this.camaraDisponible;
     
@@ -138,61 +138,61 @@ export class ProductoForm {
     const costoInicial = this.producto?.costo || '';
     
     modal.innerHTML = `
-      <div class="modal-content max-w-lg flex flex-col h-[92vh]">
+      <div class="dialogo dialogo-ancho dialogo-columna">
         <!-- Header -->
-        <div class="flex items-center justify-between p-3 border-b border-gray-100 bg-primary-50 rounded-t-2xl flex-shrink-0">
-          <h2 class="text-touch-lg font-bold text-gray-900">
+        <div class="dialogo-cabecera dialogo-cabecera-fija">
+          <h2 class="titulo">
             ${this.isEditing ? '✏️ Editar Producto' : '➕ Nuevo Producto'}
           </h2>
-          <button id="cerrar-form" class="btn-ghost p-2" aria-label="Cerrar">✕</button>
+          <button id="cerrar-form" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
         </div>
         
         <!-- Form scrollable -->
-        <form id="form-producto" class="p-3 space-y-3 overflow-y-auto flex-1 pr-2">
+        <form id="form-producto" class="dialogo-cuerpo apilado-3 crece">
           <!-- Foto del producto -->
           <div>
-            <div class="block text-sm font-medium text-gray-700 mb-1.5">📷 Foto del producto</div>
-            <div class="relative">
-              <div id="preview-container" class="w-full aspect-square rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 overflow-hidden flex items-center justify-center">
+            <div class="etiqueta">📷 Foto del producto</div>
+            <div class="posicionado">
+              <div id="preview-container" class="marco-foto marco-foto-vacio">
                 ${this.imagenUrl ? `
-                  <img src="${this.imagenUrl}" class="w-full h-full object-cover" alt="Foto del producto">
-                  <button type="button" id="quitar-foto" class="absolute top-2 right-2 btn-danger p-1.5 text-touch" aria-label="Quitar foto">✕</button>
+                  <img src="${this.imagenUrl}" class="foto-llena" alt="Foto del producto">
+                  <button type="button" id="quitar-foto" class="boton-cerrar-foto" aria-label="Quitar foto">✕</button>
                 ` : `
-                  <div class="text-center text-gray-400 p-4">
-                    <span class="text-4xl">📷</span>
-                    <p class="text-sm mt-1">Sin foto</p>
+                  <div class="vacio">
+                    <span class="vacio-icono">📷</span>
+                    <p class="detalle con-margen-arriba-chica">Sin foto</p>
                   </div>
                 `}
               </div>
-              <div class="flex gap-1.5 mt-1.5">
+              <div class="fila fila-corta con-margen-arriba">
                 <button 
                   type="button" 
                   id="btn-camara" 
-                  class="btn-primary flex-1 flex items-center justify-center gap-2 ${!camaraDisponible ? 'opacity-50 cursor-not-allowed' : ''}"
+                  class="btn-principal btn-crece fila-centro ${!camaraDisponible ? 'btn-apagado' : ''}"
                   ${!camaraDisponible ? 'disabled' : ''}
                   aria-label="${camaraDisponible ? 'Abrir cámara' : 'Cámara requiere HTTPS (no disponible en red local)'}"
                 >
                   📷 Cámara${!camaraDisponible ? ' 🔒' : ''}
                 </button>
-                <button type="button" id="btn-galeria" class="btn-secondary flex-1 flex items-center justify-center gap-2">
+                <button type="button" id="btn-galeria" class="btn-secundario btn-crece fila-centro">
                   🖼️ Galería
                 </button>
               </div>
               ${!camaraDisponible ? `
-                <p class="text-xs text-gray-500 text-center mt-1">🔒 La cámara requiere HTTPS. En red local usa la galería.</p>
+                <p class="micro apagado centro-texto con-margen-arriba-chica">🔒 La cámara requiere HTTPS. En red local usa la galería.</p>
               ` : ''}
-              <input type="file" id="input-galeria" accept="image/*" capture="environment" class="hidden">
+              <input type="file" id="input-galeria" accept="image/*" capture="environment" class="oculto">
             </div>
           </div>
           
           <!-- Nombre -->
           <div>
-            <label for="nombre" class="block text-sm font-medium text-gray-700 mb-2">📝 Nombre del producto *</label>
+            <label for="nombre" class="etiqueta">📝 Nombre del producto *</label>
             <input 
               type="text" 
               id="nombre" 
               name="nombre"
-              class="input-touch text-touch-lg" 
+              class="campo" 
               placeholder="Ej: Tomate Redondo"
               value="${escAttr(this.producto?.nombre || '')}"
               required
@@ -203,13 +203,13 @@ export class ProductoForm {
           
           <!-- Código de barras -->
           <div>
-            <label for="codigoBarras" class="block text-sm font-medium text-gray-700 mb-2">🏷️ Código de barras</label>
-            <div class="flex gap-2">
+            <label for="codigoBarras" class="etiqueta">🏷️ Código de barras</label>
+            <div class="fila">
               <input 
                 type="text" 
                 id="codigoBarras" 
                 name="codigoBarras"
-                class="input-touch flex-1 text-touch" 
+                class="campo crece" 
                 placeholder="Escanea o escribe"
                 value="${escAttr(this.producto?.codigoBarras || '')}"
                 autocomplete="off"
@@ -217,7 +217,7 @@ export class ProductoForm {
               <button 
                 type="button" 
                 id="btn-escanear" 
-                class="btn-secondary flex-shrink-0 ${!camaraDisponible ? 'opacity-50 cursor-not-allowed' : ''}" 
+                class="btn-secundario no-crece ${!camaraDisponible ? 'btn-apagado' : ''}" 
                 style="width: 52px;"
                 ${!camaraDisponible ? 'disabled' : ''}
                 aria-label="${camaraDisponible ? 'Escanear código de barras' : 'Escáner requiere HTTPS (no disponible en red local)'}"
@@ -226,42 +226,42 @@ export class ProductoForm {
               </button>
             </div>
             ${!camaraDisponible ? `
-              <p class="text-xs text-gray-500 text-center mt-1">🔒 El escáner requiere HTTPS. En red local escribe el código manual.</p>
+              <p class="micro apagado centro-texto con-margen-arriba-chica">🔒 El escáner requiere HTTPS. En red local escribe el código manual.</p>
             ` : ''}
           </div>
           
           <!-- Tipo de venta -->
           <div>
-            <div class="block text-sm font-medium text-gray-700 mb-2">⚖️ Tipo de venta</div>
-            <div class="relative" id="tipo-venta-selector">
+            <div class="etiqueta">⚖️ Tipo de venta</div>
+            <div class="posicionado" id="tipo-venta-selector">
               <button 
                 type="button"
                 id="tipo-venta-toggle"
-                class="input-touch text-touch flex items-center justify-between w-full"
+                class="campo-boton"
                 aria-haspopup="listbox"
                 aria-expanded="false"
               >
-                <span id="tipo-venta-texto" class="flex items-center gap-2">
+                <span id="tipo-venta-texto" class="fila">
                   ${TIPOS_VENTA.find(t => t.value === this.tipoVenta)?.icon || '📦'}
                   ${TIPOS_VENTA.find(t => t.value === this.tipoVenta)?.label || 'Por Unidad'}
                 </span>
-                <svg class="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <svg class="flecha tenue con-margen-izquierda" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </button>
               <ul 
                 id="tipo-venta-options" 
-                class="absolute z-20 top-full left-0 right-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-lg max-h-48 overflow-y-auto hidden"
+                class="desplegable oculto"
                 role="listbox"
               >
                 ${TIPOS_VENTA.map(tipo => `
                   <li 
-                    class="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center gap-3 ${this.tipoVenta === tipo.value ? 'bg-primary-50 text-primary-700' : ''}" 
+                    class="opcion ${this.tipoVenta === tipo.value ? 'opcion-elegida' : ''}" 
                     role="option" 
                     data-value="${tipo.value}"
                     aria-selected="${this.tipoVenta === tipo.value}"
                   >
-                    <span class="text-xl">${tipo.icon}</span>
-                    <span class="font-medium">${tipo.label}</span>
-                    <span class="text-xs text-gray-500 ml-auto">${tipo.unidadBase}</span>
+                    <span class="mediano">${tipo.icon}</span>
+                    <span class="medio">${tipo.label}</span>
+                    <span class="micro apagado empuja-derecha">${tipo.unidadBase}</span>
                   </li>
                 `).join('')}
               </ul>
@@ -270,89 +270,91 @@ export class ProductoForm {
           </div>
           
           <!-- Stock y Stock Mínimo -->
-          <div class="grid grid-cols-2 gap-2">
+          <div class="cuadricula">
             <div>
-              <label for="stock" class="block text-sm font-medium text-gray-700 mb-1.5">
+              <label for="stock" class="etiqueta">
                 📦 Stock actual ${tipoActual.icon}
               </label>
-              <div class="flex items-center gap-1.5">
-                <button type="button" class="btn-touch btn-secondary w-9 h-9 flex-shrink-0" data-stock-action="decrement" aria-label="Disminuir stock">−</button>
+              <div class="fila fila-corta">
+                <button type="button" class="btn-secundario btn-cuadro" data-stock-action="decrement" aria-label="Disminuir stock">−</button>
                 <input 
                   type="number" 
                   id="stock" 
                   name="stock"
-                  class="input-touch text-center text-touch-lg flex-1 min-w-0" 
+                  class="campo centro-texto crece ancho-cero" 
                   step="${step}"
                   min="0"
                   value="${stockInicial}"
                   inputmode="decimal"
                 >
-                <button type="button" class="btn-touch btn-secondary w-9 h-9 flex-shrink-0" data-stock-action="increment" aria-label="Aumentar stock">+</button>
+                <button type="button" class="btn-secundario btn-cuadro" data-stock-action="increment" aria-label="Aumentar stock">+</button>
               </div>
             </div>
             
             <div>
-              <label for="stockMinimo" class="block text-sm font-medium text-gray-700 mb-1.5">
+              <label for="stockMinimo" class="etiqueta">
                 ⚠️ Stock mínimo
               </label>
-              <div class="flex items-center gap-1.5">
-                <button type="button" class="btn-touch btn-secondary w-9 h-9 flex-shrink-0" data-stockmin-action="decrement" aria-label="Disminuir stock mínimo">−</button>
+              <div class="fila fila-corta">
+                <button type="button" class="btn-secundario btn-cuadro" data-stockmin-action="decrement" aria-label="Disminuir stock mínimo">−</button>
                 <input 
                   type="number" 
                   id="stockMinimo" 
                   name="stockMinimo"
-                  class="input-touch text-center text-touch-lg flex-1 min-w-0" 
+                  class="campo centro-texto crece ancho-cero" 
                   step="${step}"
                   min="0"
                   value="${stockMinInicial}"
                   inputmode="decimal"
                 >
-                <button type="button" class="btn-touch btn-secondary w-9 h-9 flex-shrink-0" data-stockmin-action="increment" aria-label="Aumentar stock mínimo">+</button>
+                <button type="button" class="btn-secundario btn-cuadro" data-stockmin-action="increment" aria-label="Aumentar stock mínimo">+</button>
               </div>
             </div>
           </div>
           
           <!-- Categoría -->
           <div>
-            <div class="block text-sm font-medium text-gray-700 mb-1.5">📂 Categoría</div>
-            <div class="relative" id="categoria-selector">
+            <div class="etiqueta">📂 Categoría</div>
+            <div class="posicionado" id="categoria-selector">
               <button 
                 type="button"
                 id="categoria-toggle"
-                class="input-touch text-touch flex items-center justify-between w-full"
+                class="campo-boton"
                 aria-haspopup="listbox"
                 aria-expanded="false"
               >
-                <span id="categoria-texto" class="flex items-center gap-2">
-                  ${categoriaActual
-                    ? `<span class="w-5 h-5 rounded-full flex-shrink-0" style="background-color: ${escAttr(categoriaActual.color || '#64748B')}"></span>`
-                    : ''}
-                  ${esc(categoriaActual?.nombre || 'Sin categoría')}
+                <span id="categoria-texto" class="fila">
+                  <span class="punto-chico ${categoriaActual ? '' : 'oculto'}" id="categoria-punto" style="background-color: ${escAttr(categoriaActual?.color || '#64748B')}"></span>
+                  <span class="medio" id="categoria-nombre">${esc(categoriaActual?.nombre || 'Sin categoría')}</span>
                 </span>
-                <svg class="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                <svg class="flecha tenue con-margen-izquierda" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </button>
               <ul 
                 id="categoria-options" 
-                class="absolute z-20 top-full left-0 right-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-lg max-h-48 overflow-y-auto hidden"
+                class="desplegable oculto"
                 role="listbox"
               >
                 <li 
-                  class="px-4 py-3 hover:bg-gray-50 cursor-pointer" 
+                  class="opcion" 
                   role="option" 
                   data-id=""
+                  data-nombre="Sin categoría"
+                  data-color=""
                   aria-selected="${!this.producto?.categoriaId}"
                 >
                   Sin categoría
                 </li>
                 ${this.categorias.map(cat => `
                   <li 
-                    class="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center gap-2 ${this.producto?.categoriaId === cat.id ? 'bg-primary-50 text-primary-700' : ''}" 
+                    class="opcion ${this.producto?.categoriaId === cat.id ? 'opcion-elegida' : ''}" 
                     role="option" 
                     data-id="${escAttr(cat.id)}"
+                    data-nombre="${escAttr(cat.nombre)}"
+                    data-color="${escAttr(cat.color || '#64748B')}"
                     aria-selected="${this.producto?.categoriaId === cat.id}"
                   >
-                    <span class="w-5 h-5 rounded-full flex-shrink-0" style="background-color: ${escAttr(cat.color || '#64748B')}"></span>
-                    <span class="font-medium">${esc(cat.nombre)}</span>
+                    <span class="punto-chico" style="background-color: ${escAttr(cat.color || '#64748B')}"></span>
+                    <span class="medio">${esc(cat.nombre)}</span>
                   </li>
                 `).join('')}
               </ul>
@@ -362,14 +364,14 @@ export class ProductoForm {
           
           <!-- Costo -->
           <div>
-            <label for="costo" class="block text-sm font-medium text-gray-700 mb-1.5">💵 Costo (${unidadBase})</label>
-            <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-touch">$</span>
+            <label for="costo" class="etiqueta">💵 Costo (${unidadBase})</label>
+            <div class="posicionado">
+              <span class="buscador-lupa">$</span>
               <input 
                 type="number" 
                 id="costo" 
                 name="costo"
-                class="input-touch text-touch pl-7" 
+                class="campo campo-con-icono" 
                 step="0.01"
                 min="0"
                 placeholder="0.00"
@@ -381,29 +383,29 @@ export class ProductoForm {
           
           <!-- Fecha -->
           <div>
-            <label for="fecha" class="block text-sm font-medium text-gray-700 mb-1.5">📅 Fecha</label>
+            <label for="fecha" class="etiqueta">📅 Fecha</label>
             <input 
               type="date" 
               id="fecha" 
               name="fecha"
-              class="input-touch text-touch" 
+              class="campo" 
               value="${this.producto?.fecha || new Date().toISOString().split('T')[0]}"
             >
           </div>
            
           <!-- Calculadora de Precio -->
-          <div id="calculadora-precio" class="bg-primary-50 rounded-xl p-3 border border-primary-100">
-            <div class="block text-sm font-medium text-primary-800 mb-2 flex items-center gap-1">🧮 Calculadora de Precio</div>
+          <div id="calculadora-precio" class="recuadro recuadro-marca">
+            <div class="etiqueta-seccion">🧮 Calculadora de Precio</div>
             
-            <div class="grid grid-cols-2 gap-2 mb-2">
+            <div class="cuadricula con-margen-abajo">
               <div>
-                <label for="ivaPorcentaje" class="block text-xs font-medium text-gray-600 mb-1">📊 IVA %</label>
-                <div class="relative">
+                <label for="ivaPorcentaje" class="etiqueta">📊 IVA %</label>
+                <div class="posicionado">
                   <input 
                     type="number" 
                     id="ivaPorcentaje" 
                     name="ivaPorcentaje"
-                    class="input-touch text-touch text-center" 
+                    class="campo centro-texto" 
                     step="0.01"
                     min="0"
                     max="100"
@@ -411,69 +413,69 @@ export class ProductoForm {
                     value="${this.producto?.ivaPorcentaje ?? 0}"
                     inputmode="decimal"
                   >
-                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+                  <span class="sufijo-campo">%</span>
                 </div>
               </div>
               
               <div>
-                <label for="margenPorcentaje" class="block text-xs font-medium text-gray-600 mb-1">📈 Margen %</label>
-                <div class="relative">
+                <label for="margenPorcentaje" class="etiqueta">📈 Margen %</label>
+                <div class="posicionado">
                   <input 
                     type="number" 
                     id="margenPorcentaje" 
                     name="margenPorcentaje"
-                    class="input-touch text-touch text-center" 
+                    class="campo centro-texto" 
                     step="0.01"
                     min="0"
                     placeholder="30"
                     value="${this.producto?.margenPorcentaje ?? 50}"
                     inputmode="decimal"
                   >
-                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+                  <span class="sufijo-campo">%</span>
                 </div>
               </div>
             </div>
             
-            <div class="bg-white rounded-lg p-2 border border-primary-100">
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-gray-600">Precio calculado:</span>
-                <span id="precioCalculado" class="font-bold text-primary-700 text-lg">$0.00</span>
+            <div class="recuadro">
+              <div class="fila fila-separada detalle">
+                <span class="con-medio">Precio calculado:</span>
+                <span id="precioCalculado" class="marca mediano">$0.00</span>
               </div>
-              <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
+              <div class="fila fila-separada micro apagado con-margen-arriba-chica">
                 <span>Costo: <span id="costoBase">$0.00</span></span>
                 <span>+IVA: <span id="ivaCalculado">$0.00</span></span>
                 <span>+Margen: <span id="margenCalculado">$0.00</span></span>
               </div>
             </div>
             
-            <p class="text-xs text-gray-500 mt-1 text-center">Edita el precio final abajo para redondear · Los % se guardan</p>
+            <p class="micro apagado con-margen-arriba-chica centro-texto">Edita el precio final abajo para redondear · Los % se guardan</p>
           </div>
           
           <!-- Precios por unidad (base + sub-unidades) -->
           <div id="precios-container">
-            <div class="block text-sm font-medium text-gray-700 mb-2">💰 Precios por unidad</div>
-            <div class="space-y-2" id="precios-lista">
+            <div class="etiqueta">💰 Precios por unidad</div>
+            <div class="apilado" id="precios-lista">
               ${this.renderPreciosHTML(unidadBase, tipoActual, tipoActual.subUnidades)}
             </div>
             <button 
               type="button" 
               id="btn-agregar-precio" 
-              class="btn-secondary w-full text-sm mt-2"
+              class="btn-secundario btn-ancho detalle con-margen-arriba"
             >
               ➕ Agregar otro precio
             </button>
           </div>
           
           <!-- Espacio para que no se tape el botón sticky -->
-          <div class="h-16"></div>
+          <div class="alto-foto"></div>
         </form>
         
         <!-- Botones sticky al fondo -->
-        <div class="flex gap-2 p-3 border-t border-gray-100 bg-white/95 backdrop-blur-sm rounded-b-2xl flex-shrink-0 sticky bottom-0">
-          <button type="button" id="btn-cancelar" class="btn-secondary flex-1">
+        <div class="dialogo-pie dialogo-pie-fija">
+          <button type="button" id="btn-cancelar" class="btn-secundario btn-crece">
             ${this.isEditing ? 'Cancelar' : 'Volver'}
           </button>
-          <button type="submit" form="form-producto" class="btn-primary flex-1">
+          <button type="submit" form="form-producto" class="btn-principal btn-crece">
             ${this.isEditing ? '💾 Guardar cambios' : '✅ Agregar producto'}
           </button>
         </div>
@@ -493,15 +495,16 @@ export class ProductoForm {
     modal.querySelector('#btn-cancelar').addEventListener('click', () => this.cerrar());
     
     // Cerrar al tocar fuera del contenido (pero no en inputs/botones)
+    //
+    // Con que e.target sea el velo ya alcanza: un toque dentro del diálogo
+    // burbujea hasta acá, pero con e.target apuntando al elemento tocado, nunca
+    // al velo. Antes había además un manejador que buscaba ".modal-content"
+    // para frenar la propagación; con el nombre viejo de esa clase no
+    // encontraba nada y nunca se conectó.
     modal.addEventListener('click', (e) => {
       if (e.target === modal) this.cerrar();
     });
-    
-    // Prevenir cierre al clickear dentro del contenido del modal
-    modal.querySelector('.modal-content')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
-    
+
     // El selector de tipo de venta NO se conecta aquí: las <li> del desplegable
     // usan data-value, no data-tipo, así que este querySelectorAll devolvía una
     // NodeList vacía y el forEach no registraba nada. El binding que sí funciona
@@ -564,11 +567,13 @@ export class ProductoForm {
     const categoriaOptions = modal.querySelector('#categoria-options');
     const categoriaInput = modal.querySelector('#categoriaId');
     const categoriaTexto = modal.querySelector('#categoria-texto');
+    const categoriaNombre = modal.querySelector('#categoria-nombre');
+    const categoriaPunto = modal.querySelector('#categoria-punto');
     
     if (categoriaToggle && categoriaOptions) {
       categoriaToggle.addEventListener('click', () => {
-        const isOpen = !categoriaOptions.classList.contains('hidden');
-        categoriaOptions.classList.toggle('hidden');
+        const isOpen = !categoriaOptions.classList.contains('oculto');
+        categoriaOptions.classList.toggle('oculto');
         categoriaToggle.setAttribute('aria-expanded', !isOpen);
       });
       
@@ -578,7 +583,7 @@ export class ProductoForm {
       // retiene el modal entero ya desconectado del DOM.
       document.addEventListener('click', (e) => {
         if (!categoriaToggle.contains(e.target) && !categoriaOptions.contains(e.target)) {
-          categoriaOptions.classList.add('hidden');
+          categoriaOptions.classList.add('oculto');
           categoriaToggle.setAttribute('aria-expanded', 'false');
         }
       }, { signal: this._outsideClick.signal });
@@ -587,20 +592,31 @@ export class ProductoForm {
       categoriaOptions.querySelectorAll('[role="option"]').forEach(option => {
         option.addEventListener('click', () => {
           const id = option.dataset.id;
-          const nombre = option.textContent.trim();
-          
+          const nombre = option.dataset.nombre || 'Sin categoría';
+          const color = option.dataset.color || '';
+
           categoriaInput.value = id;
-          categoriaTexto.textContent = nombre || 'Sin categoría';
-          
+          // Se escriben el nombre y el color por separado, y no el textContent
+          // del contenedor. Poner el texto del contenedor borra el punto de
+          // color que está adentro, y el toggle se queda sin el color de la
+          // categoría apenas se elige una.
+          categoriaNombre.textContent = nombre;
+          if (color) {
+            categoriaPunto.style.backgroundColor = color;
+            categoriaPunto.classList.remove('oculto');
+          } else {
+            categoriaPunto.classList.add('oculto');
+          }
+
           // Actualizar selección visual
           categoriaOptions.querySelectorAll('[role="option"]').forEach(opt => {
-            opt.classList.remove('bg-primary-50', 'text-primary-700');
+            opt.classList.remove('opcion-elegida');
             opt.setAttribute('aria-selected', 'false');
           });
-          option.classList.add('bg-primary-50', 'text-primary-700');
+          option.classList.add('opcion-elegida');
           option.setAttribute('aria-selected', 'true');
           
-          categoriaOptions.classList.add('hidden');
+          categoriaOptions.classList.add('oculto');
           categoriaToggle.setAttribute('aria-expanded', 'false');
         });
       });
@@ -614,14 +630,14 @@ export class ProductoForm {
     
     if (tipoToggle && tipoOptions) {
       tipoToggle.addEventListener('click', () => {
-        const isOpen = !tipoOptions.classList.contains('hidden');
-        tipoOptions.classList.toggle('hidden');
+        const isOpen = !tipoOptions.classList.contains('oculto');
+        tipoOptions.classList.toggle('oculto');
         tipoToggle.setAttribute('aria-expanded', !isOpen);
       });
       
       document.addEventListener('click', (e) => {
         if (!tipoToggle.contains(e.target) && !tipoOptions.contains(e.target)) {
-          tipoOptions.classList.add('hidden');
+          tipoOptions.classList.add('oculto');
           tipoToggle.setAttribute('aria-expanded', 'false');
         }
       }, { signal: this._outsideClick.signal });
@@ -638,13 +654,13 @@ export class ProductoForm {
           
           // Actualizar selección visual
           tipoOptions.querySelectorAll('[role="option"]').forEach(opt => {
-            opt.classList.remove('bg-primary-50', 'text-primary-700');
+            opt.classList.remove('opcion-elegida');
             opt.setAttribute('aria-selected', 'false');
           });
-          option.classList.add('bg-primary-50', 'text-primary-700');
+          option.classList.add('opcion-elegida');
           option.setAttribute('aria-selected', 'true');
           
-          tipoOptions.classList.add('hidden');
+          tipoOptions.classList.add('oculto');
           tipoToggle.setAttribute('aria-expanded', 'false');
           
           // Re-renderizar precios y actualizar labels
@@ -738,15 +754,15 @@ export class ProductoForm {
   
   agregarPrecioItem(container, subUnidad) {
     const html = `
-      <div class="precio-item flex items-center gap-2 bg-white rounded-lg p-2 border border-gray-200 animate-slide-up" data-unidad="${subUnidad.value}">
-        <span class="text-xl">${subUnidad.icon}</span>
-        <span class="text-sm font-medium text-gray-700 flex-1">${subUnidad.label}</span>
-        <div class="relative flex-1">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-touch">$</span>
+      <div class="precio-item fila anim-subir" data-unidad="${subUnidad.value}">
+        <span class="mediano">${subUnidad.icon}</span>
+        <span class="detalle medio crece">${subUnidad.label}</span>
+        <div class="posicionado crece">
+          <span class="buscador-lupa">$</span>
           <input 
             type="number" 
             name="precio_${subUnidad.value}"
-            class="input-touch text-touch pl-7" 
+            class="campo campo-con-icono" 
             step="0.01"
             min="0"
             placeholder="0.00"
@@ -756,7 +772,7 @@ export class ProductoForm {
         </div>
         <button 
           type="button" 
-          class="btn-ghost p-1 text-danger-500 eliminar-precio" 
+          class="btn-fantasma btn-mini texto-peligro eliminar-precio" 
           data-unidad="${subUnidad.value}"
           aria-label="Eliminar precio ${subUnidad.label}"
         >
@@ -769,22 +785,22 @@ export class ProductoForm {
   
   mostrarSelectorUnidad(opciones, onSelect) {
     const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
+    modal.className = 'velo';
     modal.innerHTML = `
-      <div class="modal-content max-w-md">
-        <div class="flex items-center justify-between p-4 border-b border-gray-100 bg-primary-50 rounded-t-2xl">
-          <h2 class="text-touch-lg font-bold text-gray-900">➕ Agregar precio para</h2>
-          <button class="btn-ghost p-2" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      <div class="dialogo">
+        <div class="dialogo-cabecera">
+          <h2 class="titulo">➕ Agregar precio para</h2>
+          <button class="btn-fantasma btn-icono" onclick="this.closest('.modal-overlay').remove()">✕</button>
         </div>
-        <div class="p-4 space-y-2">
+        <div class="dialogo-cuerpo apilado">
           ${opciones.map(opt => `
             <button 
               type="button" 
-              class="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:bg-gray-50 text-left"
+              class="opcion fila fila-amplia"
               data-value="${opt.value}"
             >
-              <span class="text-2xl">${opt.icon}</span>
-              <span class="font-medium">${opt.label}</span>
+              <span class="grande">${opt.icon}</span>
+              <span class="medio">${opt.label}</span>
             </button>
           `).join('')}
         </div>
@@ -882,10 +898,16 @@ export class ProductoForm {
       margenCalculadoEl.textContent = `$${margenMonto.toLocaleString('es-ES', {minimumFractionDigits: 2})}`;
       precioCalculadoEl.textContent = `$${precioCalc.toLocaleString('es-ES', {minimumFractionDigits: 2})}`;
       
-      // Si el precio final está vacío o igual al calculado anterior, actualizarlo
+      /*
+       * Si el precio final está vacío o igual al calculado anterior, se
+       * actualiza. Cuando el cálculo da cero no se escribe nada: el campo se
+       * deja vacío para que se vea el 0,00 de ejemplo y al escribir se
+       * reemplace, que es lo mismo que pasa con los precios de docena y caja.
+       * Escribir un 0,00 de verdad obligaba al usuario a borrarlo a mano.
+       */
       const precioActual = parseFloat(precioInput.value) || 0;
       if (precioActual === 0 || Math.abs(precioActual - this.ultimoPrecioCalculado) < 0.01) {
-        precioInput.value = precioCalc.toFixed(2);
+        precioInput.value = precioCalc > 0 ? precioCalc.toFixed(2) : '';
       }
       this.ultimoPrecioCalculado = precioCalc;
     };
@@ -914,7 +936,7 @@ export class ProductoForm {
       precioInput.addEventListener('focus', () => {
         this.usuarioEditandoPrecio = true;
       });
-      
+
       precioInput.addEventListener('blur', () => {
         this.usuarioEditandoPrecio = false;
         // Actualizar último precio calculado al valor manual
@@ -1051,15 +1073,15 @@ export class ProductoForm {
     const container = this.modal.querySelector('#preview-container');
     if (url) {
       container.innerHTML = `
-        <img src="${url}" class="w-full h-full object-cover" alt="Foto del producto">
-        <button type="button" id="quitar-foto" class="absolute top-2 right-2 btn-danger p-1.5 text-touch" aria-label="Quitar foto">✕</button>
+        <img src="${url}" class="foto-llena" alt="Foto del producto">
+        <button type="button" id="quitar-foto" class="boton-cerrar-foto" aria-label="Quitar foto">✕</button>
       `;
       container.querySelector('#quitar-foto').addEventListener('click', () => this.quitarFoto());
     } else {
       container.innerHTML = `
-        <div class="text-center text-gray-400 p-4">
-          <span class="text-4xl">📷</span>
-          <p class="text-sm mt-1">Sin foto</p>
+        <div class="vacio">
+          <span class="vacio-icono">📷</span>
+          <p class="detalle con-margen-arriba-chica">Sin foto</p>
         </div>
       `;
     }
@@ -1301,10 +1323,10 @@ export class ProductoForm {
     
     // Selector de unidad principal
     let html = `
-      <div class="mb-3">
-        <label for="unidad-principal" class="block text-xs font-medium text-gray-600 mb-1">⭐ Unidad en la que se muestra el precio</label>
-        <p class="text-xs text-gray-400 mb-1">El precio que ves en el catálogo y en el pedido. El stock siempre se lleva en ${esc(tipoActual.unidadBase)}.</p>
-        <select id="unidad-principal" name="unidadPrincipal" class="input-touch text-touch text-sm">
+      <div class="con-margen-abajo">
+        <label for="unidad-principal" class="etiqueta">⭐ Unidad en la que se muestra el precio</label>
+        <p class="micro tenue con-margen-abajo-chica">El precio que ves en el catálogo y en el pedido. El stock siempre se lleva en ${esc(tipoActual.unidadBase)}.</p>
+        <select id="unidad-principal" name="unidadPrincipal" class="campo detalle">
           ${subs.map(s => `
             <option value="${escAttr(s.value)}" ${s.value === baseUnidad ? 'selected' : ''}>${esc(s.icon)} ${esc(s.label)}</option>
           `).join('')}
@@ -1312,15 +1334,15 @@ export class ProductoForm {
       </div>
       
       <!-- Precio base (unidad principal) -->
-      <div class="precio-item flex items-center gap-2 bg-white rounded-lg p-2 border border-gray-200" data-unidad="${escAttr(baseUnidad)}">
-        <span class="text-xl">${esc(baseIcon)}</span>
-        <span class="text-sm font-medium text-gray-700 flex-1">${esc(baseLabel)}</span>
-        <div class="relative flex-1">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-touch">$</span>
+      <div class="precio-item fila" data-unidad="${escAttr(baseUnidad)}">
+        <span class="mediano">${esc(baseIcon)}</span>
+        <span class="detalle medio crece">${esc(baseLabel)}</span>
+        <div class="posicionado crece">
+          <span class="buscador-lupa">$</span>
           <input 
             type="number" 
             name="precio_${baseUnidad}"
-            class="input-touch text-touch pl-7 font-bold" 
+            class="campo campo-con-icono fuerte" 
             step="0.01"
             min="0"
             placeholder="0.00"
@@ -1328,7 +1350,7 @@ export class ProductoForm {
             inputmode="decimal"
           >
         </div>
-        <span class="text-xs text-primary-600 font-medium">(principal)</span>
+        <span class="micro medio texto-marca">(principal)</span>
       </div>
     `;
     
@@ -1336,15 +1358,15 @@ export class ProductoForm {
     for (const sub of subs.filter(s => s.value !== baseUnidad)) {
       const precioSub = otrosPrecios.find(p => p.unidad === sub.value) || { valor: 0 };
       html += `
-        <div class="precio-item flex items-center gap-2 bg-white rounded-lg p-2 border border-gray-200" data-unidad="${escAttr(sub.value)}">
-          <span class="text-xl">${esc(sub.icon)}</span>
-          <span class="text-sm font-medium text-gray-700 flex-1">${esc(sub.label)}</span>
-          <div class="relative flex-1">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-touch">$</span>
+        <div class="precio-item fila" data-unidad="${escAttr(sub.value)}">
+          <span class="mediano">${esc(sub.icon)}</span>
+          <span class="detalle medio crece">${esc(sub.label)}</span>
+          <div class="posicionado crece">
+            <span class="buscador-lupa">$</span>
             <input 
               type="number" 
               name="precio_${escAttr(sub.value)}"
-              class="input-touch text-touch pl-7" 
+              class="campo campo-con-icono" 
               step="0.01"
               min="0"
               placeholder="0.00"
@@ -1354,7 +1376,7 @@ export class ProductoForm {
           </div>
           <button 
             type="button" 
-            class="btn-ghost p-1 text-danger-500 eliminar-precio" 
+            class="btn-fantasma btn-mini texto-peligro eliminar-precio" 
             data-unidad="${escAttr(sub.value)}"
             aria-label="Eliminar precio ${escAttr(sub.label)}"
           >
@@ -1415,8 +1437,8 @@ export class ProductoForm {
     this.limpiarImagenesSinGuardar();
     
     if (this.modal) {
-      this.modal.classList.add('animate-slide-down');
-      this.modal.classList.remove('animate-slide-up');
+      this.modal.classList.add('anim-bajar');
+      this.modal.classList.remove('anim-subir');
       
       return new Promise((resolve) => {
         setTimeout(() => {
