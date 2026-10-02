@@ -46,6 +46,11 @@ export class App {
     this.vistaActual = 'inventario';
     // Categoría abierta en el catálogo. Es null cuando se ve el catálogo entero.
     this.categoriaVista = null;
+    // Estado de stock abierto en el catálogo, o null. Es una forma más de mirar
+    // el catálogo, igual que la categoría, y no se acumulan entre sí: al abrir
+    // una se suelta la otra, porque "Bebidas sin stock" ya es un grupo entero y
+    // meterle una categoría encima lo dejaría vacío casi siempre.
+    this.estadoVista = null;
     this.ultimoEliminado = null;
     this.timeoutDeshacer = null;
     this.categoriaEditando = null;
@@ -417,10 +422,15 @@ export class App {
    * el inventario mostraría un solo grupo de productos sin avisar.
    */
   productosDeLaVista() {
-    if (this.vistaActual === 'catalogo' && this.categoriaVista) {
-      return this.productosFiltrados.filter(p => tieneCategoria(p, this.categoriaVista));
+    if (this.vistaActual !== 'catalogo') return this.productosFiltrados;
+    let base = this.productosFiltrados;
+    if (this.categoriaVista) {
+      base = base.filter(p => tieneCategoria(p, this.categoriaVista));
     }
-    return this.productosFiltrados;
+    if (this.estadoVista) {
+      base = base.filter(p => estadoStock(p) === this.estadoVista);
+    }
+    return base;
   }
 
   productosVisibles() {
@@ -476,19 +486,31 @@ export class App {
   }
   
   renderCatalogoHTML() {
-    // Con una categoría abierta y sin productos, el mensaje tiene que decir que
-    // la que está vacía es la categoría: si dijera "Catálogo vacío" el usuario
-    // pensaría que perdió el inventario.
-    if (this.categoriaVista && this.productosDeLaVista().length === 0) {
-      const cat = this.categorias.find(c => c.id === this.categoriaVista);
+    // Con un grupo abierto y sin productos, el mensaje tiene que decir que lo
+    // que está vacío es el grupo: si dijera "Catálogo vacío" el usuario pensaría
+    // que perdió el inventario.
+    if ((this.categoriaVista || this.estadoVista) && this.productosDeLaVista().length === 0) {
+      const cat = this.categoriaVista ? this.categorias.find(c => c.id === this.categoriaVista) : null;
+      const nombre = cat
+        ? cat.nombre
+        : (App.ESTADOS_STOCK.find(e => e.clave === this.estadoVista)?.etiqueta || 'Este grupo');
+      // Con productos cargados el grupo es el que está vacío; sin ellos no hay
+      // nada que vaciarse, y el ícono de bandeja vacía mentiría.
+      const hayProductos = this.productosFiltrados.length > 0;
       return `
         <div class="apilado-4">
-          ${this.renderFiltroCategoriaHTML()}
+          ${this.renderFiltroVistaHTML()}
           <div class="vacio">
-            <span class="vacio-icono-grande">${this.categoriaVacia(cat) ? '📭' : '🗂️'}</span>
-            <h2 class="subtitulo con-margen-arriba-amplia">${esc(cat?.nombre || 'Esta categoría')} está vacía</h2>
-            <p class="detalle apagado con-margen-arriba">Todavía no tiene ningún producto</p>
-            <button class="btn-principal con-margen-arriba" id="btn-agregar-en-categoria">➕ Agregar producto</button>
+            <span class="vacio-icono-grande">${hayProductos ? '🗂️' : '📭'}</span>
+            <h2 class="subtitulo con-margen-arriba-amplia">
+              ${hayProductos ? `Nada en ${esc(nombre)}` : 'Todavía no hay productos'}
+            </h2>
+            <p class="detalle apagado con-margen-arriba">
+              ${hayProductos
+                ? 'Ningún producto cae en este grupo. Los otros sí tienen.'
+                : 'Cargá el primero y vas a ver la lista completa acá.'}
+            </p>
+            ${cat ? '<button class="btn-principal con-margen-arriba" id="btn-agregar-en-categoria">➕ Agregar producto</button>' : ''}
           </div>
         </div>
       `;
@@ -517,11 +539,20 @@ export class App {
     for (const p of visibles) {
       porEstado.get(estadoStock(p)).push(p);
     }
+    
+    // Con un estado abierto el catálogo muestra un solo grupo, así que la
+    // cabecera repetiría el aviso de filtro de arriba, con el mismo nombre y el
+    // mismo número. Va la grilla sola.
+    if (this.estadoVista) {
+      return this.renderFiltroVistaHTML()
+        + `<div class="cuadricula">${visibles.map(p => this.renderCatalogoItemHTML(p)).join('')}</div>`
+        + this.renderCargarMasHTML(visibles);
+    }
 
     // Se agrupan sólo los productos que se van a pintar, no todos. Con el tope
     // de render, meter el resto haría que un grupo quedara con la cabecera en
     // "(12)" y cero tarjetas debajo, y el contador miente.
-    return this.renderFiltroCategoriaHTML() + App.ESTADOS_STOCK
+    return this.renderFiltroVistaHTML() + App.ESTADOS_STOCK
       .filter(estado => porEstado.get(estado.clave).length > 0)
       .map(estado => {
         const productos = porEstado.get(estado.clave);
@@ -539,20 +570,37 @@ export class App {
       }).join('') + this.renderCargarMasHTML(visibles);
   }
 
-  // El aviso de que se está mirando una sola categoría, con la salida. Sin él el
+  // El aviso de que se está mirando un solo grupo, con la salida. Sin él el
   // catálogo filtrado parece el catálogo entero y el usuario no encuentra por
   // qué le faltan productos.
-  renderFiltroCategoriaHTML() {
-    const cat = this.categorias.find(c => c.id === this.categoriaVista);
-    if (!this.categoriaVista) return '';
+  //
+  // Dice cuántos de cuántos se están viendo. El número solo no alcanza: con el
+  // catálogo entero tampoco se sabría si lo que falta es el filtro o la búsqueda.
+  renderFiltroVistaHTML() {
+    if (!this.categoriaVista && !this.estadoVista) return '';
+    
+    const grupos = [];
+    if (this.categoriaVista) {
+      const cat = this.categorias.find(c => c.id === this.categoriaVista);
+      grupos.push({ color: this.getCategoriaColor(cat), nombre: cat?.nombre || 'Categoría' });
+    }
+    if (this.estadoVista) {
+      const est = App.ESTADOS_STOCK.find(e => e.clave === this.estadoVista);
+      grupos.push({ color: est?.color, nombre: est?.etiqueta || 'Estado' });
+    }
+    
+    const nombres = grupos.map(g => `
+      <span class="fila fila-amplia no-crece">
+        <span class="punto-chico" style="background-color: ${g.color}"></span>
+        <span class="medio">${esc(g.nombre)}</span>
+      </span>
+    `).join('');
+    
     const total = this.productosDeLaVista().length;
     return `
       <div class="recuadro recuadro-marca fila fila-separada con-margen-abajo-amplia">
-        <span class="fila fila-amplia no-crece">
-          <span class="punto-chico" style="background-color: ${this.getCategoriaColor(cat)}"></span>
-          <span class="medio">${esc(cat?.nombre || 'Categoría')}</span>
-        </span>
-        <span class="detalle apagado no-crece">${total} ${total === 1 ? 'producto' : 'productos'}</span>
+        <span class="fila fila-amplia no-crece">${nombres}</span>
+        <span class="detalle apagado no-crece">${total} de ${this.productosFiltrados.length}</span>
         <button id="btn-ver-catalogo-completo" class="btn-secundario detalle">
           Ver todo
         </button>
@@ -560,25 +608,31 @@ export class App {
     `;
   }
 
-  // Un emoji para el estado vacío de una categoría: la que se creó y todavía no
-  // tiene nada es distinta de la que tenía productos y se vació, y el ícono lo
-  // dice sin leer.
-  categoriaVacia(cat) {
-    return this.contarProductosCategoria(cat?.id) === 0;
-  }
-
-  // Abrir una categoría en el catálogo.
+  // Abrir un grupo en el catálogo. Categoría o estado de stock: son dos formas
+  // de mirar el mismo catálogo, y abrir una suelta la otra para que el usuario
+  // nunca quede en un grupo doble que no pidió.
   abrirCategoria(categoriaId) {
     this.categoriaVista = categoriaId;
+    this.estadoVista = null;
     this.vistaActual = 'catalogo';
     this._limiteRender = App.LIMITE_RENDER;
     this.render();
-    // El catálogo arranca arriba, que es donde está el nombre de la categoría.
+    // El catálogo arranca arriba, que es donde está el nombre del grupo.
+    document.getElementById('contenido-principal')?.scrollIntoView({ block: 'start' });
+  }
+  
+  abrirEstado(estado) {
+    this.categoriaVista = null;
+    this.estadoVista = estado;
+    this.vistaActual = 'catalogo';
+    this._limiteRender = App.LIMITE_RENDER;
+    this.render();
     document.getElementById('contenido-principal')?.scrollIntoView({ block: 'start' });
   }
 
   verCatalogoCompleto() {
     this.categoriaVista = null;
+    this.estadoVista = null;
     this._limiteRender = App.LIMITE_RENDER;
     this.render();
   }
@@ -699,6 +753,58 @@ export class App {
             <button id="btn-nueva-categoria-vacia" class="btn-principal con-margen-arriba">➕ Crear primera categoría</button>
           </div>
         ` : ''}
+        
+        ${this.renderEstadosStockHTML()}
+      </div>
+    `;
+  }
+  
+  /**
+   * Los tres grupos de estado de stock, junto a las categorías.
+   *
+   * Salen de los productos que ya están cargados y no se guardan en ningún lado:
+   * el estado de un producto sale de comparar su stock con su mínimo, así que un
+   * grupo guardado se desactualiza en el momento en que se toca el stock. Por
+   * eso no hay botón de editar ni de borrar: no hay nada que editar, y si lo
+   * hubiera el botón mentiría.
+   *
+   * Los tres se muestran siempre, incluso con cero productos. Un grupo que sólo
+   * aparece cuando tiene algo es un grupo que el usuario no sabe que existe
+   * hasta que ya lo necesita.
+   */
+  renderEstadosStockHTML() {
+    const conteos = new Map(App.ESTADOS_STOCK.map(e => [e.clave, 0]));
+    for (const p of this.productos) {
+      const clave = estadoStock(p);
+      conteos.set(clave, (conteos.get(clave) || 0) + 1);
+    }
+    
+    return `
+      <div class="tarjeta">
+        <div class="apilado">
+          <h3 class="etiqueta-seccion con-margen-abajo">📊 Estado del stock</h3>
+          ${App.ESTADOS_STOCK.map(e => {
+            const total = conteos.get(e.clave) || 0;
+            return `
+              <div class="recuadro recuadro-suave fila fila-separada">
+                <button
+                  class="fila-tocable"
+                  data-estado="${escAttr(e.clave)}"
+                  aria-label="Ver en el catálogo los ${total} productos con estado ${escAttr(e.etiqueta)}"
+                >
+                  <span class="punto" style="background-color: ${e.color}"></span>
+                  <span class="columna crece">
+                    <span class="medio">${esc(e.etiqueta)}</span>
+                    <span class="micro apagado">
+                      ${total} ${total === 1 ? 'producto' : 'productos'}
+                      · Ver en el catálogo ›
+                    </span>
+                  </span>
+                </button>
+              </div>
+            `;
+          }).join('')}
+        </div>
       </div>
     `;
   }
@@ -866,10 +972,11 @@ export class App {
     document.querySelectorAll('.pestana').forEach(btn => {
       btn.addEventListener('click', () => {
         this.vistaActual = btn.dataset.vista;
-        // La categoría abierta es una forma de mirar el catálogo. Al salirse del
+        // El grupo abierto es una forma de mirar el catálogo. Al salirse del
         // catálogo se suelta, para que volver a Inventario muestre el inventario
         // entero y no el último grupo que se miró.
         this.categoriaVista = null;
+        this.estadoVista = null;
         this._limiteRender = App.LIMITE_RENDER;
         this.render();
       });
@@ -890,6 +997,9 @@ export class App {
     });
     document.querySelectorAll('.fila-tocable[data-id]').forEach(btn => {
       btn.addEventListener('click', () => this.abrirCategoria(btn.dataset.id));
+    });
+    document.querySelectorAll('.fila-tocable[data-estado]').forEach(btn => {
+      btn.addEventListener('click', () => this.abrirEstado(btn.dataset.estado));
     });
     document.getElementById('btn-ver-catalogo-completo')?.addEventListener('click', () => this.verCatalogoCompleto());
     document.getElementById('btn-agregar-en-categoria')?.addEventListener('click', () => this.nuevoProducto(this.categoriaVista));
