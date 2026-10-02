@@ -4,6 +4,7 @@ import { abrirHistorial } from './components/HistorialModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
 import { abrirScanner } from './components/ScannerModal.js';
 import { abrirCodigoDuplicado } from './components/CodigoDuplicado.js';
+import { abrirDetalleProducto } from './components/ProductoDetalle.js';
 import { toast } from './utils/toast.js';
 import { esc, escAttr, fmtPrecio } from './utils/html.js';
 
@@ -618,7 +619,8 @@ export class App {
     const unidad = tipo.unidadBase || 'unid';
     
     return `
-      <article class="tarjeta">
+      <article class="tarjeta" data-id="${escAttr(p.id)}" data-action="detalle" role="button" tabindex="0"
+        aria-label="Ver la hoja de ${escAttr(p.nombre)}">
         <div class="marco-foto marco-foto-centrado">
           ${imagenHTML}
           <div class="esquina-superior-derecha insignia insignia-pequena ${this.getStockClass(p)}">
@@ -749,7 +751,8 @@ export class App {
     const stockBadgeText = stock === 0 ? 'Agotado' : stock <= stockMinimo ? 'Poco' : 'OK';
     
     return `
-      <article class="tarjeta tarjeta-alta" data-id="${escAttr(p.id)}">
+      <article class="tarjeta tarjeta-alta" data-id="${escAttr(p.id)}" data-action="detalle"
+        role="button" tabindex="0" aria-label="Ver la hoja de ${escAttr(p.nombre)}">
         <div class="fila fila-arriba fila-amplia crece">
           <div class="miniatura">
             ${imagenHTML}
@@ -914,8 +917,40 @@ export class App {
         case 'delete':
           this.eliminarProducto(id);
           break;
+        case 'detalle':
+          this.abrirDetalle(id);
+          break;
       }
     }, { passive: true });
+
+    // Las tarjetas se pueden tocar y también enfocar. Sin esto, el atributo
+    // role="button" sería una mentira para quien navega con el teclado: tendría
+    // el foco puesto en la tarjeta y el Enter no abriría nada.
+    document.getElementById('contenido-principal')?.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      e.preventDefault();
+      btn.click();
+    });
+  }
+  
+  /**
+   * La hoja del producto: tocar la tarjeta la abre, sin pasar por Editar.
+   *
+   * El botón "detalle" no está en el HTML: lo busca `e.target.closest()` en
+   * cualquier parte del contenedor, así que alcanza con que la tarjeta lo traiga
+   * en un atributo y no hace falta envolverla en otro elemento que se coma el
+   * clic de los botones de adentro.
+   */
+  abrirDetalle(id) {
+    const producto = this.productos.find(p => p.id === id);
+    if (!producto) return;
+    abrirDetalleProducto({
+      producto,
+      categorias: this.categorias,
+      onEditar: p => this.editarProducto(p.id)
+    });
   }
   
   async ajustarStock(id, delta) {

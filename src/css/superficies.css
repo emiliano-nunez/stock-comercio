@@ -743,3 +743,55 @@
     width: 24rem;
   }
 }
+
+/* =================================================================
+ * La planilla del producto
+ *
+ * Una tabla de dos columnas: el nombre del dato a la izquierda, el valor a la
+ * derecha, con un renglón por dato. Es lo más cerca de una planilla que se puede
+ * con una pantalla de 390px, y a diferencia de una tarjeta de campos deja leer
+ * el producto entero de un vistazo sin tener que separar cada valor de su
+ * etiqueta.
+ *
+ * Los valores van a la derecha y con cifras de ancho fijo para que se lean en
+ * columna: el precio y el stock son lo que el usuario compara, y con cifras de
+ * ancho variable hay que contar los dígitos para ver si el número es mayor o
+ * menor que el de al lado.
+ *
+ * El nombre del dato va en `<th>` para que el lector de pantalla anuncie el dato
+ * antes que su valor. Sin eso, una lista de celdas sueltas se lee como una
+ * secuencia de números sin saber qué son.
+ * ================================================================= */
+
+.planilla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-base);
+}
+
+.planilla th,
+.planilla td {
+  padding: var(--espacio-3) var(--espacio-1);
+  border-bottom: 1px solid var(--color-borde-tenue);
+  vertical-align: top;
+}
+
+.planilla th {
+  text-align: left;
+  font-weight: var(--grosor-medio);
+  color: var(--color-texto-suave);
+  white-space: nowrap;
+  width: 1%;
+}
+
+.planilla-valor {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* El último renglón sin la línea de abajo: la tabla ya está cerrada por el borde
+   del diálogo, y una línea al final invites a pensar que hay más abajo. */
+.planilla tr:last-child th,
+.planilla tr:last-child td {
+  border-bottom: none;
+}
