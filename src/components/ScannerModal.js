@@ -156,15 +156,7 @@ export class ScannerModal {
         }
       );
       
-      /*
-       * start() resuelve cuando la cámara ya se está viendo, y eso NO significa
-       * que se esté escaneando: la librería arma el bucle de decodificación
-       * después, y si algo falla en el medio el error se pierde dentro del
-       * callback. isScanning es la única señal de que ese bucle arrancó.
-       *
-       * Sin esta espera, un fallo así se ve como un escáner que funciona: la
-       * cámara en pantalla y el cartel de "apunta la cámara" para siempre.
-       */
+      /* start() resuelve cuando se ve la cámara, NO cuando escanea. isScanning es la única señal de que el bucle arrancó. */
       await new Promise(r => setTimeout(r, 300));
       if (!this.scanner.isScanning) {
         throw new Error('La cámara se abrió pero el lector no pudo arrancar.');

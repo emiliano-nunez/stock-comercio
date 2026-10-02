@@ -86,7 +86,7 @@
 }
 
 .marco-foto-centrado {
-  max-width: 20rem;
+  max-width: var(--tope-foto);
   margin-inline: auto;
   margin-block-end: var(--espacio-2);
 }
@@ -844,7 +844,7 @@
 }
 
 .aviso-sin-boton {
-  max-width: 20rem;
+  max-width: var(--tope-foto);
 }
 
 /* =================================================================

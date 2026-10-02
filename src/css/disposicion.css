@@ -170,24 +170,17 @@
 }
 
 /*
- * La rejilla del inventario: una columna en el teléfono y dos a partir de
- * 768px de ancho de pantalla.
- *
- * El corte va en 768px y no más abajo a propósito. La tarjeta lleva tres filas de
- * controles y con la miniatura al costado necesita unos 254px de contenido: a
- * 640px de pantalla dos columnas darían 190px de contenido y el botón de
- * eliminar se caería de la fila. A 768px la columna de la app ya llegó a su
- * tope, así que cada tarjeta mide 370px.
+ * La rejilla del catálogo: 3 columnas en el teléfono y 4 a partir de 768px.
  */
 .rejilla {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--espacio-3);
 }
 
 @media (min-width: 768px) {
   .rejilla {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 

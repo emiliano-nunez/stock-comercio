@@ -644,6 +644,16 @@ export class App {
     return categoria?.color || COLORES_CATEGORIAS[0];
   }
   
+  // Elige un color al azar entre los que NO estén en uso.
+  // Si todos están en uso, elige uno al azar del total: 20 colores dan margen
+  // de sobra, y si el usuario tiene más de 20 categorías ya sabrá elegir.
+  colorAleatorioCategoria() {
+    const usados = new Set(this.categorias.map(c => c.color).filter(Boolean));
+    const libres = COLORES_CATEGORIAS.filter(c => !usados.has(c));
+    const pool = libres.length > 0 ? libres : COLORES_CATEGORIAS;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  
   renderCatalogoItemHTML(p) {
     // Con varias categorías por producto, el marco de la foto no tiene lugar
     // para todas: muestra la primera y, si sobran, cuántas son. La lista
@@ -1370,7 +1380,7 @@ export class App {
                 </button>
               `).join('')}
             </div>
-            <input type="hidden" id="cat-color" value="${cat ? this.getCategoriaColor(cat) : COLORES_CATEGORIAS[0]}">
+            <input type="hidden" id="cat-color" value="${cat ? this.getCategoriaColor(cat) : this.colorAleatorioCategoria()}">
           </div>
           <div class="fila fila-amplia separador-arriba relleno-superior-2">
             <button type="button" id="btn-cat-cancelar" class="btn-secundario btn-crece">${esEdicion ? 'Cancelar' : 'Volver'}</button>
