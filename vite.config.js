@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { readFileSync } from 'node:fs';
 
 /**
  * Ruta en la que se publica la app.
@@ -28,8 +29,26 @@ const RUTA_PUBLICA = process.env.VITE_BASE_PATH || '/';
 // atajo. Hay que normalizar los dos extremos, no sólo el de adelante.
 const base = `/${RUTA_PUBLICA.replace(/^\/+|\/+$/g, '')}/`.replace(/\/{2,}/g, '/');
 
+/*
+ * La versión que se muestra al pie de la app.
+ *
+ * Sale de package.json y no de un número escrito en el código, para que las dos
+ * cosas no puedan separarse: si el número está en un solo lado, cambiarlo es
+ * recordar cambiarlo, y si no se cambia la app dice una versión que ya no es.
+ *
+ * El prefijo "v" va acá y no en el pie, para que el pie sea sólo el texto que
+ * se ve.
+ */
+const VERSION = readFileSync(new URL('./package.json', import.meta.url), 'utf8');
+const NUMERO_VERSION = `v${JSON.parse(VERSION).version}`;
+
 export default defineConfig({
   base,
+  define: {
+    // Va como texto ya entrecomillado porque así lo pinta el pie y no hace
+    // falta para nada más. Si algún día hay que compararlo, se destraba acá.
+    __VERSION__: JSON.stringify(NUMERO_VERSION),
+  },
   server: {
     hmr: {
       // Desactivar overlay de errores para evitar ruido en consola

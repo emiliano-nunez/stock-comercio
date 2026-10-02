@@ -395,6 +395,7 @@ export class App {
           <h2 class="subtitulo con-margen-arriba-amplia">Inventario vacío</h2>
           <p class="detalle apagado con-margen-arriba">Toca "Agregar producto" para empezar</p>
         </div>
+        ${this.renderPieVersionHTML()}
       `;
     }
     
@@ -412,7 +413,22 @@ export class App {
       <div class="rejilla-inventario">
         ${visibles.map(p => this.renderProductoHTML(p)).join('')}
       </div>
-    ` + this.renderCargarMasHTML(visibles);
+    ` + this.renderCargarMasHTML(visibles) + this.renderPieVersionHTML();
+  }
+
+  /**
+   * El número de versión al pie del inventario.
+   *
+   * Va sólo en inventario y no en las otras dos pestañas a propósito: el
+   * inventario es la que uno abre siempre, y es la que se revisa comparando la
+   * app del host contra la publicada. Ponerlo en catálogo y categorías lo
+   * repetiría tres veces sin agregar nada.
+   *
+   * El número viene de package.json, inyectado al compilar. Acá sólo se pinta,
+   * para que no haya un número escrito a mano que se pueda desactualizar.
+   */
+  renderPieVersionHTML() {
+    return `<p class="pie-version">${esc(__VERSION__)}</p>`;
   }
 
   /**
