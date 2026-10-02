@@ -887,25 +887,27 @@ export class App {
               </div>
               ${avisoFotoPerdida}
             </div>
-            <div class="fila fila-separada envuelto separador-arriba relleno-superior-1">
+            <div id="ajuste-${escAttr(p.id)}" class="fila fila-separada envuelto separador-arriba relleno-superior-1 oculto">
               <span class="micro medio tenue ancho-entero">Ajuste rápido:</span>
               <div class="fila ancho-cero">
                 <button class="btn-resta" data-action="decrement" data-id="${escAttr(p.id)}" aria-label="Quitar ${escAttr(step)} ${escAttr(unidad)}">
                   −
                 </button>
-                <span class="campo-numero">${stock}</span>
+                <span class="campo-numero js-stock-numero">${stock}</span>
                 <button class="btn-suma" data-action="increment" data-id="${escAttr(p.id)}" aria-label="Agregar ${escAttr(step)} ${escAttr(unidad)}">
                   +
                 </button>
               </div>
             </div>
             <!--
-              Las tres acciones van en su propia fila y no arriba en la esquina.
-              Con iconos de 52px, tres en la fila del título se comían 164px de los
-              ~244 que quedan al lado de la miniatura y el nombre quedaba
-              ilegible. Además al repartir por igual (flex-1) cada botón mide
-              ~81px en vez de 52: se tocan mejor y, con su texto, no hay que
-              adivinar qué hace el ícono.
+              Las acciones van en su propia fila y no arriba en la esquina: con iconos de
+              52px, varias en la fila del título se comen el ancho que queda al
+              lado de la miniatura y el nombre queda ilegible.
+
+              El ajuste de stock entra acá y no siempre a la vista. Los botones
+              de más y menos ocupan dos filas de la tarjeta y sólo hacen falta
+              mientras se está vendiendo o cargando un pedido; el resto del
+              tiempo son ruido.
 
               mt-auto las baja al pie de la tarjeta. En dos columnas las tarjetas
               no miden lo mismo (una con el aviso de foto perdida es más alta), y
@@ -913,6 +915,9 @@ export class App {
               grilla se ve despareja.
             -->
             <div class="fila fila-corta con-margen-arriba-auto separador-arriba relleno-superior-1">
+              <button class="btn-fantasma btn-crece btn-chico" data-action="toggle-ajuste" data-id="${escAttr(p.id)}" aria-label="Ajustar stock de ${escAttr(p.nombre)}" aria-expanded="false">
+                <span aria-hidden="true">±</span><span>Ajustar</span>
+              </button>
               <button class="btn-fantasma btn-crece btn-chico" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
                 <span aria-hidden="true">📋</span><span>Duplicar</span>
               </button>
@@ -1022,6 +1027,14 @@ export class App {
       const action = btn.dataset.action;
       
       switch (action) {
+        case 'toggle-ajuste': {
+          const fila = document.getElementById('ajuste-' + id);
+          if (fila) {
+            const oculta = fila.classList.toggle('oculto');
+            btn.setAttribute('aria-expanded', String(oculta === false));
+          }
+          break;
+        }
         case 'increment':
           this.ajustarStock(id, 1);
           break;
