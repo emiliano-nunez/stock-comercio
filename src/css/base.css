@@ -148,6 +148,7 @@ input,
 select,
 textarea {
   font-size: max(16px, 1em);
+  margin: 0.1rem;
   font-family: inherit;
   color: inherit;
 }
