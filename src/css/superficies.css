@@ -121,6 +121,10 @@
  */
 .stock-foto {
   flex-shrink: 0;
+  /* La fila del contenido es `fila-arriba`, que alinearía la columna con el
+     borde de arriba. Sin el estiramiento, la fecha queda pegada al stock y
+     desperdicia el alto sobrante. */
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -131,10 +135,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* La fecha va bajo el stock para que se lea de qué día es el precio. El gris es
-   más oscuro que el del resto de los datos secundarios porque a 11px, con el color
-   tenue no se veía. */
+/* La fecha va bajo el stock para que se lea de qué día es el precio, y se apoya en
+   el borde de abajo de la tarjeta. El gris es más oscuro que el del resto de los
+   datos secundarios porque a 11px, con el color tenue no se veía. */
 .stock-fecha {
+  margin-block-start: auto;
   color: var(--gris-600);
   white-space: nowrap;
 }

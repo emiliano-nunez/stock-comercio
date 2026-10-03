@@ -41,7 +41,7 @@
   --rojo-700: #b91c1c;
   --rojo-900: #7f1d1d;
 
-  --color-fondo:           var(--gris-50);
+  --color-fondo:           var(--gris-500);
   --color-superficie:      #ffffff;
   --color-texto:           var(--gris-900);
   --color-texto-suave:     var(--gris-500);

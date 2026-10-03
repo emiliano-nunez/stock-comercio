@@ -1002,7 +1002,16 @@ export class ProductoForm {
 
     // Ojo: NO usar :first-of-type, porque el primer <div> hijo de #precios-lista
 
-    const precioInput = modal.querySelector('#precios-lista .precio-item input[name^="precio_"]');
+    /*
+     * El campo de precio se busca cada vez que hace falta y no se guarda en una
+     * variable. `#precios-lista` se vuelve a pintar cuando cambia el tipo de
+     * venta, así que el campo atrapado en el cierre quedaba viejo: los
+     * listeners de costo, IVA y margen están atados una sola vez y seguían
+     * escribiendo en un campo que ya no estaba en la página, y la calculadora
+     * parecía no andar.
+     */
+    const campoPrecio = () => modal.querySelector('#precios-lista .precio-item input[name^="precio_"]');
+
     const ivaInput = modal.querySelector('#ivaPorcentaje');
     const margenInput = modal.querySelector('#margenPorcentaje');
     const precioCalculadoEl = modal.querySelector('#precioCalculado');
@@ -1010,7 +1019,7 @@ export class ProductoForm {
     const ivaCalculadoEl = modal.querySelector('#ivaCalculado');
     const margenCalculadoEl = modal.querySelector('#margenCalculado');
 
-    if (!costoInput || !precioInput || !ivaInput || !margenInput
+    if (!costoInput || !campoPrecio() || !ivaInput || !margenInput
         || !precioCalculadoEl || !costoBaseEl || !ivaCalculadoEl || !margenCalculadoEl) {
       console.warn('[Calculadora] Faltan elementos, no se inicializa');
       return;
@@ -1038,6 +1047,9 @@ export class ProductoForm {
        * reemplace, que es lo mismo que pasa con los precios de docena y caja.
        * Escribir un 0,00 de verdad obligaba al usuario a borrarlo a mano.
        */
+      const precioInput = campoPrecio();
+      if (!precioInput) return;
+
       const precioActual = parseFloat(precioInput.value) || 0;
       if (precioActual === 0 || Math.abs(precioActual - this.ultimoPrecioCalculado) < 0.01) {
         precioInput.value = precioCalc > 0 ? precioCalc.toFixed(2) : '';
@@ -1056,7 +1068,8 @@ export class ProductoForm {
       });
     }
 
-    if (!precioInput.dataset.listener) {
+    const precioInput = campoPrecio();
+    if (precioInput && !precioInput.dataset.listener) {
       precioInput.dataset.listener = '1';
 
       // Si el usuario edita manualmente el precio final, no sobrescribir automáticamente
