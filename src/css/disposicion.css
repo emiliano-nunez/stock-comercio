@@ -497,25 +497,28 @@
  * búsqueda y las pestañas no se van cuando se baja en la lista.
  *
  * El corte se calcula, no se elige a ojo. La barra lateral entra en el momento en
- * que todavía quedan DOS tarjetas de ancho cómodo al lado, y no antes: si entra
- * antes las tarjetas se angostan, los tres botones de 52px no entran en su fila y
- * `.tarjeta`, que tiene `overflow: hidden`, se come el último.
+ * que las tarjetas todavía dejan los tres botones de la fila en un dedo, y no
+ * antes: si entra antes las tarjetas se angostan, los botones se reparten con
+ * `flex: 1` y el último se sale de la caja, que tiene `overflow: hidden`, y queda
+ * cortado.
  *
- * La cuenta, con los valores de las variables:
+ * La cuenta:
  *
  *   tres botones de 52px          = 156px
  *   dos separaciones de 6px       =  12px   -> 168px de fila
  *   relleno y borde de la tarjeta =  22px   -> 190px, el mínimo pelado
- *   con aire, una tarjeta         = 240px
  *
- *   dos columnas = 240 x 2 + 10                  = 490px de contenido
- *   490 + 20 de relleno + 288 de barra           = 798px de ventana
+ *   dos columnas = 190 x 2 + 10                  = 390px de contenido
+ *   390 + 20 de relleno + 288 de barra           = 698px de ventana
  *
- * El corte va en 800px: a esa ventana las tarjetas miden 241px y cada botón 69px.
- * Por debajo el header sigue siendo el de teléfono, que le da toda la ventana a la
- * lista.
+ * 698px es el mínimo en teoría, pero medido en la pantalla a 807px los botones
+ * seguían faltando unos 15px: la teoría cuenta sólo los 52px del mínimo táctil y no
+ * el ícono con su aire. El corte va en 840px, que es ese faltante corregido.
+ *
+ * Por debajo de 840 el header sigue siendo el de teléfono, que le da toda la
+ * ventana a la lista.
  */
-@media (min-width: 800px) {
+@media (min-width: 840px) {
   .app {
     display: grid;
     grid-template-columns: 18rem 1fr;
@@ -713,24 +716,10 @@
   }
 
   /*
-   * El inventario va de dos columnas mientras la barra lateral está puesta, que
-   * es la misma condición que decide si la barra entra: entra cuando ya entran
-   * dos columnas, así que nunca hay una sola tarjeta al lado de la barra.
-   *
-   * El catálogo sí se acomoda solo, con `auto-fill`: sus tarjetas son texto y no
-   * llevan la fila de botones, así que pueden ser más angostas.
-   *
-   * `.cuadricula` necesita el `.contenido` adelante porque está definida en
-   * superficies.css, que se importa después de este archivo y a igual
-   * especificidad le ganaría por posición.
+   * Las columnas no se tocan acá. Inventario y catálogo van de dos columnas en
+   * todos los tamaños, así que sus reglas bases --que ya son de dos columnas--
+   * alcanzan y no hace falta nada en esta media query.
    */
-  .contenido .rejilla-inventario {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .contenido .cuadricula {
-    grid-template-columns: repeat(auto-fill, minmax(var(--ancho-tarjeta-min), 1fr));
-  }
 
   }
 

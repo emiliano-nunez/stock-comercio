@@ -132,18 +132,6 @@
   --tope-foto: 200px;
 
   /* -----------------------------------------------------------------
-   * El ancho de las tarjetas
-   *
-   * Es el mínimo de la columna, no una medida. Con `auto-fill` y un `1fr` de
-   * máximo, este número es el que decide cuántas columnas entran, y la columna
-   * que queda nunca pasa de unos 317px porque sobra menos de una columna y el
-   * resto se reparte entre las que hay. Por eso no hace falta un máximo: la
-   * tarjeta no se estira a lo largo de una pantalla grande, que es lo que la
-   * dejaba con el precio solo en el medio del blanco.
-   * ----------------------------------------------------------------- */
-  --ancho-tarjeta-min: 13rem;
-
-  /* -----------------------------------------------------------------
    * Radios, sombras y capas
    * ----------------------------------------------------------------- */
   --radio-sm:   0.25rem;
