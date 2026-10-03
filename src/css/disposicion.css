@@ -639,6 +639,22 @@
   .bloques-columna > * + * {
     margin-block-start: 0;
   }
+
+  /*
+   * Los botones de agregar de cada bloque quedan en cuadrado, sólo con el
+   * ícono. En dos o tres columnas la tarjeta es angosta y el texto empujaba al
+   * título de al lado, que es el que dice qué es el bloque. El `aria-label` del
+   * botón queda con el nombre, así que los lectores de pantalla lo siguen
+   * anunciando.
+   */
+  .btn-bloque {
+    width: var(--toque-min);
+    padding-inline: 0;
+  }
+
+  .btn-bloque .texto-bloque {
+    display: none;
+  }
 }
 
 @media (min-width: 1100px) {

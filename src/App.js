@@ -765,8 +765,8 @@ export class App {
           <div class="apilado">
             <div class="bloque-cabecera">
               <h3 class="etiqueta-seccion">${icono('carpeta')}<span>Gestión de Categorías</span></h3>
-              <button id="btn-nueva-categoria" class="btn-principal no-crece">
-                ${icono('mas')}<span>Nueva categoría</span>
+              <button id="btn-nueva-categoria" class="btn-principal no-crece btn-bloque" aria-label="Nueva categoría">
+                ${icono('mas')}<span class="texto-bloque">Nueva categoría</span>
               </button>
             </div>
             ${this.categorias.map(cat => `
@@ -891,8 +891,8 @@ export class App {
         <div class="apilado">
           <div class="bloque-cabecera">
             <h3 class="etiqueta-seccion">${icono('proveedor')}<span>Proveedores</span></h3>
-            <button id="btn-nuevo-proveedor" class="btn-principal no-crece">
-              ${icono('mas')}<span>Nuevo proveedor</span>
+            <button id="btn-nuevo-proveedor" class="btn-principal no-crece btn-bloque" aria-label="Nuevo proveedor">
+              ${icono('mas')}<span class="texto-bloque">Nuevo proveedor</span>
             </button>
           </div>
 
