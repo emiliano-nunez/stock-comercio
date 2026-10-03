@@ -132,6 +132,18 @@
   --tope-foto: 200px;
 
   /* -----------------------------------------------------------------
+   * El ancho de las tarjetas
+   *
+   * Es un mínimo y un máximo, no una medida. La tarjeta se ensancha hasta
+   * `ancho-tarjeta-max` mientras entre otra al lado, y a partir de ahí las
+   * columnas sobrantes se achican hasta el mínimo. Así la tarjeta usa el ancho
+   * que le sirve sin llegar nunca a estirarse a lo largo de una pantalla
+   * grande, que es lo que la deja con el precio perdido en el medio del blanco.
+   * ----------------------------------------------------------------- */
+  --ancho-tarjeta-min: 13rem;
+  --ancho-tarjeta-max: 21.25rem;
+
+  /* -----------------------------------------------------------------
    * Radios, sombras y capas
    * ----------------------------------------------------------------- */
   --radio-sm:   0.25rem;
