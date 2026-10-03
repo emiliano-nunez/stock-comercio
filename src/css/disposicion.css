@@ -165,15 +165,44 @@
   color: var(--color-texto);
 }
 
+/*
+ * La cabecera del teléfono es una fila que salta de línea, y por eso las seis
+ * piezas de la barra son hijas directas de acá y no de una caja que las agrupe.
+ *
+ * Con `flex-wrap: wrap` cada pieza que necesita su propio renglón pide el ancho
+ * entero con `flex: 1 0 100%`, y las que comparten renglón se acomodan solas. El
+ * nombre empuja con `margin-inline-end: auto` para que historial y pedido queden
+ * contra el borde derecho.
+ *
+ * En el escritorio esta misma lista gira a columna y cambia los `order`; no hace
+ * falta ni `display: contents` ni una segunda estructura de HTML.
+ */
 .cabecera-cuerpo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-1);
   padding: var(--espacio-2) var(--espacio-3);
 }
 
-.cabecera-fila {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espacio-2);
+.cabecera-cuerpo > h1 {
+  order: 1;
+  margin-inline-end: auto;
+}
+
+/* Los dos botones no se encogen: si el nombre es largo, el que cede es el
+   nombre. Sin esto los botones perdían ancho hasta desaparecer. */
+.cabecera-cuerpo > #btn-historial,
+.cabecera-cuerpo > #btn-pedido {
+  flex-shrink: 0;
+}
+
+.cabecera-cuerpo > #btn-historial {
+  order: 2;
+}
+
+.cabecera-cuerpo > #btn-pedido {
+  order: 3;
 }
 
 .cabecera-titulo {
@@ -273,6 +302,9 @@
   display: flex;
   border-top: 1px solid var(--color-borde-tenue);
   overflow-x: hidden;
+  /* Las pestañas ocupan su propio renglón, abajo del buscador. */
+  order: 5;
+  flex: 1 0 100%;
 }
 
 .pestana {
@@ -347,6 +379,9 @@
   display: flex;
   align-items: flex-start;
   gap: var(--espacio-2);
+  /* Pide el ancho entero, así que salta a su propio renglón en el teléfono. */
+  order: 4;
+  flex: 1 0 100%;
 }
 
 .fila-busca > .posicionado {
@@ -428,10 +463,12 @@
  * todo el resto de la pantalla. Cada columna scrollea por su lado, así que la
  * búsqueda y las pestañas no se van cuando se baja en la lista.
  *
- * El corte está en 1024px porque por debajo el contenido se queda sin ancho
- * para dos tarjetas y la barra le roba demasiado a la lista.
+ * El corte está en 900px. A 1024 la barra lateral no entraba en muchas ventanas
+ * de PC: una ventana angosta, o una pantalla grande con el zoom del navegador
+ * subido, cuenta con menos píxeles de los que tiene y caía al header de celular,
+ * que es lo contrario de lo que se pidió.
  */
-@media (min-width: 1024px) {
+@media (min-width: 900px) {
   .app {
     display: grid;
     grid-template-columns: 18rem 1fr;
@@ -450,7 +487,7 @@
   }
 
   /*
-   * La cabecera es una columna de SEIS piezas, cada una debajo de la otra:
+   * La cabecera pasa a ser una columna de SEIS piezas, cada una debajo de la otra:
    *
    *   1. el nombre de la app
    *   2. el buscador
@@ -459,44 +496,42 @@
    *   5. historial
    *   6. pedido
    *
-   * Para que quede así hay que romper las dos filas que en el teléfono juntan las
-   * piezas: la del nombre con el par de botones, y la del par entre sí. En las
-   * dos, `display: contents` borra la caja y deja a los hijos como piezas
-   * directas de la columna. Es lo mismo que se hace con las pestañas, que en el
-   * teléfono son una fila de tres y acá una lista.
+   * Las seis son hijas directas de `.cabecera-cuerpo`, sin ninguna caja que las
+   * agrupe. Antes cada grupo iba dentro de una fila y se desarmaba con
+   * `display: contents`, que deja al elemento sin caja pero no lo saca del árbol
+   * del DOM: por eso los selectores tienen que pasar por el nombre de la fila
+   * intermedia, y cuando uno se escribía mal el `order` dejaba de matchear sin
+   * avisar y el historial con el pedido se quedaban al lado. Sin cajas
+   * intermedias no hay nada que pueda fallar así.
    *
-   * OJO con el selector. `display: contents` borra la CAJA, no el lugar en el
-   * árbol del DOM, así que para el CSS los hijos siguen colgando de
-   * `.cabecera-fila` y de `.fila-corta`, nunca de `.cabecera-cuerpo`. El `order`
-   * tiene que pedirse con esos nombres de clase intermedios, porque con
-   * `.cabecera-cuerpo > ...` no matchea nunca y el `order` se pierde en silencio.
+   * Lo único que cambia respecto del teléfono es `flex-direction`, que pasa de
+   * fila con salto a columna, y los `order`, que en el teléfono ponen el nombre
+   * con los dos botones en el mismo renglón y acá los separan.
    */
   .cabecera-cuerpo {
-    display: flex;
     flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
     gap: var(--espacio-2);
     height: 100%;
     min-height: 0;
   }
 
-  .cabecera-fila {
-    display: contents;
-  }
-
-  .cabecera-fila > h1 {
+  .cabecera-cuerpo > h1 {
     order: 1;
     justify-content: flex-start;
+    margin-inline-end: 0;
     margin-block-end: var(--espacio-2);
   }
 
   /*
-   * El buscador es la pieza 2 y el botón la 3, dentro de la misma fila que en el
-   * teléfono. La fila gira a columna para que el botón quede abajo del buscador y
-   * no a su derecha, que en una columna de 18rem lo dejaría al lado de un campo
-   * estrecho.
+   * El buscador es la pieza 2 y el botón la 3. Siguen siendo las dos filas del
+   * teléfono, así que el buscador deja de pedir el ancho entero y la fila gira a
+   * columna para que el botón quede abajo y no al lado de un campo angosto.
    */
   .fila-busca {
     order: 2;
+    flex: 0 0 auto;
     flex-direction: column;
     gap: var(--espacio-2);
     margin-block-end: var(--espacio-2);
@@ -528,58 +563,30 @@
   }
 
   /*
-   * Las pestañas son la pieza 4, y en columna: en el teléfono son una fila de
-   * tres y acá una lista, igual que el historial y el pedido.
+   * Las pestañas son la pieza 4 y el historial y el pedido las 5 y 6. Dejan de
+   * pedir el ancho entero porque en columna ya llenan la barra solas.
    */
   .cabecera-cuerpo > .pestanas {
     order: 3;
+    flex: 0 0 auto;
   }
 
-  /*
-   * Historial y pedido son la pieza 5, la última. Van uno debajo del otro, como
-   * las pestañas, y no en fila como en el teléfono: en una columna de 18rem dos
-   * botones en fila se leen como dos opciones más de la lista, y la palabra sola
-   * los hace más anchos que las pestañas.
-   *
-   * El ancho sale del `align-items: stretch`, no de un `width: 100%` en cada
-   * botón: en columna los dos se estiran a lo ancho de la columna y quedan
-   * alineados con el resto de las piezas.
-   */
-  /*
-   * El par historial/pedido también se deshace. Si se lo deja como una sola
-   * pieza, esa pieza es una columna interna y se sigue leyendo como un bloque
-   * con dos cosas adentro en vez de dos opciones de la barra. Con
-   * `display: contents` cada botón pasa a ser una pieza de la columna y la lista
-   * queda de seis, no de cinco.
-   */
-  .cabecera-fila > .fila-corta {
-    display: contents;
-  }
-
-  .cabecera-fila > .fila-corta > * {
+  .cabecera-cuerpo > #btn-historial {
     order: 5;
+    margin-block-start: var(--espacio-2);
   }
 
-  .cabecera-fila > .fila-corta > *:last-child {
+  .cabecera-cuerpo > #btn-pedido {
     order: 6;
   }
 
   /*
-   * Y se les da el alto mínimo táctil, que en el teléfono no necesitan porque se
-   * apoyan contra el nombre.
-   */
-  /*
    * Y los dos botones se miden como las pestañas: mismo alto, ícono a la
    * izquierda, marca de activo en el borde izquierdo y el ancho entero de la
-   * columna.
-   *
-   * El ancho sale de `align-self: stretch` y no de un `width: 100%`: al ser
-   * piezas directas de la columna, el `stretch` del padre ya las deja a lo ancho
-   * y un `width: 100%` las haría pedir el ancho de la columna sin contar el
-   * relleno, con lo que se salen por la derecha.
+   * columna. El ancho sale del `align-items: stretch` del padre, así que no
+   * llevan `width: 100%`.
    */
-  .cabecera-fila > .fila-corta > .btn-texto {
-    align-self: stretch;
+  .cabecera-cuerpo > .btn-texto {
     min-height: var(--toque-min);
     justify-content: flex-start;
     gap: var(--espacio-3);
@@ -590,7 +597,7 @@
     font-size: var(--texto-sm);
   }
 
-  .cabecera-fila > .fila-corta > .btn-texto svg {
+  .cabecera-cuerpo > .btn-texto svg {
     flex-shrink: 0;
     width: 1.15rem;
     height: 1.15rem;

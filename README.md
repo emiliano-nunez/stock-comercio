@@ -1,6 +1,6 @@
 # DepoApp
 
-**Versión 1.9.1** · el mismo número de `package.json`, que es de donde sale el que muestra la app al pie del inventario.
+**Versión 1.9.2** · el mismo número de `package.json`, que es de donde sale el que muestra la app al pie del inventario.
 
 App de control de stock para comercios. Funciona sin internet y guarda todo en el
 dispositivo: no hay cuentas, ni servidor, ni nube.

@@ -291,17 +291,13 @@ export class App {
       <div class="app">
         <header class="cabecera">
           <div class="cabecera-cuerpo">
-            <div class="fila fila-separada cabecera-fila">
-              <h1 class="titulo fila fila-centro fila-amplia">${icono('caja')}<span>DepoApp</span></h1>
-              <div class="fila fila-corta">
-                <button id="btn-historial" class="btn-texto" aria-label="Historial y restaurar">
-                  ${icono('historial')}<span class="texto-boton">Historial</span>
-                </button>
-                <button id="btn-pedido" class="btn-texto" aria-label="Pedido de faltantes">
-                  ${icono('etiqueta')}<span class="texto-boton">Pedido</span>
-                </button>
-              </div>
-            </div>
+            <h1 class="titulo fila fila-centro fila-amplia">${icono('caja')}<span>DepoApp</span></h1>
+            <button id="btn-historial" class="btn-texto" aria-label="Historial y restaurar">
+              ${icono('historial')}<span class="texto-boton">Historial</span>
+            </button>
+            <button id="btn-pedido" class="btn-texto" aria-label="Pedido de faltantes">
+              ${icono('etiqueta')}<span class="texto-boton">Pedido</span>
+            </button>
 
             <!--
               La segunda fila del teléfono: el buscador y, a su derecha, el botón
