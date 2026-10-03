@@ -344,8 +344,81 @@
   .cabecera-cuerpo {
     display: flex;
     flex-direction: column;
-    gap: var(--espacio-4);
+    gap: var(--espacio-1);
     height: 100%;
+    min-height: 0;
+  }
+
+  /*
+   * El título y los botones de historial y pedido están, en el HTML, juntos en
+   * una fila que en el teléfono va arriba de todo. Con `display: contents` esa
+   * fila desaparece y sus tres hijos pasan a ser hijos directos de la barra, así
+   * que con `order` se reacomodan como una lista vertical sin tocar el HTML y
+   * sin romper el teléfono, donde la fila sigue siendo una fila.
+   *
+   * El orden es el que se lee: el nombre, el buscador, y después las cinco
+   * opciones, cada una debajo de la otra.
+   */
+  .cabecera-fila {
+    display: contents;
+  }
+
+  .cabecera-cuerpo > h1 {
+    order: 1;
+    margin-block-end: var(--espacio-3);
+  }
+
+  .cabecera-cuerpo > .posicionado {
+    order: 2;
+    margin-block-start: 0;
+    margin-block-end: var(--espacio-3);
+  }
+
+  .cabecera-cuerpo > .fila-corta {
+    order: 3;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--espacio-1);
+  }
+
+  .cabecera-cuerpo > .pestanas {
+    order: 4;
+  }
+
+  /*
+   * Historial y pedido pasan a verse como las pestañas: mismo alto, mismo
+   * ícono a la izquierda, y la marca de "activo" en el borde izquierdo. Sin
+   * esto son dos botones chicos pegados al título y no se los lee como parte de
+   * la lista de opciones.
+   */
+  .cabecera-cuerpo > .fila-corta .btn-texto {
+    width: 100%;
+    min-height: var(--toque-min);
+    padding-inline: var(--espacio-3);
+    border: none;
+    border-left: 3px solid transparent;
+    border-radius: 0;
+    justify-content: flex-start;
+    gap: var(--espacio-3);
+    color: var(--gris-600);
+    font-size: var(--texto-sm);
+    font-weight: var(--grosor-normal);
+  }
+
+  .cabecera-cuerpo > .fila-corta .btn-texto svg {
+    flex-shrink: 0;
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  /*
+   * La barra no scrollea. Con las cinco opciones ya alineadas y sin ningún hijo
+   * estirándose, el alto queda por debajo del de la ventana; si algo no entra,
+   * que se corte en vez de dejar una barra de scroll que ocupa ancho y empuja
+   * el contenido.
+   */
+  .cabecera {
+    overflow: hidden;
   }
 
   /* Las pestañas pasan a ser una lista vertical y la elegida se marca con el
@@ -376,9 +449,28 @@
     border-left-color: var(--color-marca);
   }
 
+  /*
+   * El contenido es una columna: la lista de productos toma lo que sobra y el
+   * pie con la versión queda abajo del todo.
+   *
+   * Antes el `main` no era columna y el pie caía justo debajo de la última
+   * tarjeta. Con pocos productos quedaba en el medio de la pantalla, que se leía
+   * como si fuera un separador entre dos cosas y no como el pie.
+   *
+   * El `padding-block-start` deja aire arriba: sin la cabecera pegada al borde
+   * de arriba, la lista quedaba contra el borde de la ventana.
+   */
   .contenido {
+    display: flex;
+    flex-direction: column;
     height: 100vh;
+    padding-block-start: var(--espacio-5);
     overflow-y: auto;
+  }
+
+  .contenido > .pie-version {
+    margin-block-start: auto;
+    padding-block-start: var(--espacio-4);
   }
 
   /* El botón flotante estaba pegado al borde de la columna angosta; con la

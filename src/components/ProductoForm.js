@@ -496,6 +496,28 @@ export class ProductoForm {
             </div>
           </div>
 
+          <!-- Proveedor: va pegado a categorías porque son las dos etiquetas que definen
+             a qué grupo pertenece el producto, y se llenan de la misma manera. -->
+          <div>
+            <label for="proveedor" class="etiqueta">${icono('proveedor')} Proveedor</label>
+            <div class="posicionado">
+              <input
+                type="text"
+                id="proveedor"
+                name="proveedor"
+                class="campo"
+                placeholder="Empezá a escribir y elegí de la lista"
+                value="${escAttr(this.producto?.proveedor || '')}"
+                autocomplete="off"
+                role="combobox"
+                aria-expanded="false"
+                aria-autocomplete="list"
+                aria-controls="proveedor-lista"
+              >
+              <ul id="proveedor-lista" class="desplegable oculto" role="listbox" aria-label="Proveedores que ya usás" hidden></ul>
+            </div>
+          </div>
+
           <!-- Fecha -->
           <div>
             <label for="fecha" class="etiqueta">${icono('calendario')} Fecha</label>
@@ -572,14 +594,21 @@ export class ProductoForm {
             <div class="apilado" id="precios-lista">
               ${this.renderPreciosHTML(unidadBase, tipoActual, tipoActual.subUnidades)}
             </div>
-            <button
-              type="button"
-              id="btn-agregar-precio"
-              class="btn-secundario btn-ancho detalle con-margen-arriba"
-            >
-              ${icono('mas')}<span>Agregar otro precio</span>
-            </button>
           </div>
+
+          <!--
+            El botón va FUERA del bloque de arriba a propósito. Adentro comparte
+            la grilla de dos columnas con el resto del formulario, así que
+            "ancho del modal" ahí es media pantalla y el botón quedaba en una
+            sola columna, con la mitad del ancho al lado sin usar.
+          -->
+          <button
+            type="button"
+            id="btn-agregar-precio"
+            class="btn-secundario btn-ancho detalle con-margen-arriba"
+          >
+            ${icono('mas')}<span>Agregar otro precio</span>
+          </button>
 
           <!--
             Proveedor y notas van al final del formulario, no antes de los
@@ -587,26 +616,6 @@ export class ProductoForm {
             metidas en medio de los campos se perdían entre el costo y la
             calculadora, y no era el último dato que completaba.
           -->
-          <div>
-            <label for="proveedor" class="etiqueta">${icono('proveedor')} Proveedor</label>
-            <div class="posicionado">
-              <input
-                type="text"
-                id="proveedor"
-                name="proveedor"
-                class="campo"
-                placeholder="Empezá a escribir y elegí de la lista"
-                value="${escAttr(this.producto?.proveedor || '')}"
-                autocomplete="off"
-                role="combobox"
-                aria-expanded="false"
-                aria-autocomplete="list"
-                aria-controls="proveedor-lista"
-              >
-              <ul id="proveedor-lista" class="desplegable oculto" role="listbox" aria-label="Proveedores que ya usás" hidden></ul>
-            </div>
-          </div>
-
           <div class="pos-it">
             <label for="notas" class="etiqueta-seccion">📝 Notas de este producto</label>
             <textarea
@@ -1456,8 +1465,13 @@ export class ProductoForm {
     `;
 
     for (const sub of subs.filter(s => s.value !== baseUnidad)) {
-      const precioSub = otrosPrecios.find(p => p.unidad === sub.value) || { valor: 0 };
-      html += `
+      // Una fila por unidad que YA tenga precio guardado. Las que no tienen no se
+    // dibujan: antes salía una por sub-unidad con un 0 de relleno, que son
+    // precios que el usuario no escribió y que igual parecían existir. Para
+    // agregar una está el botón "Agregar otro precio".
+    const precioSub = otrosPrecios.find(p => p.unidad === sub.value);
+    if (!precioSub) continue;
+    html += `
         <div class="precio-item fila" data-unidad="${escAttr(sub.value)}">
           <span class="detalle medio crece">${esc(sub.label)}</span>
           <div class="posicionado crece">
