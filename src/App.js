@@ -1011,8 +1011,14 @@ export class App {
               sin esto los botones de cada columna quedan a distinta altura y la
               grilla se ve despareja.
             -->
-            <div class="fila fila-corta con-margen-arriba-auto separador-arriba relleno-superior-1">
-              <button class="btn-fantasma btn-crece btn-icono-solo" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
+            <div class="fila fila-corta envuelto con-margen-arriba-auto separador-arriba relleno-superior-1">
+              <!--
+                Este botón no se ve en el teléfono: en la hoja del producto está el
+                mismo, y acá sólo sobra. Ver `.duplicar-tarjeta` en el CSS, que
+                explica por qué la tarjeta necesita que el botón se vaya para que
+                las dos columnas entren en una pantalla angosta.
+              -->
+              <button class="btn-fantasma btn-crece btn-icono-solo duplicar-tarjeta" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
                 ${icono('duplicar')}
               </button>
               <button class="btn-fantasma btn-crece btn-icono-solo" data-action="edit" data-id="${escAttr(p.id)}" aria-label="Editar ${escAttr(p.nombre)}">
@@ -1218,7 +1224,8 @@ export class App {
       producto,
       categorias: this.categorias,
       onEditar: p => this.editarProducto(p.id),
-      onAjustar: delta => this.ajustarStock(producto.id, delta)
+      onAjustar: delta => this.ajustarStock(producto.id, delta),
+      onDuplicar: p => this.duplicarProducto(p.id)
     });
   }
 

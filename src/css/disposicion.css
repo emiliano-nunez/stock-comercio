@@ -349,17 +349,14 @@
   overflow-x: hidden;
 }
 
-.rejilla {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--espacio-3);
-}
-
-@media (min-width: 768px) {
-  .rejilla {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
+/*
+ * La grilla del catálogo NO es esta clase.
+ *
+ * La usa `.cuadricula`, en superficies.css, y tiene dos columnas fijas para
+ * siempre. Estas reglas estaban escritas como si el catálogo usara `.rejilla`, y
+ * no la usaba: ninguna regla tocaba nada. Por eso las columnas del catálogo no
+ * se movían por más que se cambiaran estos números.
+ */
 
 /*
  * La segunda fila del header: el buscador y el botón de agregar.
@@ -437,16 +434,60 @@
   display: none;
 }
 
-.rejilla-inventario {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--espacio-3);
+/*
+ * El botón de duplicar cambia de lugar según el ancho.
+ *
+ * En el teléfono sale de la tarjeta y aparece en la hoja del producto. La tarjeta
+ * lleva los botones en una fila, y con tres de 52px esa fila necesita 168px: más
+ * el relleno y el borde, el piso de la tarjeta queda en 190px, y dos columnas de
+ * eso no entran en una pantalla de 390px. Con dos botones el piso baja a 132px y
+ * las dos columnas entran. Los botones no bajan de 52px en ningún caso: lo que se
+ * mueve es cuántos van en la fila.
+ *
+ * En el escritorio pasa al revés: la tarjeta tiene lugar de sobra y el botón
+ * vuelve a estar a la vista, que es donde se lo usa, y el de la hoja se esconde.
+ *
+ * Los dos selectores no dependen del orden de los archivos porque cada uno pega
+ * con un elemento distinto: el de la tarjeta con uno de la tarjeta, el de la hoja
+ * con uno de la hoja.
+ */
+.duplicar-detalle {
+  display: none;
 }
 
 @media (min-width: 768px) {
-  .rejilla-inventario {
-    grid-template-columns: repeat(2, 1fr);
+  .duplicar-tarjeta {
+    display: none;
   }
+
+  .duplicar-detalle {
+    display: flex;
+  }
+}
+
+/*
+ * La grilla del inventario va de dos columnas desde el teléfono.
+ *
+ * Antes era de una, y por eso en un teléfono de 390px la tarjeta ocupaba los
+ * 370px de ancho ella sola. Dejarla en una no es por gusto: la tarjeta lleva los
+ * tres botones de 52px en una fila, y eso le pone un piso de 190px de ancho
+ * (156 de botones, 12 de separación, 20 de relleno y 2 de borde). Dos columnas
+ * necesitan 390px más el relleno del contenido, o sea 410px de ventana: no
+ * entran en la mayoría de los teléfonos.
+ *
+ * El piso baja a 132px porque el botón de duplicar se va de la tarjeta en el
+ * teléfono —ver `.duplicar-tarjeta` más arriba— y la fila se queda con dos
+ * botones: 104px de botones, 6 de separación, 20 de relleno y 2 de borde. Con eso
+ * las dos columnas entran desde los 360px de ventana. Los botones siguen midiendo
+ * 52px: lo que se acomoda es cuántos van en la fila, no el área que se toca.
+ *
+ * El `minmax(0, 1fr)` y no `1fr` es para que una tarjeta con un nombre largo no
+ * estire su columna y desborde la pantalla.
+ */
+.rejilla-inventario {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espacio-3);
 }
 
 /*
@@ -686,49 +727,33 @@
   }
 
   /*
-   * La grilla se acota desde que aparece la barra lateral, no desde 1400px.
+   * Las dos grillas se acotan desde que aparece la barra lateral, con el mismo
+   * `minmax` y los mismos tokens, así que inventario y catálogo se comportan
+   * igual y no hay que mirar dos reglas distintas.
    *
-   * Entre 1024 y 1400 el inventario seguía con las dos columnas fijas de la base,
-   * que a este ancho dan tarjetas de unos 350px: más del tope que se quiere, y
-   * con el precio solo perdido en el medio del blanco. Con el `minmax` de los
-   * tokens entra una columna más y ninguna se estira de más.
+   * El selector del catálogo es `.cuadricula`, no `.rejilla`. `.rejilla` estuvo
+   * escrita toda la vida como si la usara el catálogo, y no la usa: la del
+   * catálogo es `.cuadricula`, que tiene dos columnas fijas para siempre. Por eso
+   * los cambios de acá no le hacían nada al catálogo.
+   *
+   * El mínimo decide cuántas columnas entran y el máximo impide que la tarjeta
+   * se estire: al llegar a 21.25rem deja de crecer aunque la fila tenga lugar de
+   * sobra, y lo que sobra queda en blanco en vez de estirar la tarjeta. Es
+   * `auto-fill` y no `auto-fit` porque con `auto-fit` las columnas vacías se
+   * colapsan y las que quedan se estiran para llenar la fila.
+   *
+   * Los selectores llevan `.contenido` adelante a propósito. `.cuadricula` está
+   * definida en superficies.css, que se importa DESPUÉS de este archivo, así que a
+   * igual especificidad su `repeat(2, minmax(0, 1fr))` le gana a esta regla por
+   * estar más abajo en el bundle y la deja muerta. Con `.contenido` delante la
+   * especificidad es mayor y el resultado no depende del orden de importación.
    */
-  .rejilla-inventario,
-  .rejilla {
+  .contenido .rejilla-inventario,
+  .contenido .cuadricula {
     grid-template-columns: repeat(auto-fill, minmax(var(--ancho-tarjeta-min), var(--ancho-tarjeta-max)));
   }
 
   }
-
-/*
- * Las columnas de la grilla, con la barra lateral ya descontada del ancho.
- *
- * Los cortes están en la misma proporción: a 1024 la barra se queda 15rem y
- * quedan unos 784px de contenido, que es lo que entra cómodo en dos tarjetas de
- * inventario o cuatro de catálogo.
- */
-/*
- * Las columnas de la grilla, con la barra lateral ya descontada del ancho.
- *
- * Las dos rejillas usan el mismo `minmax` con los tokens de ancho de tarjeta, así
- * que inventario y catálogo se acotan igual y no hay que mirar dos reglas
- * distintas.
- *
- * El mínimo es lo que decide cuántas columnas entran: en una pantalla de 1024 con
- * la barra de 18rem quedan unos 700px de contenido, y a 13rem por columna entran
- * cinco. El máximo es lo que impide que la tarjeta se estire: una vez que llega
- * a 21.25rem deja de crecer aunque la fila tenga lugar de sobra, y lo que sobra
- * queda como blanco en vez de estirar la tarjeta.
- *
- * El `auto-fill` y no el `auto-fit` es lo que mantiene el ancho de columna: con
- * `auto-fit` las columnas vacías se colapsan y las que quedan se estiran para
- * llenar la fila, que es justo lo que se quiere evitar acá.
- *
- * Estas reglas ya están en la media de 1024px, que es donde aparece la barra
- * lateral, así que no hay cortes en 1400 ni en 1800: el ancho de columna va de
- * los 13rem mínimos hasta los 21.25rem máximos según el lugar que hay, y el
- * número de columnas sale solo.
- */
 
 /* =================================================================
  * Filas

@@ -38,7 +38,7 @@ let abierta = null;
  *   o null si no se pudo guardar
  * @returns {{ cerrar: Function }}        para poder cerrarla desde afuera
  */
-export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAjustar }) {
+export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAjustar, onDuplicar }) {
   const p = producto;
   if (!p) return { cerrar() {} };
 
@@ -177,6 +177,20 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
       <div class="dialogo-pie dialogo-pie-fija apilado">
           ${ajustarHTML}
           <div class="fila">
+            <!--
+              El botón de duplicar vive acá y no en la tarjeta en el teléfono: la
+              tarjeta lleva los tres botones de 52px en una fila, y eso le pone un
+              piso de 190px de ancho que no deja entrar dos columnas en una
+              pantalla de 390px. Sacándolo de la tarjeta, la fila baja a dos
+              botones y el piso queda en 132px. En el escritorio el botón vuelve a
+              la tarjeta, que es donde se lo usa, y acá se esconde.
+            -->
+            <button
+              type="button"
+              id="detalle-duplicar"
+              class="btn-secundario btn-icono-solo duplicar-detalle"
+              aria-label="Duplicar este producto"
+            >${icono('duplicar')}</button>
             <button type="button" id="detalle-editar" class="btn-secundario btn-icono-solo" aria-label="Editar este producto">${icono('editar')}</button>
             <button type="button" id="detalle-cerrar-pie" class="btn-principal btn-crece">Cerrar</button>
           </div>
@@ -238,6 +252,11 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   modal.querySelector('#detalle-editar').addEventListener('click', () => {
     cerrar();
     onEditar?.(p);
+  });
+
+  modal.querySelector('#detalle-duplicar')?.addEventListener('click', () => {
+    cerrar();
+    onDuplicar?.(p);
   });
 
   const hoja = { cerrar };
