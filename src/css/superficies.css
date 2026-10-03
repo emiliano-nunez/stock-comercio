@@ -81,6 +81,9 @@
 
 .miniatura {
   flex-shrink: 0;
+  /* Para que la insignia de stock se ubique contra la foto y no contra la
+     tarjeta entera, igual que hace .marco-foto en el catálogo. */
+  position: relative;
   width: 3rem;
   height: 3rem;
   background-color: var(--gris-100);
@@ -126,13 +129,14 @@
  * competía por el ancho con ellos. Bajo la foto no le ocupa lugar a nadie y el
  * renglón de los datos queda libre para lo que el usuario compara.
  *
- * La insignia va sólo con el número, sin la palabra de OK o Agotado: el color ya
- * lo dice, y con el texto la etiqueta quedaba más ancha que la foto.
+ * La insignia de stock va sobre la foto, en la esquina superior derecha, como en
+ * el catálogo. Sólo lleva el número, sin la palabra de OK o Agotado: el color ya
+ * lo dice.
  */
 .stock-foto {
   flex-shrink: 0;
   /* La fila del contenido es `fila-arriba`, que alinearía la columna con el
-     borde de arriba. Sin el estiramiento, la fecha queda pegada al stock y
+     borde de arriba. Sin el estiramiento, la fecha queda pegada a la foto y
      desperdicia el alto sobrante. */
   align-self: stretch;
   display: flex;

@@ -987,8 +987,8 @@ export class App {
           <div class="stock-foto">
             <div class="miniatura">
               ${imagenHTML}
+              <span class="js-stock-badge insignia insignia-pequena insignia-stock esquina-superior-derecha ${stockBadgeClass}">${stock}</span>
             </div>
-            <span class="js-stock-badge insignia insignia-stock ${stockBadgeClass}">${stock}</span>
             ${p.fecha ? `<span class="micro stock-fecha">${esc(fechaEnDia(p.fecha))}</span>` : ''}
           </div>
           <div class="crece ancho-cero columna apilado">
@@ -1302,7 +1302,7 @@ export class App {
         : stock <= stockMinimo
           ? 'insignia-poco'
           : 'insignia-ok';
-      badge.className = `js-stock-badge insignia insignia-stock ${clases}`;
+      badge.className = `js-stock-badge insignia insignia-pequena insignia-stock esquina-superior-derecha ${clases}`;
       badge.textContent = `${stock}`;
     }
   }
