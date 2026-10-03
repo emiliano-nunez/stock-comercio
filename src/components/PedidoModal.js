@@ -122,7 +122,7 @@ export class PedidoModal {
       modal.innerHTML = `
         <div class="dialogo">
           <div class="dialogo-cabecera">
-            <h2 class="titulo">📋 Pedido de Faltantes</h2>
+            <h2 class="titulo">${icono('etiqueta')}<span>Pedido de Faltantes</span></h2>
             <button id="cerrar-pedido" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
           </div>
           <div class="dialogo-cuerpo centro-texto">
@@ -140,7 +140,7 @@ export class PedidoModal {
       modal.innerHTML = `
         <div class="dialogo">
           <div class="dialogo-cabecera">
-            <h2 class="titulo">📋 Pedido de Faltantes</h2>
+            <h2 class="titulo">${icono('etiqueta')}<span>Pedido de Faltantes</span></h2>
             <button id="cerrar-pedido" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
           </div>
 

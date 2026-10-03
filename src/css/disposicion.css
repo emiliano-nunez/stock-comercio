@@ -37,6 +37,38 @@
  * La cabecera
  * ================================================================= */
 
+/*
+ * La cabecera del formulario de producto: la foto en una columna de ancho fijo
+ * a la izquierda, y a la derecha el nombre y el código de barras.
+ *
+ * La columna de la foto no se encoge porque tiene que quedar cuadrada, y la de
+ * los campos sí, porque es la que tiene el campo de texto: en un teléfono de
+ * 390px el campo queda con unos 240px, que es lo justo para escribir un nombre
+ * sin que el cursor se vaya de la pantalla.
+ *
+ * En 320px, donde ya no entran los dos lados, se apilan: la foto arriba y los
+ * campos abajo, que es como estaba antes.
+ */
+.form-cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-4);
+}
+
+.form-foto {
+  flex-shrink: 0;
+  width: 7rem;
+}
+
+@media (max-width: 340px) {
+  .form-cabecera {
+    flex-direction: column;
+  }
+  .form-foto {
+    width: 100%;
+  }
+}
+
 .cabecera {
   position: sticky;
   top: 0;
@@ -129,6 +161,10 @@
 }
 
 .pestana {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
   flex: 1;
   min-height: var(--toque-min);
   padding: var(--espacio-2) var(--espacio-1);
@@ -137,6 +173,13 @@
   font-size: var(--texto-sm);
   text-align: center;
   transition: color var(--transicion-rapida), background-color var(--transicion-rapida);
+}
+
+/* El ícono de la pestaña va a tamaño fijo y no en 1em: al 1em heredaba el
+   --texto-sm de la pestaña y quedaba chico al lado de la palabra. */
+.pestana svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .pestana-activa {

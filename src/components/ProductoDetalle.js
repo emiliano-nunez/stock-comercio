@@ -177,7 +177,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
       <div class="dialogo-pie dialogo-pie-fija apilado">
           ${ajustarHTML}
           <div class="fila">
-            <button type="button" id="detalle-editar" class="btn-secundario btn-crece">✏️ Editar</button>
+            <button type="button" id="detalle-editar" class="btn-secundario btn-icono-solo" aria-label="Editar este producto">${icono('editar')}</button>
             <button type="button" id="detalle-cerrar-pie" class="btn-principal btn-crece">Cerrar</button>
           </div>
         </div>

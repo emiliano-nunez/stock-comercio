@@ -116,8 +116,8 @@ export class App {
           <p class="con-medio con-margen-arriba">Tus datos siguen guardados en este dispositivo.</p>
           ${detalle}
           <div class="columna con-margen-arriba-amplia">
-            <button id="btn-reintentar-carga" class="btn-principal btn-ancho">🔄 Reintentar</button>
-            <button id="btn-descargar-emergencia" class="btn-secundario btn-ancho detalle">📤 Descargar copia de mis datos</button>
+            <button id="btn-reintentar-carga" class="btn-principal btn-ancho">${icono('refrescar')} Reintentar</button>
+            <button id="btn-descargar-emergencia" class="btn-secundario btn-ancho detalle">${icono('descargar')} Descargar copia de mis datos</button>
           </div>
           <p class="micro tenue con-margen-arriba-amplia">No borres los datos del navegador: puedes perder el inventario.</p>
         </div>
@@ -272,7 +272,7 @@ export class App {
         <header class="cabecera">
           <div class="cabecera-cuerpo">
             <div class="fila fila-separada">
-              <h1 class="titulo">📦 Stock Comercio</h1>
+              <h1 class="titulo fila fila-centro fila-amplia">${icono('caja')}<span>DepoApp</span></h1>
               <div class="fila fila-corta">
                 <button id="btn-historial" class="btn-texto" aria-label="Historial y restaurar">
                   ${icono('historial')}<span class="texto-boton">Historial</span>
@@ -318,21 +318,21 @@ export class App {
               class="pestana ${this.vistaActual === 'inventario' ? 'pestana-activa' : ''}"
               data-vista="inventario"
             >
-              📦 Inventario
+              ${icono('caja')}<span>Inventario</span>
             </button>
             <button
               id="tab-catalogo"
               class="pestana ${this.vistaActual === 'catalogo' ? 'pestana-activa' : ''}"
               data-vista="catalogo"
             >
-              📚 Catálogo
+              ${icono('etiqueta')}<span>Catálogo</span>
             </button>
             <button
               id="tab-categorias"
               class="pestana ${this.vistaActual === 'categorias' ? 'pestana-activa' : ''}"
               data-vista="categorias"
             >
-              🏷️ Categorías
+              ${icono('carpeta')}<span>Categorías</span>
             </button>
           </div>
         </header>
@@ -347,7 +347,7 @@ export class App {
           class="boton-flotante"
           aria-label="Agregar producto"
         >
-          <span class="grande">${icono('mas')}</span>
+          ${icono('mas')}
         </button>
       </div>
     `;
@@ -529,7 +529,7 @@ export class App {
                 ? 'Ningún producto cae en este grupo. Los otros sí tienen.'
                 : 'Cargá el primero y vas a ver la lista completa acá.'}
             </p>
-            ${cat ? '<button class="btn-principal con-margen-arriba" id="btn-agregar-en-categoria">➕ Agregar producto</button>' : ''}
+            ${cat ? `<button class="btn-principal con-margen-arriba" id="btn-agregar-en-categoria">${icono('mas')}<span>Agregar producto</span></button>` : ''}
           </div>
         </div>
       `;
@@ -721,9 +721,9 @@ export class App {
     return `
       <div class="apilado-4">
         <div class="fila fila-separada">
-          <h2 class="titulo">🏷️ Gestión de Categorías</h2>
-          <button id="btn-nueva-categoria" class="btn-principal detalle">
-            ➕ Nueva categoría
+          <h2 class="titulo">${icono('carpeta')}<span>Gestión de Categorías</span></h2>
+          <button id="btn-nueva-categoria" class="btn-principal btn-chico">
+            ${icono('mas')}<span>Nueva categoría</span>
           </button>
         </div>
 
@@ -747,10 +747,10 @@ export class App {
                 </button>
                 <div class="fila no-crece">
                   <button class="btn-fantasma btn-icono texto-marca editar-categoria" data-id="${escAttr(cat.id)}" aria-label="Editar ${escAttr(cat.nombre)}">
-                    ✏️
+                    ${icono('editar')}
                   </button>
                   <button class="btn-fantasma btn-icono texto-peligro eliminar-categoria" data-id="${escAttr(cat.id)}" aria-label="Eliminar ${escAttr(cat.nombre)}">
-                    🗑️
+                    ${icono('eliminar')}
                   </button>
                 </div>
               </div>
@@ -762,7 +762,7 @@ export class App {
           <div class="vacio">
             <span class="vacio-icono">${icono('etiqueta')}</span>
             <p class="detalle medio con-margen-arriba">Sin categorías</p>
-            <button id="btn-nueva-categoria-vacia" class="btn-principal con-margen-arriba">➕ Crear primera categoría</button>
+            <button id="btn-nueva-categoria-vacia" class="btn-principal con-margen-arriba">${icono('mas')} Crear primera categoría</button>
           </div>
         ` : ''}
 
@@ -795,7 +795,7 @@ export class App {
     return `
       <div class="tarjeta">
         <div class="apilado">
-          <h3 class="etiqueta-seccion con-margen-abajo">📊 Estado del stock</h3>
+          <h3 class="etiqueta-seccion con-margen-abajo">${icono('medida')}<span>Estado del stock</span></h3>
           ${App.ESTADOS_STOCK.map(e => {
             const total = conteos.get(e.clave) || 0;
             return `
@@ -848,9 +848,9 @@ export class App {
       <div class="tarjeta">
         <div class="apilado">
           <div class="fila fila-separada con-margen-abajo">
-            <h3 class="etiqueta-seccion">🚚 Proveedores</h3>
+            <h3 class="etiqueta-seccion">${icono('proveedor')}<span>Proveedores</span></h3>
             <button id="btn-nuevo-proveedor" class="btn-principal btn-chico">
-              ${icono('mas')}<span>Nuevo</span>
+              ${icono('mas')}<span>Nuevo proveedor</span>
             </button>
           </div>
 
@@ -879,9 +879,9 @@ export class App {
                 </button>
                 <div class="fila no-crece">
                   <button class="btn-fantasma btn-icono texto-marca editar-proveedor"
-                    data-id="${escAttr(prov.id)}" aria-label="Renombrar ${escAttr(prov.nombre)}">✏️</button>
+                    data-id="${escAttr(prov.id)}" aria-label="Renombrar ${escAttr(prov.nombre)}">${icono('editar')}</button>
                   <button class="btn-fantasma btn-icono texto-peligro eliminar-proveedor"
-                    data-id="${escAttr(prov.id)}" aria-label="Sacar ${escAttr(prov.nombre)} de la lista">🗑️</button>
+                    data-id="${escAttr(prov.id)}" aria-label="Sacar ${escAttr(prov.nombre)} de la lista">${icono('eliminar')}</button>
                 </div>
               </div>
             `;
@@ -937,15 +937,15 @@ export class App {
     return `
       <article class="tarjeta tarjeta-alta" data-id="${escAttr(p.id)}" data-action="detalle"
         role="button" tabindex="0" aria-label="Ver la hoja de ${escAttr(p.nombre)}">
-        <div class="fila fila-arriba fila-amplia crece relleno-3">
+        <div class="fila fila-arriba fila-amplia crece">
           <div class="miniatura">
             ${imagenHTML}
           </div>
           <div class="crece ancho-cero columna apilado">
             <div class="ancho-cero">
               <h3 class="fuerte cortado">${esc(p.nombre)}</h3>
-              <div class="fila con-margen-arriba-chica envuelto">
-                ${precio.valor ? `<span class="detalle medio texto-marca">$${fmtPrecio(precio.valor)}/${esc(precio.unidad)}</span>` : ''}
+              <div class="datos-producto">
+                ${precio.valor ? `<span class="detalle medio texto-marca">$${fmtPrecio(precio.valor)}/${esc(precio.unidad)}</span>` : '<span class="etiqueta-tenue">Sin precio</span>'}
                 ${p.costo ? `<span class="etiqueta-tenue">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</span>` : ''}
                 <span class="js-stock-badge insignia ${stockBadgeClass}">
                   ${stockBadgeText}: ${stock}
@@ -1467,7 +1467,7 @@ export class App {
           </div>
           <div class="fila fila-amplia separador-arriba relleno-superior-2">
             <button type="button" id="btn-cat-cancelar" class="btn-secundario btn-crece">${esEdicion ? 'Cancelar' : 'Volver'}</button>
-            <button type="submit" class="btn-principal btn-crece">${esEdicion ? '💾 Guardar' : '✅ Crear'}</button>
+            <button type="submit" class="btn-principal btn-crece">${esEdicion ? `${icono('verificar')}<span>Guardar</span>` : `${icono('verificar')}<span>Crear</span>`}</button>
           </div>
         </form>
       </div>
@@ -1572,7 +1572,7 @@ export class App {
     modal.innerHTML = `
       <div class="dialogo">
         <div class="dialogo-cabecera">
-          <h2 class="titulo">${esEdicion ? '✏️ Renombrar' : '➕ Nuevo'} Proveedor</h2>
+          <h2 class="titulo">${esEdicion ? `${icono('editar')} Renombrar` : `${icono('mas')} Nuevo`} Proveedor</h2>
           <button id="cerrar-prov-modal" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
         </div>
         <form id="form-proveedor" class="dialogo-cuerpo apilado-3">
@@ -1596,7 +1596,7 @@ export class App {
           </div>
           <div class="fila fila-amplia separador-arriba relleno-superior-2">
             <button type="button" id="btn-prov-cancelar" class="btn-secundario btn-crece">${esEdicion ? 'Cancelar' : 'Volver'}</button>
-            <button type="submit" class="btn-principal btn-crece">${esEdicion ? '💾 Guardar' : '✅ Agregar'}</button>
+            <button type="submit" class="btn-principal btn-crece">${esEdicion ? `${icono('verificar')}<span>Guardar</span>` : `${icono('verificar')}<span>Agregar</span>`}</button>
           </div>
         </form>
       </div>

@@ -161,13 +161,14 @@ svg {
  *
  * Cuadrado y del tamaño del mínimo táctil, que la clase base ya no deja bajar:
  * sacar el texto ahorra ancho pero el área que se toca con el dedo sigue siendo
- * la misma.
+ * la misma. Por eso el ícono va grande: en un botón de 52px un ícono de 20px
+ * deja 16px de aire arriba y abajo y el botón se ve hueco.
  */
 .btn-icono-solo {
   width: var(--toque-min);
   height: var(--toque-min);
   padding: 0;
-  font-size: 1.25rem;
+  font-size: 1.75rem;
 }
 
 /* El ícono de los títulos y los slotted, que va más grande que el del botón. */
@@ -475,8 +476,12 @@ svg {
   border-radius: var(--radio-sm);
   background-color: var(--color-superficie);
   color: transparent;
-  font-size: var(--texto-sm);
-  font-weight: var(--grosor-fuerte);
+}
+
+.casilla-lista svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  stroke-width: 2.75;
 }
 
 .casilla-lista-marcada {
@@ -627,11 +632,19 @@ svg {
 .etiqueta-seccion {
   display: flex;
   align-items: center;
-  gap: var(--espacio-1);
+  gap: var(--espacio-2);
   margin-bottom: var(--espacio-1);
   color: var(--gris-700);
   font-size: var(--texto-sm);
   font-weight: var(--grosor-medio);
+}
+
+/* El ícono del título de sección va un poco más grande que el texto y no en
+   1em: al 1em heredaba el --texto-sm del título y quedaba más chico que la
+   palabra que acompaña. */
+.etiqueta-seccion svg {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .campo-grupo {

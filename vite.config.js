@@ -84,8 +84,8 @@ export default defineConfig({
       // precarga nada.
       includeAssets: ['favicon.ico', 'icons/icon.svg', 'icons/icon-192x192.png'],
       manifest: {
-        name: 'Stock Comercio',
-        short_name: 'Stock',
+        name: 'DepoApp',
+        short_name: 'DepoApp',
         description: 'Control de inventario local-first para comerciantes',
         // vite-plugin-pwa pone 'en' si no se dice nada, y eso es lo que algunos
         // lanzadores usan para decidir el idioma de la app instalada.

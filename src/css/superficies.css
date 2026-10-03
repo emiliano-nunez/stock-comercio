@@ -25,10 +25,33 @@
   padding: var(--espacio-3);
 }
 
+/*
+ * El bloque de datos de la tarjeta de inventario: precio, costo, estado y código.
+ *
+ * El alto está reservado a propósito. Antes esta fila era sólo una `fila
+ * envuelto` y su alto dependía de qué datos tuviera el producto: con precio y
+ * sin costo ocupaba un renglón, con los dos ocupaba dos, y con el código de
+ * barras encima. Como el botón de eliminar va después con `margin-top: auto`, la
+ * tarjeta entera cambiaba de alto según el producto, y en dos columnas los
+ * botones quedaban a distinta altura.
+ *
+ * Con el alto reservado, la fila ocupa siempre dos renglones. El precio se
+ * escribe siempre, aunque sea "Sin precio", para que el renglón no quede
+ * vacío y el bloque se vea parejo en todas las tarjetas.
+ */
+.datos-producto {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--espacio-1) var(--espacio-2);
+  min-height: 3rem;
+  margin-block-start: var(--espacio-1);
+}
+
 .miniatura {
   flex-shrink: 0;
-  width: 4rem;
-  height: 4rem;
+  width: 3.5rem;
+  height: 3.5rem;
   background-color: var(--gris-100);
   border-radius: var(--radio-lg);
   overflow: hidden;

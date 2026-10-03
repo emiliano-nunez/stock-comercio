@@ -143,8 +143,8 @@ export class HistorialModal {
         ${avisoActualizacion()}
         <div class="dialogo-pie apilado pie-suave">
           <div class="fila">
-            <button id="btn-exportar-backup" class="btn-secundario btn-crece detalle">📤 Exportar Backup</button>
-            <button id="btn-importar-backup" class="btn-principal btn-crece detalle">📥 Importar Backup</button>
+            <button id="btn-exportar-backup" class="btn-secundario btn-crece detalle">${icono('descargar')}<span>Exportar Backup</span></button>
+            <button id="btn-importar-backup" class="btn-principal btn-crece detalle">${icono('subir')}<span>Importar Backup</span></button>
           </div>
           ${limpiezaHTML}
           <input type="file" id="input-importar-backup" accept=".json,application/json" class="oculto">

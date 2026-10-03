@@ -257,84 +257,84 @@ export class ProductoForm {
         <!-- Form scrollable -->
         <form id="form-producto" class="dialogo-cuerpo apilado-3 crece">
           <!-- Foto del producto -->
-          <div>
-            <div class="etiqueta">${icono('camara')} Foto del producto</div>
-            <div class="posicionado">
-              <div id="preview-container" class="marco-foto marco-foto-vacio">
-                ${this.imagenUrl ? `
-                  <img src="${this.imagenUrl}" class="foto-llena" alt="Foto del producto">
-                  <button type="button" id="quitar-foto" class="boton-cerrar-foto" aria-label="Quitar foto">✕</button>
-                ` : `
-                  <div class="vacio">
-                    <span class="vacio-icono">${icono('camara')}</span>
-                    <p class="detalle con-margen-arriba-chica">Sin foto</p>
-                  </div>
-                `}
-              </div>
-              <div class="fila fila-corta con-margen-arriba">
-                <button
-                  type="button"
-                  id="btn-camara"
-                  class="btn-principal btn-crece fila-centro ${!camaraDisponible ? 'btn-apagado' : ''}"
-                  ${!camaraDisponible ? 'disabled' : ''}
-                  aria-label="${camaraDisponible ? 'Abrir cámara' : 'Cámara requiere HTTPS (no disponible en red local)'}"
-                >
-                  ${icono('camara')} Cámara${!camaraDisponible ? ' 🔒' : ''}
-                </button>
-                <button type="button" id="btn-galeria" class="btn-secundario btn-crece fila-centro">
-                  🖼️ Galería
-                </button>
+          <div class="form-cabecera">
+            <div class="form-foto">
+              <div class="etiqueta">${icono('camara')} Foto</div>
+              <div class="posicionado">
+                <div id="preview-container" class="marco-foto marco-foto-vacio">
+                  ${this.imagenUrl ? `
+                    <img src="${this.imagenUrl}" class="foto-llena" alt="Foto del producto">
+                    <button type="button" id="quitar-foto" class="boton-cerrar-foto" aria-label="Quitar foto">✕</button>
+                  ` : `
+                    <div class="vacio">
+                      <span class="vacio-icono">${icono('camara')}</span>
+                    </div>
+                  `}
+                </div>
+                <div class="apilado-chico con-margen-arriba">
+                  <button
+                    type="button"
+                    id="btn-camara"
+                    class="btn-secundario btn-crece ancho-entero"
+                    ${!camaraDisponible ? 'disabled' : ''}
+                    aria-label="${camaraDisponible ? 'Abrir cámara' : 'Cámara requiere HTTPS (no disponible en red local)'}"
+                  >
+                    ${icono('camara')}<span>Cámara</span>
+                  </button>
+                  <button type="button" id="btn-galeria" class="btn-secundario btn-crece ancho-entero">
+                    ${icono('galeria')}<span>Galería</span>
+                  </button>
+                </div>
+                <input type="file" id="input-galeria" accept="image/*" capture="environment" class="oculto">
               </div>
               ${!camaraDisponible ? `
-                <p class="micro apagado centro-texto con-margen-arriba-chica">🔒 La cámara requiere HTTPS. En red local usa la galería.</p>
+                <p class="micro apagado con-margen-arriba-chica">${icono('alerta')} La cámara requiere HTTPS. Usá la galería.</p>
               ` : ''}
-              <input type="file" id="input-galeria" accept="image/*" capture="environment" class="oculto">
             </div>
-          </div>
 
-          <!-- Nombre -->
-          <div>
-            <label for="nombre" class="etiqueta">📝 Nombre del producto *</label>
-            <input
-              type="text"
-              id="nombre"
-              name="nombre"
-              class="campo"
-              placeholder="Ej: Tomate Redondo"
-              value="${escAttr(this.producto?.nombre || '')}"
-              required
-              autocomplete="off"
-              autofocus
-            >
-          </div>
+            <div class="columna apilado-3 crece">
+              <div>
+                <label for="nombre" class="etiqueta">${icono('lapiz')} Nombre del producto *</label>
+                <input
+                  type="text"
+                  id="nombre"
+                  name="nombre"
+                  class="campo"
+                  placeholder="Ej: Tomate Redondo"
+                  value="${escAttr(this.producto?.nombre || '')}"
+                  required
+                  autocomplete="off"
+                  autofocus
+                >
+              </div>
 
-          <!-- Código de barras -->
-          <div>
-            <label for="codigoBarras" class="etiqueta">🏷️ Código de barras</label>
-            <div class="fila">
-              <input
-                type="text"
-                id="codigoBarras"
-                name="codigoBarras"
-                class="campo crece"
-                placeholder="Escanea o escribe"
-                value="${escAttr(this.producto?.codigoBarras || '')}"
-                autocomplete="off"
-              >
-              <button
-                type="button"
-                id="btn-escanear"
-                class="btn-secundario no-crece ${!camaraDisponible ? 'btn-apagado' : ''}"
-                style="width: 52px;"
-                ${!camaraDisponible ? 'disabled' : ''}
-                aria-label="${camaraDisponible ? 'Escanear código de barras' : 'Escáner requiere HTTPS (no disponible en red local)'}"
-              >
-                🔍${!camaraDisponible ? ' 🔒' : ''}
-              </button>
+              <div>
+                <label for="codigoBarras" class="etiqueta">${icono('etiqueta')} Código de barras</label>
+                <div class="fila">
+                  <input
+                    type="text"
+                    id="codigoBarras"
+                    name="codigoBarras"
+                    class="campo crece"
+                    placeholder="Escanea o escribe"
+                    value="${escAttr(this.producto?.codigoBarras || '')}"
+                    autocomplete="off"
+                  >
+                  <button
+                    type="button"
+                    id="btn-escanear"
+                    class="btn-secundario no-crece ${!camaraDisponible ? 'btn-apagado' : ''}"
+                    ${!camaraDisponible ? 'disabled' : ''}
+                    aria-label="${camaraDisponible ? 'Escanear código de barras' : 'Escáner requiere HTTPS (no disponible en red local)'}"
+                  >
+                    ${icono('escanear')}
+                  </button>
+                </div>
+                ${!camaraDisponible ? `
+                  <p class="micro apagado con-margen-arriba-chica">${icono('alerta')} El escáner requiere HTTPS. Escribí el código a mano.</p>
+                ` : ''}
+              </div>
             </div>
-            ${!camaraDisponible ? `
-              <p class="micro apagado centro-texto con-margen-arriba-chica">🔒 El escáner requiere HTTPS. En red local escribe el código manual.</p>
-            ` : ''}
           </div>
 
           <!-- Tipo de venta -->
@@ -380,7 +380,7 @@ export class ProductoForm {
           <div class="cuadricula-apilada">
             <div>
               <label for="stock" class="etiqueta">
-                📦 Stock actual ${tipoActual.icon}
+                ${icono('medida')} Stock actual ${tipoActual.icon}
               </label>
               <div class="fila fila-corta">
                 <button type="button" class="btn-secundario btn-cuadro" data-stock-action="decrement" aria-label="Disminuir stock">−</button>
@@ -400,7 +400,7 @@ export class ProductoForm {
 
             <div>
               <label for="stockMinimo" class="etiqueta">
-                ⚠️ Stock mínimo
+                ${icono('alerta')} Stock mínimo
               </label>
               <div class="fila fila-corta">
                 <button type="button" class="btn-secundario btn-cuadro" data-stockmin-action="decrement" aria-label="Disminuir stock mínimo">−</button>
@@ -467,7 +467,7 @@ export class ProductoForm {
                   >
                     <span class="punto-chico" style="background-color: ${escAttr(cat.color || '#64748B')}"></span>
                     <span class="medio crece">${esc(cat.nombre)}</span>
-                    <span class="casilla-lista ${categoriasElegidas.some(c => c.id === cat.id) ? 'casilla-lista-marcada' : ''}" aria-hidden="true">✓</span>
+                    <span class="casilla-lista ${categoriasElegidas.some(c => c.id === cat.id) ? 'casilla-lista-marcada' : ''}" aria-hidden="true">${icono('verificar')}</span>
                   </li>
                 `).join('')}
                 ${this.categorias.length > 0 ? `
@@ -482,7 +482,7 @@ export class ProductoForm {
 
           <!-- Costo -->
           <div>
-            <label for="costo" class="etiqueta">💵 Costo (${unidadBase})</label>
+            <label for="costo" class="etiqueta">${icono('dinero')} Costo (${unidadBase})</label>
             <div class="posicionado">
               <span class="buscador-lupa">$</span>
               <input
@@ -501,7 +501,7 @@ export class ProductoForm {
 
           <!-- Fecha -->
           <div>
-            <label for="fecha" class="etiqueta">📅 Fecha</label>
+            <label for="fecha" class="etiqueta">${icono('calendario')} Fecha</label>
             <input
               type="date"
               id="fecha"
@@ -513,11 +513,11 @@ export class ProductoForm {
 
           <!-- Calculadora de Precio -->
           <div id="calculadora-precio" class="recuadro recuadro-marca">
-            <div class="etiqueta-seccion">🧮 Calculadora de Precio</div>
+            <div class="etiqueta-seccion">${icono('calculadora')} Calculadora de Precio</div>
 
             <div class="cuadricula-apilada con-margen-abajo">
               <div>
-                <label for="ivaPorcentaje" class="etiqueta">📊 IVA %</label>
+                <label for="ivaPorcentaje" class="etiqueta">${icono('porcentaje')} IVA %</label>
                 <div class="posicionado">
                   <input
                     type="number"
@@ -536,7 +536,7 @@ export class ProductoForm {
               </div>
 
               <div>
-                <label for="margenPorcentaje" class="etiqueta">📈 Margen %</label>
+                <label for="margenPorcentaje" class="etiqueta">${icono('porcentaje')} Margen %</label>
                 <div class="posicionado">
                   <input
                     type="number"
@@ -571,7 +571,7 @@ export class ProductoForm {
 
           <!-- Precios por unidad (base + sub-unidades) -->
           <div id="precios-container">
-            <div class="etiqueta">💰 Precios por unidad</div>
+            <div class="etiqueta">${icono('dinero')} Precios por unidad</div>
             <div class="apilado" id="precios-lista">
               ${this.renderPreciosHTML(unidadBase, tipoActual, tipoActual.subUnidades)}
             </div>
@@ -580,7 +580,7 @@ export class ProductoForm {
               id="btn-agregar-precio"
               class="btn-secundario btn-ancho detalle con-margen-arriba"
             >
-              ➕ Agregar otro precio
+              ${icono('mas')}<span>Agregar otro precio</span>
             </button>
           </div>
 
@@ -591,7 +591,7 @@ export class ProductoForm {
             calculadora, y no era el último dato que completaba.
           -->
           <div>
-            <label for="proveedor" class="etiqueta">🚚 Proveedor</label>
+            <label for="proveedor" class="etiqueta">${icono('proveedor')} Proveedor</label>
             <div class="posicionado">
               <input
                 type="text"
@@ -631,7 +631,7 @@ export class ProductoForm {
             ${this.isEditing ? 'Cancelar' : 'Volver'}
           </button>
           <button type="submit" form="form-producto" class="btn-principal btn-crece">
-            ${this.isEditing ? '💾 Guardar cambios' : '✅ Agregar producto'}
+            ${this.isEditing ? `${icono('verificar')}<span>Guardar cambios</span>` : `${icono('verificar')}<span>Agregar producto</span>`}
           </button>
         </div>
       </div>
@@ -917,7 +917,7 @@ export class ProductoForm {
     modal.innerHTML = `
       <div class="dialogo">
         <div class="dialogo-cabecera">
-          <h2 class="titulo">➕ Agregar precio para</h2>
+          <h2 class="titulo">${icono('mas')}<span>Agregar precio para</span></h2>
           <button class="btn-fantasma btn-icono" id="cerrar-selector-unidad" aria-label="Cerrar">✕</button>
         </div>
         <div class="dialogo-cuerpo apilado">
@@ -961,11 +961,11 @@ export class ProductoForm {
     stockMinInput.step = step;
 
     const stockLabel = modal.querySelector('label[for="stock"]');
-    stockLabel.innerHTML = `📦 Stock actual ${tipoActual.icon}`;
+    stockLabel.innerHTML = `${icono('medida')} Stock actual ${tipoActual.icon}`;
 
     const costoLabel = modal.querySelector('label[for="costo"]');
     if (costoLabel) {
-      costoLabel.innerHTML = `💵 Costo (${unidadBase})`;
+      costoLabel.innerHTML = `${icono('dinero')} Costo (${unidadBase})`;
     }
 
     const preciosContainer = modal.querySelector('#precios-lista');
@@ -1149,7 +1149,7 @@ export class ProductoForm {
       const btnGaleria = this.modal.querySelector('#btn-galeria');
       if (btnGaleria) {
         btnGaleria.disabled = false;
-        btnGaleria.innerHTML = '🖼️ Galería';
+        btnGaleria.innerHTML = `${icono('galeria')}<span>Galería</span>`;
       }
     }
   }

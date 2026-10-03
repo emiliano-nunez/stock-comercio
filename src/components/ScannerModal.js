@@ -40,7 +40,7 @@ export class ScannerModal {
       <div class="dialogo dialogo-sin-desplazar">
         <!-- Header -->
         <div class="dialogo-cabecera">
-          <h2 class="titulo">🔍 Escanear Código</h2>
+          <h2 class="titulo">${icono('escanear')}<span>Escanear Código</span></h2>
           <button id="cerrar-scanner" class="btn-fantasma btn-icono" aria-label="Cerrar escáner">
             ✕
           </button>
@@ -213,8 +213,8 @@ export class ScannerModal {
       <p class="texto-peligro">${esc(mensaje)}</p>
       <p class="apagado">La cámara no va a servir para leer el código. Podés apagarla y escribirlo vos mismo: la app trabaja igual.</p>
       <div class="apilado">
-        <button id="btn-codigo-a-mano" class="btn-principal">⌨️ Escribir el código a mano</button>
-        ${reintentable ? '<button id="btn-reintentar-scanner" class="btn-secundario">🔄 Reintentar la cámara</button>' : ''}
+        <button id="btn-codigo-a-mano" class="btn-principal">${icono('lapiz')} Escribir el código a mano</button>
+        ${reintentable ? `<button id="btn-reintentar-scanner" class="btn-secundario">${icono('refrescar')} Reintentar la cámara</button>` : ''}
       </div>
     `;
 
