@@ -110,8 +110,16 @@
 }
 
 /*
- * En el teléfono la foto de la tarjeta de inventario achica. La del catálogo no
- * entra acá: es otra medida y ya está bien.
+ * Entre 600px y 839px la lista de productos ya va en dos columnas y la tarjeta
+ * tiene la forma de la PC: la foto achica para dejarle lugar a la información.
+ *
+ * Por debajo de 600px no aplica: ahí la tarjeta es de una sola columna con las tres
+ * piezas en un renglón, y la foto tiene columna propia y vuelve a su medida
+ * grande. Está en `.tarjeta-alta .stock-foto .miniatura` y no acá a propósito: la
+ * regla dice a qué pieza de qué tarjeta pertenece, y no depende de cuál de las
+ * dos se escriba después.
+ *
+ * La del catálogo no entra en ninguna de las dos: es otra medida y ya está bien.
  */
 @media (max-width: 839px) {
   .miniatura,
@@ -124,16 +132,57 @@
   /*
    * Los botones de la tarjeta no se estiran.
    *
-   * Llevan `btn-crece`, que es `flex: 1`, para repartirse el ancho de la fila
-   * cuando hay dos: en el escritorio eso los deja parejos. En el teléfono, con la
-   * tarjeta de una columna, cada uno se llevaba la mitad del ancho y el renglón
-   * entero parecía devoted a los botones en vez de a los datos.
+   * Llevan `btn-crece`, que es `flex: 1`, para repartirse el ancho de la fila en
+   * la PC: ahí los deja parejos. En una tarjeta angosta cada uno se llevaba la
+   * mitad del ancho y el renglón entero parecía para los botones en vez de para los
+   * datos. En el teléfono, donde van en columna, `flex: 1` los estiraría a lo alto
+   * y cada uno se llevaría media tarjeta.
    *
-   * No baja el alto táctil: siguen siendo cuadrados de 52px, que es lo que se toca
-   * con el dedo. Lo que se achica es el ancho.
+   * No baja el mínimo táctil: siguen siendo cuadrados de 52px, que es lo que se
+   * toca con el dedo. Lo que se achica es el ancho.
    */
   .acciones-tarjeta .btn-crece {
     flex: 0 0 auto;
+  }
+}
+
+/*
+ * El teléfono: la tarjeta de una columna.
+ *
+ * La foto toma el ancho de su columna, que es de 5rem, y queda cuadrada. Es la
+ * misma medida que tiene en la PC, y no agranda la tarjeta: la columna de los
+ * botones, con dos cuadrados de 52px apilados, mide 104px, y la foto con la fecha
+ * debajo llegan a 97px.
+ *
+ * La columna de la información se queda con lo que sobra, alrededor de 200px a
+ * 390px de pantalla, que es lo que necesitan el nombre y los cuatro renglones de
+ * datos.
+ */
+@media (max-width: 599px) {
+  .tarjeta-alta .stock-foto .miniatura {
+    width: 5rem;
+    height: 5rem;
+    font-size: 1.5rem;
+  }
+
+  /* La fecha va pegada abajo de la foto, no al pie de la tarjeta. */
+  .tarjeta-alta .stock-foto {
+    align-self: start;
+  }
+
+  .tarjeta-alta .stock-fecha {
+    margin-block-start: 0;
+  }
+
+  /*
+   * El aviso de la foto perdida queda en el ícono solo.
+   *
+   * Son cuatro renglones de texto en una columna de 200px, y con uno de esos
+   * productos la tarjeta quedaba dos veces más alta que las demás. El texto
+   * entero sigue en la hoja del producto, que es donde se abre al tocar la tarjeta.
+   */
+  .tarjeta-alta .nota-texto {
+    display: none;
   }
 }
 
@@ -149,10 +198,12 @@
  * lo dice.
  */
 .stock-foto {
+  grid-area: foto;
   flex-shrink: 0;
-  /* La fila del contenido es `fila-arriba`, que alinearía la columna con el
-     borde de arriba. Sin el estiramiento, la fecha queda pegada a la foto y
-     desperdicia el alto sobrante. */
+  /* Se estira a lo alto de la fila para que la fecha, que lleva `margin` de
+     arriba, baje al pie de la tarjeta y no quede pegada a la foto desperdiciando
+     el alto sobrante. En el teléfono no: ahí la columna se ajusta a la foto y a la
+     fecha, que es más corta que la de los botones. */
   align-self: stretch;
   display: flex;
   flex-direction: column;
@@ -312,14 +363,90 @@
   overflow: hidden;
 }
 
+/*
+ * La tarjeta del inventario es una grilla de tres piezas: la foto con el stock y
+ * la fecha, la información, y los botones. Las dos pantallas usan el mismo HTML y
+ * lo que cambia es el reparto.
+ *
+ * En el teléfono las tres van en un renglón -- foto | información | botones -- y
+ * por eso el alto lo manda la columna de los botones. Antes la foto y la
+ * información compartían un renglón y los botones ocupaban otro entero debajo: la
+ * tarjeta medía dos filas de alto y para llegar a borrar había que bajar hasta el
+ * final, con la foto y los datos muy lejos de los botones.
+ *
+ * En la PC vuelven a ser dos renglones: la foto y la información arriba, y los
+ * botones abajo ocupando el ancho entero. La fila de arriba crece con `1fr`, que
+ * es lo mismo que hacía antes el `margin-top: auto` de los botones.
+ *
+ * El corte va en 600px porque es donde la lista de productos pasa a dos columnas.
+ * Los dos cambios tienen que moverse juntos: con la tarjeta de una sola columna
+ * de ancho y las tres piezas al lado, la información queda de 200px y no entra
+ * ningún nombre.
+ */
 .tarjeta-alta {
   /* `min-height`, no `height`: la tarjeta tiene que llenar la fila para que los
      botones del pie queden siempre a la misma altura, pero si el contenido no
      entra tiene que poder crecer. Con `height` fijo no podía, se desbordaba y lo
      recortaba el `overflow: hidden` de la tarjeta. */
   min-height: 100%;
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) auto;
+  grid-template-areas: "foto info acciones";
+  column-gap: var(--espacio-3);
+  padding: var(--espacio-3);
+}
+
+@media (min-width: 600px) {
+  .tarjeta-alta {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      "foto      info"
+      "acciones  acciones";
+  }
+}
+
+/*
+ * La columna de la información.
+ *
+ * `min-width: 0` es lo que deja que el nombre se corte con los tres puntitos en
+ * vez de empujar la columna y desbordar la tarjeta. Los hijos se estiran al
+ * ancho de la columna, que es lo que necesita el nombre para poder cortarse.
+ */
+.tarjeta-info {
+  grid-area: info;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+}
+
+/*
+ * Los botones de la tarjeta.
+ *
+ * En el teléfono van en columna: editar arriba y borrar abajo, para que los dos
+ * entren en la pantalla sin bajar hasta el final de la tarjeta. Siguen siendo
+ * cuadrados de 52px, que es el mínimo que se toca con el dedo.
+ *
+ * En la PC vuelven a ser una fila que ocupa el ancho de la tarjeta, con el
+ * separador de siempre arriba y el relleno que lo separaba del contenido.
+ */
+.acciones-tarjeta {
+  grid-area: acciones;
+  display: flex;
+  gap: var(--espacio-2);
+}
+
+@media (max-width: 599px) {
+  .acciones-tarjeta {
+    flex-direction: column;
+  }
+}
+
+@media (min-width: 600px) {
+  .acciones-tarjeta {
+    border-block-start: 1px solid var(--color-borde-tenue);
+    padding-block-start: var(--espacio-1);
+  }
 }
 
 .tarjeta-peligro {

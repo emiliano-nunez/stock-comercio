@@ -970,7 +970,7 @@ export class App {
     const avisoFotoPerdida = p.fotoPerdida
       ? `<p class="nota-atencion fila-corta">
            <span class="no-crece">${icono('alerta')}</span>
-           <span class="cortado">Falta la foto: no se encuentra en el dispositivo</span>
+           <span class="nota-texto">Falta la foto: no se encuentra en el dispositivo</span>
          </p>`
       : '';
 
@@ -983,53 +983,43 @@ export class App {
     return `
       <article class="tarjeta tarjeta-alta" data-id="${escAttr(p.id)}" data-action="detalle"
         role="button" tabindex="0" aria-label="Ver la hoja de ${escAttr(p.nombre)}">
-        <div class="fila fila-arriba fila-amplia crece">
-          <div class="stock-foto">
-            <div class="miniatura">
-              ${imagenHTML}
-              <span class="js-stock-badge insignia insignia-pequena insignia-stock esquina-superior-derecha ${stockBadgeClass}">${stock}</span>
-            </div>
-            ${p.fecha ? `<span class="micro stock-fecha">${esc(fechaEnDia(p.fecha))}</span>` : ''}
+        <div class="stock-foto">
+          <div class="miniatura">
+            ${imagenHTML}
+            <span class="js-stock-badge insignia insignia-pequena insignia-stock esquina-superior-derecha ${stockBadgeClass}">${stock}</span>
           </div>
-          <div class="crece ancho-cero columna apilado">
-            <div class="ancho-cero">
-              <h3 class="fuerte cortado">${esc(p.nombre)}</h3>
-              <div class="datos-producto">
-                ${precio.valor ? `<span class="detalle medio texto-marca">$${fmtPrecio(precio.valor)}/${esc(precio.unidad)}</span>` : '<span class="etiqueta-tenue">Sin precio</span>'}
-                ${p.costo ? `<span class="etiqueta-tenue">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</span>` : ''}
-                <span class="micro apagado">Mín: ${stockMinimo}</span>
-                ${p.codigoBarras ? `<span class="micro tenue mono">${esc(p.codigoBarras)}</span>` : ''}
-              </div>
-              ${avisoFotoPerdida}
-            </div>
+          ${p.fecha ? `<span class="micro stock-fecha">${esc(fechaEnDia(p.fecha))}</span>` : ''}
+        </div>
+        <div class="tarjeta-info">
+          <h3 class="fuerte cortado">${esc(p.nombre)}</h3>
+          <div class="datos-producto">
+            ${precio.valor ? `<span class="detalle medio texto-marca">$${fmtPrecio(precio.valor)}/${esc(precio.unidad)}</span>` : '<span class="etiqueta-tenue">Sin precio</span>'}
+            ${p.costo ? `<span class="etiqueta-tenue">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</span>` : ''}
+            <span class="micro apagado">Mín: ${stockMinimo}</span>
+            ${p.codigoBarras ? `<span class="micro tenue mono">${esc(p.codigoBarras)}</span>` : ''}
           </div>
+          ${avisoFotoPerdida}
         </div>
         <!--
-          Las acciones van en su propia fila y no arriba en la esquina: con
-          iconos de 52px, varias en la fila del título se comen el ancho que
-          queda al lado de la miniatura y el nombre queda ilegible.
+          Las acciones son la tercera pieza de la tarjeta, al lado de la foto y de
+          la información, y no una fila aparte abajo: en el teléfono, en un solo
+          renglón, se ven la foto, los datos y los dos botones a la vez. En la PC
+          esta misma fila pasa abajo y ocupa el ancho entero, como antes.
 
           El ajuste de stock no está acá. Ocupaba dos filas y sólo hace falta
           mientras se está vendiendo o cargando un pedido; ahora vive en la
           hoja del producto, que es donde uno va a mirarlo para decidir.
 
-          mt-auto las baja al pie de la tarjeta. En dos columnas las tarjetas
-          no miden lo mismo (una con el aviso de foto perdida es más alta), y
-          sin esto los botones de cada columna quedan a distinta altura y la
-          grilla se ve despareja.
+          Ojo con los acentos graves en este comentario: vive dentro de la
+          plantilla, así que uno acá la cierra y el archivo sigue siendo
+          JavaScript válido --el verificador de sintaxis no lo nota-- pero en
+          runtime se ejecuta como código.
         -->
-        <div class="fila fila-corta acciones-tarjeta con-margen-arriba-auto separador-arriba relleno-superior-1">
+        <div class="acciones-tarjeta">
           <!--
             Este botón no se ve en el teléfono: en la hoja del producto está el
             mismo, y acá sólo sobra. La regla que lo esconde se llama
-            .duplicar-tarjeta y está en disposicion.css; el comentario de
-            arriba explica por qué la tarjeta necesita que el botón se vaya
-            para que las dos columnas entren en una pantalla angosta.
-
-            Ojo con los acentos graves: este comentario vive dentro de la
-            plantilla, así que un acento grave acá la cierra y el archivo
-            sigue siendo JavaScript válido --el verificador de sintaxis no
-            lo nota-- pero en runtime se ejecuta como código.
+            .duplicar-tarjeta y está en controles.css.
           -->
           <button class="btn-fantasma btn-crece btn-icono-solo duplicar-tarjeta" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
             ${icono('duplicar')}
