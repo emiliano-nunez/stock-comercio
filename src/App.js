@@ -1014,9 +1014,15 @@ export class App {
             <div class="fila fila-corta envuelto con-margen-arriba-auto separador-arriba relleno-superior-1">
               <!--
                 Este botón no se ve en el teléfono: en la hoja del producto está el
-                mismo, y acá sólo sobra. Ver `.duplicar-tarjeta` en el CSS, que
-                explica por qué la tarjeta necesita que el botón se vaya para que
-                las dos columnas entren en una pantalla angosta.
+                mismo, y acá sólo sobra. La regla que lo esconde se llama
+                .duplicar-tarjeta y está en disposicion.css; el comentario de
+                arriba explica por qué la tarjeta necesita que el botón se vaya
+                para que las dos columnas entren en una pantalla angosta.
+
+                Ojo con los acentos graves: este comentario vive dentro de la
+                plantilla, así que un acento grave acá la cierra y el archivo
+                sigue siendo JavaScript válido --el verificador de sintaxis no
+                lo nota-- pero en runtime se ejecuta como código.
               -->
               <button class="btn-fantasma btn-crece btn-icono-solo duplicar-tarjeta" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
                 ${icono('duplicar')}
