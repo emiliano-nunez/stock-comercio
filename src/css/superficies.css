@@ -96,15 +96,21 @@
 }
 
 /*
- * En el teléfono la miniatura achica. En dos columnas la tarjeta mide 180px y la
- * foto se comía 48 de ellos, o sea casi un tercio, y el nombre y el precio
- * quedaban en 100px. Bajarla a 36px le devuelve 12px al texto.
+ * En el teléfono la foto toma el ancho de la columna en vez de un cuadrado fijo.
+ * El ancho lo marca la fecha, que es el elemento más ancho de los tres: antes la
+ * foto se quedaba en 36px con aire a los dos lados mientras la fecha ocupaba la
+ * columna entera.
  */
 @media (max-width: 839px) {
+  .stock-foto {
+    min-width: 3.5rem;
+  }
+
   .miniatura,
   .miniatura-marca {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
     font-size: 1.1rem;
   }
 }
