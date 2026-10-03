@@ -760,7 +760,7 @@ export class App {
 
   renderCategoriasHTML() {
     return `
-      <div class="apilado-4">
+      <div class="apilado-4 bloques-columna">
         <div class="tarjeta">
           <div class="apilado">
             <div class="bloque-cabecera">

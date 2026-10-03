@@ -434,15 +434,34 @@
   display: none;
 }
 
-/*
- * La grilla del inventario va de dos columnas desde el teléfono. El
- * `minmax(0, 1fr)` es para que una tarjeta con un nombre largo no estire su
- * columna y desborde la pantalla.
- */
+/* En el teléfono las tarjetas van de una columna: a 390px una sola columna da
+   370px de ancho, y en dos quedaban en 180px con la información apretada. */
 .rejilla-inventario {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--espacio-3);
+}
+
+/*
+ * Una columna en el teléfono, dos en tablet y en pantalla ancha.
+ *
+ * Los cortes salen de lo que entra por columna, con la barra descontada:
+ *
+ *   2 columnas   600px de ventana -> tarjeta de 285px
+ *   2 columnas  1024px con barra  -> tarjeta de 353px
+ *   3 columnas  1100px con barra  -> tarjeta de 257px
+ *   4 columnas  1360px con barra  -> tarjeta de 255px
+ *
+ * Nunca baja de 255px cuando hay tres o cuatro columnas, que es lo que necesitan
+ * los tres botones de la fila de acciones más la información al lado. El número va
+ * explícito y no con `auto-fill`, porque con `auto-fill` el ancho depende del
+ * mínimo elegido y a 1920px salían siete tarjetas angostas.
+ */
+@media (min-width: 600px) {
+  .contenido .rejilla-inventario,
+  .contenido .cuadricula {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /*
@@ -603,25 +622,37 @@
   }
 
   /*
- * Las columnas de las dos grillas: dos siempre, y tres o cuatro en pantalla
- * ancha. El número va explícito y no con `auto-fill`, porque con `auto-fill` el
- * ancho de columna depende del mínimo elegido y a 1920px salían siete tarjetas
- * angostas con la información cortada.
- */
-  .contenido .rejilla-inventario,
-  .contenido .cuadricula {
+   * Los tres bloques de la pestaña de categorías --gestión, estado del stock y
+   * proveedores-- van en dos columnas desde que aparece la barra lateral, y en
+   * tres a partir de 1100px, el mismo corte que usan las tarjetas de producto.
+   *
+   * El `margin-block-start` de `.apilado-4` se anula porque en una grilla la
+   * separación la da el `gap`, y el margen corría el primer hijo de cada columna.
+   */
+  .bloques-columna {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--espacio-4);
+    align-items: start;
+  }
+
+  .bloques-columna > * + * {
+    margin-block-start: 0;
   }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1100px) {
   .contenido .rejilla-inventario,
   .contenido .cuadricula {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .bloques-columna {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
-@media (min-width: 1600px) {
+@media (min-width: 1360px) {
   .contenido .rejilla-inventario,
   .contenido .cuadricula {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -753,9 +784,10 @@
  * Cuadrículas
  * ================================================================= */
 
+/* Una columna en el teléfono, como el inventario. */
 .cuadricula {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--espacio-2);
 }
 
