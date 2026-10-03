@@ -208,7 +208,7 @@ svg {
  * a igual especificidad, gana la regla que esté más abajo en el bundle. Acá está
  * después de ella, así que alcanza con un solo nombre de clase.
  */
-@media (max-width: 767px) {
+@media (max-width: 799px) {
   .duplicar-tarjeta {
     display: none;
   }

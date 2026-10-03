@@ -497,25 +497,25 @@
  * búsqueda y las pestañas no se van cuando se baja en la lista.
  *
  * El corte se calcula, no se elige a ojo. La barra lateral entra en el momento en
- * que todavía queda lugar para DOS columnas de tarjetas, y no antes: si entra
- * antes, la ventana queda partida en 288px de barra y una sola tarjeta al lado,
- * que es peor que no tener barra.
+ * que todavía quedan DOS tarjetas de ancho cómodo al lado, y no antes: si entra
+ * antes las tarjetas se angostan, los tres botones de 52px no entran en su fila y
+ * `.tarjeta`, que tiene `overflow: hidden`, se come el último.
  *
  * La cuenta, con los valores de las variables:
  *
- *   barra lateral                 18rem        = 288px
- *   relleno del contenido         0.625rem x 2 =  20px
- *   separación entre columnas     0.625rem     =  10px
- *   ancho mínimo de una tarjeta   13rem        = 208px
+ *   tres botones de 52px          = 156px
+ *   dos separaciones de 6px       =  12px   -> 168px de fila
+ *   relleno y borde de la tarjeta =  22px   -> 190px, el mínimo pelado
+ *   con aire, una tarjeta         = 240px
  *
- *   dos columnas = 208 x 2 + 10                  = 426px de contenido
- *   426 + 20 + 288                              = 734px de ventana
+ *   dos columnas = 240 x 2 + 10                  = 490px de contenido
+ *   490 + 20 de relleno + 288 de barra           = 798px de ventana
  *
- * El corte va en 768px, el valor redondo más cercano por encima de los 734px que
- * da la cuenta. A 768 entran dos columnas de 225px; por debajo de eso el header
- * sigue siendo el de teléfono, que le da toda la ventana a la lista.
+ * El corte va en 800px: a esa ventana las tarjetas miden 241px y cada botón 69px.
+ * Por debajo el header sigue siendo el de teléfono, que le da toda la ventana a la
+ * lista.
  */
-@media (min-width: 768px) {
+@media (min-width: 800px) {
   .app {
     display: grid;
     grid-template-columns: 18rem 1fr;
