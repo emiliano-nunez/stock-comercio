@@ -248,9 +248,7 @@ export class ProductoForm {
       <div class="dialogo dialogo-ancho dialogo-columna">
         <!-- Header -->
         <div class="dialogo-cabecera dialogo-cabecera-fija">
-          <h2 class="titulo">
-            ${this.isEditing ? '✏️ Editar Producto' : '➕ Nuevo Producto'}
-          </h2>
+          <h2 class="titulo titulo-icono">${icono(this.isEditing ? 'editar' : 'mas')}<span>${this.isEditing ? 'Editar Producto' : 'Nuevo Producto'}</span></h2>
           <button id="cerrar-form" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
         </div>
 
@@ -1414,48 +1412,53 @@ export class ProductoForm {
     const principal = subs.find(s => s.value === unidadPrincipalGuardada) || subs[0];
     const baseUnidad = principal.value;
     const baseLabel = principal.label;
-    const baseIcon = principal.icon;
 
     const precioBase = precios.find(p => p.unidad === baseUnidad) || { valor: this.producto?.precio || 0 };
     const otrosPrecios = precios.filter(p => p.unidad !== baseUnidad);
 
     let html = `
-      <div class="con-margen-abajo">
-        <label for="unidad-principal" class="etiqueta">⭐ Unidad en la que se muestra el precio</label>
-        <p class="micro tenue con-margen-abajo-chica">El precio que ves en el catálogo y en el pedido. El stock siempre se lleva en ${esc(tipoActual.unidadBase)}.</p>
-        <select id="unidad-principal" name="unidadPrincipal" class="campo detalle">
-          ${subs.map(s => `
-            <option value="${escAttr(s.value)}" ${s.value === baseUnidad ? 'selected' : ''}>${esc(s.icon)} ${esc(s.label)}</option>
-          `).join('')}
-        </select>
+      <div class="precios-cabecera">
+        <div class="columna apilado-2">
+          <div>
+            <label for="unidad-principal" class="etiqueta">${icono('verificar')} Unidad que se ve en el catálogo</label>
+            <select id="unidad-principal" name="unidadPrincipal" class="campo detalle">
+              ${subs.map(s => `
+                <option value="${escAttr(s.value)}" ${s.value === baseUnidad ? 'selected' : ''}>${esc(s.label)}</option>
+              `).join('')}
+            </select>
+          </div>
+          <p class="micro tenue">El stock siempre se lleva en ${esc(tipoActual.unidadBase)}, sin convertir.</p>
+        </div>
+
+        <div class="columna apilado-2">
+          <div>
+            <label for="precio_${escAttr(baseUnidad)}" class="etiqueta">${icono('dinero')} Precio final</label>
+            <div class="posicionado">
+              <span class="buscador-lupa">$</span>
+              <input
+                type="number"
+                id="precio_${escAttr(baseUnidad)}"
+                name="precio_${baseUnidad}"
+                class="campo campo-con-icono fuerte"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                value="${precioBase.valor || ''}"
+                inputmode="decimal"
+              >
+            </div>
+          </div>
+          <p class="micro tenue">Se muestra como ${esc(baseLabel)} en el catálogo y en el pedido.</p>
+        </div>
       </div>
 
-      <!-- Precio base (unidad principal) -->
-      <div class="precio-item fila" data-unidad="${escAttr(baseUnidad)}">
-        <span class="mediano">${esc(baseIcon)}</span>
-        <span class="detalle medio crece">${esc(baseLabel)}</span>
-        <div class="posicionado crece">
-          <span class="buscador-lupa">$</span>
-          <input
-            type="number"
-            name="precio_${baseUnidad}"
-            class="campo campo-con-icono fuerte"
-            step="0.01"
-            min="0"
-            placeholder="0.00"
-            value="${precioBase.valor || ''}"
-            inputmode="decimal"
-          >
-        </div>
-        <span class="micro medio texto-marca">(principal)</span>
-      </div>
+      <p class="etiqueta-seccion con-margen-arriba">${icono('medida')}<span>Los otros precios</span></p>
     `;
 
     for (const sub of subs.filter(s => s.value !== baseUnidad)) {
       const precioSub = otrosPrecios.find(p => p.unidad === sub.value) || { valor: 0 };
       html += `
         <div class="precio-item fila" data-unidad="${escAttr(sub.value)}">
-          <span class="mediano">${esc(sub.icon)}</span>
           <span class="detalle medio crece">${esc(sub.label)}</span>
           <div class="posicionado crece">
             <span class="buscador-lupa">$</span>

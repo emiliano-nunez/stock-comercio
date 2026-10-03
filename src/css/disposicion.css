@@ -81,6 +81,34 @@
  * El `margin-bottom` del título lo pone la fila y no el título, para que el
  * botón no quede descentrado respecto de la palabra.
  */
+/*
+ * Los dos precios de arriba del formulario: a la izquierda la unidad que se ve
+ * en el catálogo, a la derecha el precio final de esa unidad.
+ *
+ * Antes era una lista vertical donde la unidad elegida y el campo de su precio
+ * quedaban separados por los precios de las demás unidades, y había que
+ * acordarse de cuál era cuál. Ahora la elección y su campo están juntos, que es
+ * lo único que se necesita para escribir el precio que se ve.
+ *
+ * En 340px, donde no entran dos campos de lado, se apilan.
+ */
+.precios-cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-4);
+}
+
+.precios-cabecera > * {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 340px) {
+  .precios-cabecera {
+    flex-direction: column;
+  }
+}
+
 .bloque-cabecera {
   display: flex;
   align-items: center;
@@ -298,7 +326,7 @@
 @media (min-width: 1024px) {
   .app {
     display: grid;
-    grid-template-columns: 15rem 1fr;
+    grid-template-columns: 18rem 1fr;
     grid-template-rows: 100vh;
     max-width: none;
     margin-inline: 0;
@@ -327,7 +355,15 @@
     border-top: none;
   }
 
+  /*
+   * `flex: 1` viene de la base y sirve para que en horizontal las tres
+   * pestañas ocupen el mismo ancho. Al girar a vertical, ese mismo `flex: 1`
+   * las estira en ALTO: las empuja al pie de la barra y desborda el alto
+   * disponible, que es de donde salía el scroll de la barra lateral. Acá se
+   * anula para que cada pestaña tome sólo su alto.
+   */
   .pestana {
+    flex: 0 0 auto;
     justify-content: flex-start;
     gap: var(--espacio-3);
     padding-inline: var(--espacio-3);

@@ -309,7 +309,7 @@ export class App {
                 type="search"
                 id="buscador"
                 class="campo buscador-campo"
-                placeholder="Buscar por nombre o código..."
+                placeholder="Buscar producto..."
                 value="${escAttr(this.busqueda)}"
               >
               <span class="buscador-lupa">${icono('buscar')}</span>
