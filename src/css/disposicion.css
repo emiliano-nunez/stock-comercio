@@ -279,16 +279,101 @@
 }
 
 /*
- * En pantalla ancha, una tercera columna.
+ * En pantalla ancha, barra lateral en vez de cabecera.
  *
- * La app mide 48rem y a los 768px entran dos tarjetas de paso. A partir de las
- * 1200px de pantalla sobra el ancho de una tercera, y sin esto la grilla queda
- * con un hueco vacío a la derecha mientras la tarjeta crece. Con tres columnas
- * se ven hasta un 50% más productos sin achicar nada.
+ * En el teléfono la cabecera va arriba y la app se lee scrolleando. En una
+ * pantalla de PC eso dejaba dos problemas: la app estaba centrada en una
+ * columna de 48rem con un vacío grande a cada lado, y la cabecera con la
+ * búsqueda y las pestañas ocupaba ancho en el sentido más caro —el vertical—
+ * mientras se dejaba el horizontal sin usar.
+ *
+ * Con la cabecera como columna lateral, el ancho que sobraba pasa a la grilla:
+ * la barra queda siempre a la vista, sin scrollear, y la lista de productos usa
+ * todo el resto de la pantalla. Cada columna scrollea por su lado, así que la
+ * búsqueda y las pestañas no se van cuando se baja en la lista.
+ *
+ * El corte está en 1024px porque por debajo el contenido se queda sin ancho
+ * para dos tarjetas y la barra le roba demasiado a la lista.
  */
-@media (min-width: 1200px) {
+@media (min-width: 1024px) {
+  .app {
+    display: grid;
+    grid-template-columns: 15rem 1fr;
+    grid-template-rows: 100vh;
+    max-width: none;
+    margin-inline: 0;
+    overflow: hidden;
+  }
+
+  .cabecera {
+    border-bottom: none;
+    border-right: 1px solid var(--color-borde-tenue);
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .cabecera-cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-4);
+    height: 100%;
+  }
+
+  /* Las pestañas pasan a ser una lista vertical y la elegida se marca con el
+     borde de la izquierda, que es el borde que toca el contenido. */
+  .pestanas {
+    flex-direction: column;
+    border-top: none;
+  }
+
+  .pestana {
+    justify-content: flex-start;
+    gap: var(--espacio-3);
+    padding-inline: var(--espacio-3);
+    border-bottom: none;
+    border-left: 3px solid transparent;
+    border-radius: 0;
+  }
+
+  .pestana-activa {
+    border-left-color: var(--color-marca);
+  }
+
+  .contenido {
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  /* El botón flotante estaba pegado al borde de la columna angosta; con la
+     barra lateral el contenido ya llega hasta el borde de la ventana. */
+  .boton-flotante {
+    right: var(--espacio-6);
+  }
+}
+
+/*
+ * Las columnas de la grilla, con la barra lateral ya descontada del ancho.
+ *
+ * Los cortes están en la misma proporción: a 1024 la barra se queda 15rem y
+ * quedan unos 784px de contenido, que es lo que entra cómodo en dos tarjetas de
+ * inventario o cuatro de catálogo.
+ */
+@media (min-width: 1400px) {
   .rejilla-inventario {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .rejilla {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (min-width: 1800px) {
+  .rejilla-inventario {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .rejilla {
+    grid-template-columns: repeat(6, 1fr);
   }
 }
 
