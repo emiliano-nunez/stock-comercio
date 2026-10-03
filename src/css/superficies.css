@@ -966,7 +966,7 @@
  *
  * Son los mensajes que aparecen y se van solos ("Producto guardado", "No se
  * pudo eliminar"). Los arma toast.js y se apilan solos en una columna pegada
- * abajo.
+ * arriba, al medio de la pantalla.
  *
  * El contenedor NO se puede tocar, aunque los avisos sí: hace falta para que el
  * dedo pueda seguir bajando por la lista mientras hay un aviso en pantalla, y
@@ -997,24 +997,19 @@
   pointer-events: none;
 }
 
-/* En pantalla ancha la pila toma un ancho fijo y se mantiene centrada con los
-   márgenes automático, para que los avisos no se estiren de lado a lado. */
-@media (min-width: 768px) {
-  .pila-avisos {
-    left: auto;
-    right: auto;
-    width: 24rem;
-    margin-inline: auto;
-  }
-}
-
 /* Todos los avisos son la misma caja: fondo blanco, la misma sombra y la misma
    forma. Lo único que cambia es el color del riel de la izquierda y el del
    texto, que es lo que dice si la operación salió bien o salió mal. Antes cada
    tipo tenía su propio fondo de color y con cuatro avisos juntos se leía como
-   cuatro pantallas distintas. */
+   cuatro pantallas distintas.
+
+   El ancho lo toma el texto y no el de la pila. Con `width: 100%` cada aviso
+   ocupaba de borde a borde, y `align-items: center` no centrába nada porque una
+   caja del ancho de la fila ya está en el medio: el renglón quedaba pegado al
+   borde y se leía como una banda, no como un aviso. */
 .aviso {
-  width: 100%;
+  width: fit-content;
+  max-width: 24rem;
   padding: var(--espacio-3) var(--espacio-4);
   border-radius: var(--radio-lg);
   border: 1px solid var(--color-borde);
@@ -1035,16 +1030,6 @@
   flex-direction: column;
   align-items: stretch;
   gap: var(--espacio-3);
-}
-
-@media (min-width: 768px) {
-  .aviso-con-boton {
-    max-width: 24rem;
-  }
-}
-
-.aviso-sin-boton {
-  max-width: var(--tope-foto);
 }
 
 /* =================================================================

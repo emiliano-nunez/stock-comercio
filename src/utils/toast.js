@@ -40,7 +40,7 @@ export class ToastManager {
 
     const toast = document.createElement('div');
 
-    toast.className = `aviso anim-aviso-entra ${colores[type] || colores.info} ${action ? 'aviso-con-boton' : 'aviso-sin-boton'}`;
+    toast.className = `aviso anim-aviso-entra ${colores[type] || colores.info}${action ? ' aviso-con-boton' : ''}`;
 
     // El mensaje suele traer el nombre de un producto, que es dato del usuario, así
     // que va escapado antes de entrar en el HTML.
