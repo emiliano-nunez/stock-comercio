@@ -20,9 +20,17 @@ import { writeFileSync } from 'node:fs';
 const TAM = 96;
 const RADIO = 18;
 
-// El mismo verde del icono de la app.
-const VERDE_A = [0x16, 0xa3, 0x4a];
-const VERDE_B = [0x15, 0x80, 0x3d];
+/*
+ * El mismo verde del icono de la app: el degradado va de `verde-100` a
+ * `verde-200`, que es el fondo de la cabecera.
+ *
+ * La marca va en verde oscuro y no en blanco: sobre el verde claro el blanco
+ * queda en 1.2 a 1 y no se ve. `marcaOscura` es el replacement de `blanco` en las
+ * dos funciones de abajo.
+ */
+const VERDE_A = [0xdc, 0xfc, 0xe7];
+const VERDE_B = [0xbb, 0xf7, 0xd0];
+const MARCA = [0x14, 0x53, 0x2d];
 
 const px = new Uint8Array(TAM * TAM * 4);
 
@@ -57,7 +65,7 @@ const fondo = () => {
   }
 };
 
-const blanco = (x, y) => pintar(x, y, 0xff, 0xff, 0xff);
+const marca = (x, y) => pintar(x, y, ...MARCA);
 const rect = (x0, y0, w, h, fn) => {
   for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) fn(x, y);
 };
@@ -66,17 +74,17 @@ const rect = (x0, y0, w, h, fn) => {
 const marcaEscanear = () => {
   // Las barras, de ancho variable como las de un EAN de verdad.
   const barras = [[26, 3], [32, 5], [40, 2], [45, 4], [52, 2], [58, 6], [67, 3]];
-  for (const [x, w] of barras) rect(x, 26, w, 44, blanco);
+  for (const [x, w] of barras) rect(x, 26, w, 44, marca);
   // La línea de lectura, más fina y con los cabezales a los costados.
-  rect(22, 56, 52, 3, blanco);
-  rect(22, 50, 3, 6, blanco);
-  rect(71, 50, 3, 6, blanco);
+  rect(22, 56, 52, 3, marca);
+  rect(22, 50, 3, 6, marca);
+  rect(71, 50, 3, 6, marca);
 };
 
 /** El acceso directo de agregar: un más con la misma traza. */
 const marcaMas = () => {
-  rect(42, 24, 12, 48, blanco);
-  rect(24, 42, 48, 12, blanco);
+  rect(42, 24, 12, 48, marca);
+  rect(24, 42, 48, 12, marca);
 };
 
 /* ---------------------------------------------------------------- PNG ---- */

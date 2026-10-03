@@ -101,7 +101,11 @@ export default defineConfig({
         // vite-plugin-pwa pone 'en' si no se dice nada, y eso es lo que algunos
         // lanzadores usan para decidir el idioma de la app instalada.
         lang: 'es',
-        theme_color: '#16a34a',
+        // El color de la barra del sistema y del splash tienen que ser el verde
+        // de la cabecera, que es el mismo degradado que el ícono. Con el verde
+        // oscuro anterior, la barra del navegador en el celular instalado salía
+        // oscura encima de una cabecera clara.
+        theme_color: '#bbf7d0',
         background_color: '#f0fdf4',
         display: 'standalone',
         orientation: 'portrait',
