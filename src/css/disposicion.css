@@ -463,12 +463,32 @@
  * todo el resto de la pantalla. Cada columna scrollea por su lado, así que la
  * búsqueda y las pestañas no se van cuando se baja en la lista.
  *
- * El corte está en 900px. A 1024 la barra lateral no entraba en muchas ventanas
- * de PC: una ventana angosta, o una pantalla grande con el zoom del navegador
- * subido, cuenta con menos píxeles de los que tiene y caía al header de celular,
- * que es lo contrario de lo que se pidió.
+ * El corte se calcula, no se elige a ojo. La barra lateral entra en el momento en
+ * que todavía queda lugar para DOS columnas de tarjetas, y no antes: si entra
+ * antes, la ventana queda partida en 288px de barra y una sola tarjeta al lado,
+ * que es peor que no tener barra.
+ *
+ * La cuenta, con los valores de las variables:
+ *
+ *   barra lateral                 18rem   = 288px
+ *   relleno del contenido         0.625rem x 2  =  20px
+ *   separación entre columnas     0.625rem      =  10px
+ *   ancho mínimo de una tarjeta   13rem         = 208px
+ *
+ *   dos columnas = 208 x 2 + 10                    = 426px de contenido
+ *   426 + 20 + 288                                = 734px de ventana
+ *
+ * El corte va en 768px, que es el valor redondo más cercano por encima de los
+ * 734px que da la cuenta. Por debajo de eso el header sigue siendo el de
+ * teléfono, que aprovecha toda la ventana para las tarjetas.
+ *
+ * A 900px, que era el corte anterior, la barra entraba igual pero la ventana
+ * quedaba partida en 288px de barra y dos columnas de más de 290px, con el
+ * resto en blanco. Bajarlo a 768 cambia la cuenta de otra manera: la barra
+ * aparece en ventanas más angostas, y como ahí sobra menos ancho, las columnas
+ * quedan más angostas también y no queda una sola al lado de la barra.
  */
-@media (min-width: 900px) {
+@media (min-width: 768px) {
   .app {
     display: grid;
     grid-template-columns: 18rem 1fr;
