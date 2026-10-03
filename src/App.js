@@ -1002,44 +1002,44 @@ export class App {
               </div>
               ${avisoFotoPerdida}
             </div>
-            <!--
-              Las acciones van en su propia fila y no arriba en la esquina: con
-              iconos de 52px, varias en la fila del título se comen el ancho que
-              queda al lado de la miniatura y el nombre queda ilegible.
-
-              El ajuste de stock no está acá. Ocupaba dos filas y sólo hace falta
-              mientras se está vendiendo o cargando un pedido; ahora vive en la
-              hoja del producto, que es donde uno va a mirarlo para decidir.
-
-              mt-auto las baja al pie de la tarjeta. En dos columnas las tarjetas
-              no miden lo mismo (una con el aviso de foto perdida es más alta), y
-              sin esto los botones de cada columna quedan a distinta altura y la
-              grilla se ve despareja.
-            -->
-            <div class="fila fila-corta con-margen-arriba-auto separador-arriba relleno-superior-1">
-              <!--
-                Este botón no se ve en el teléfono: en la hoja del producto está el
-                mismo, y acá sólo sobra. La regla que lo esconde se llama
-                .duplicar-tarjeta y está en disposicion.css; el comentario de
-                arriba explica por qué la tarjeta necesita que el botón se vaya
-                para que las dos columnas entren en una pantalla angosta.
-
-                Ojo con los acentos graves: este comentario vive dentro de la
-                plantilla, así que un acento grave acá la cierra y el archivo
-                sigue siendo JavaScript válido --el verificador de sintaxis no
-                lo nota-- pero en runtime se ejecuta como código.
-              -->
-              <button class="btn-fantasma btn-crece btn-icono-solo duplicar-tarjeta" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
-                ${icono('duplicar')}
-              </button>
-              <button class="btn-fantasma btn-crece btn-icono-solo" data-action="edit" data-id="${escAttr(p.id)}" aria-label="Editar ${escAttr(p.nombre)}">
-                ${icono('editar')}
-              </button>
-              <button class="btn-fantasma btn-crece btn-icono-solo texto-peligro" data-action="delete" data-id="${escAttr(p.id)}" aria-label="Eliminar ${escAttr(p.nombre)}">
-                ${icono('eliminar')}
-              </button>
-            </div>
           </div>
+        </div>
+        <!--
+          Las acciones van en su propia fila y no arriba en la esquina: con
+          iconos de 52px, varias en la fila del título se comen el ancho que
+          queda al lado de la miniatura y el nombre queda ilegible.
+
+          El ajuste de stock no está acá. Ocupaba dos filas y sólo hace falta
+          mientras se está vendiendo o cargando un pedido; ahora vive en la
+          hoja del producto, que es donde uno va a mirarlo para decidir.
+
+          mt-auto las baja al pie de la tarjeta. En dos columnas las tarjetas
+          no miden lo mismo (una con el aviso de foto perdida es más alta), y
+          sin esto los botones de cada columna quedan a distinta altura y la
+          grilla se ve despareja.
+        -->
+        <div class="fila fila-corta con-margen-arriba-auto separador-arriba relleno-superior-1">
+          <!--
+            Este botón no se ve en el teléfono: en la hoja del producto está el
+            mismo, y acá sólo sobra. La regla que lo esconde se llama
+            .duplicar-tarjeta y está en disposicion.css; el comentario de
+            arriba explica por qué la tarjeta necesita que el botón se vaya
+            para que las dos columnas entren en una pantalla angosta.
+
+            Ojo con los acentos graves: este comentario vive dentro de la
+            plantilla, así que un acento grave acá la cierra y el archivo
+            sigue siendo JavaScript válido --el verificador de sintaxis no
+            lo nota-- pero en runtime se ejecuta como código.
+          -->
+          <button class="btn-fantasma btn-crece btn-icono-solo duplicar-tarjeta" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
+            ${icono('duplicar')}
+          </button>
+          <button class="btn-fantasma btn-crece btn-icono-solo" data-action="edit" data-id="${escAttr(p.id)}" aria-label="Editar ${escAttr(p.nombre)}">
+            ${icono('editar')}
+          </button>
+          <button class="btn-fantasma btn-crece btn-icono-solo texto-peligro" data-action="delete" data-id="${escAttr(p.id)}" aria-label="Eliminar ${escAttr(p.nombre)}">
+            ${icono('eliminar')}
+          </button>
         </div>
       </article>
     `;
