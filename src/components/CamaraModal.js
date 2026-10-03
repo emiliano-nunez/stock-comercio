@@ -8,10 +8,8 @@ export class CamaraModal {
     this.stream = null;
     this.videoElement = null;
     this.modal = null;
-    this.facingMode = 'environment'; // Cámara trasera por defecto
   }
   
-  // Crear y mostrar el modal
   async abrir() {
     this.modal = this.crearModal();
     document.body.appendChild(this.modal);
@@ -27,7 +25,6 @@ export class CamaraModal {
     }
   }
   
-  // Crear estructura del modal
   crearModal() {
     const modal = document.createElement('div');
     modal.className = 'velo';
@@ -97,7 +94,6 @@ export class CamaraModal {
       });
     });
     
-    // Cerrar al tocar fuera del contenido
     modal.addEventListener('click', (e) => {
       if (e.target === modal) this.cerrar();
     });
@@ -106,9 +102,7 @@ export class CamaraModal {
     return modal;
   }
   
-  // Iniciar stream de cámara
   async iniciarCamara() {
-    // Verificar si estamos en contexto seguro (HTTPS o localhost)
     const esContextoSeguro = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     
     if (!esContextoSeguro) {
@@ -142,37 +136,30 @@ export class CamaraModal {
     }
   }
   
-  // Cambiar entre cámara frontal/trasera
   async cambiarCamara() {
     const anterior = this.facingMode;
     this.facingMode = this.facingMode === 'environment' ? 'user' : 'environment';
     
-    // Detener stream actual
     this.stream?.getTracks().forEach(track => track.stop());
     this.stream = null;
     
     try {
       await this.iniciarCamara();
     } catch (error) {
-      // Si la nueva cámara no arranca, se vuelve a la anterior para no dejar
-      // el visor en negro sin cámara.
       this.facingMode = anterior;
       try {
         await this.iniciarCamara();
       } catch {
-        // La original tampoco funciona: se propaga el error original.
       }
       throw error;
     }
   }
   
-  // Capturar foto
   async capturar() {
     if (!this.videoElement || this.videoElement.readyState < 2) {
       throw new Error('La cámara no está lista');
     }
     
-    // Deshabilitar botón durante captura
     const btnCapturar = this.modal.querySelector('#capturar-foto');
     btnCapturar.disabled = true;
     btnCapturar.innerHTML = '⏳ Procesando...';
@@ -180,9 +167,6 @@ export class CamaraModal {
     try {
       const blob = await imagenUtils.capturarDeVideo(this.videoElement);
       
-      // Guardar en IndexedDB, con miniatura para el catálogo.
-      // guardado siga siendo una sola operación desde el punto de vista del
-      // usuario: cuando se le avisa, la foto ya está lista para usarse.
       const imagenId = dbUtils.generarId('img');
       const thumb = await imagenUtils.crearThumb(blob);
       await dbUtils.guardarImagen(imagenId, blob, thumb);
@@ -192,7 +176,6 @@ export class CamaraModal {
       // es un cuadrado de ~320px y la miniatura de 200px se vería borroso.
       const imagenUrl = imagenUtils.crearObjectURL(blob);
       
-      // Cerrar modal y notificar
       this.cerrar();
       this.onCapture({ imagenId, imagenUrl, blob });
       
@@ -205,7 +188,6 @@ export class CamaraModal {
     }
   }
   
-  // Cerrar modal y limpiar recursos
   cerrar() {
     if (this.stream) {
       this.stream.getTracks().forEach(track => track.stop());
@@ -226,7 +208,6 @@ export class CamaraModal {
   }
 }
 
-// Función helper para usar fácilmente
 export async function abrirCamara(onCapture) {
   const camara = new CamaraModal(onCapture);
   await camara.abrir();

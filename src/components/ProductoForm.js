@@ -12,18 +12,12 @@ export class ProductoForm {
     this.onSave = onSave;
     this.onClose = onClose;
     this.producto = producto;
-    // Se invoca al tocar "Ver en el inventario" en el aviso de que el código ya
-    // existe. Recibe el código, no el producto: lo que se hace es buscar, y si
-    // el índice no es único puede haber más de uno con ese código.
     this.onBuscarCodigo = onBuscarCodigo;
     // Se invoca cuando el usuario borra un producto en conflicto desde el
     // diálogo de código repetido. Pasa por la app y no por dbUtils directo para
     // que el borrado deje punto de restauración, ofrezca deshacer y recargue la
     // lista vieja y el producto volvería a aparecer al cancelar el formulario.
     this.onBorrarProducto = onBorrarProducto;
-    // Editar = el producto ya existe en la BD (tiene id). Puede pasarse un
-    // producto "semilla" sin id (p.ej. para pre-cargar un código escaneado):
-    // en ese caso es un alta, no un update.
     this.isEditing = !!producto?.id;
     this.imagenId = producto?.imagenId || null;
     // El catálogo pinta con MINIATURAS (200px) para no gastar RAM, así que el
@@ -31,9 +25,6 @@ export class ProductoForm {
     // formulario es un cuadrado de ~320px, así que con la miniatura se vería
     // borroso: al abrir se carga la imagen completa (cargarImagenCompleta).
     this.imagenUrl = producto?.imagenUrl || null;
-    // Marca de propiedad del ObjectURL. Sin esto, quitarFoto() revocaba la URL
-    // la siguiente recarga: el catálogo es dueño de sus URLs y las revoca
-    // revocarImagenes() al recargar; el formulario sólo puede revocar las suyas.
     this._imagenUrlPropia = false;
     this.modal = null;
     this.tipoVenta = producto?.tipoVenta || 'unidad';
@@ -42,7 +33,6 @@ export class ProductoForm {
     this.camaraDisponible = window.isSecureContext
       || location.hostname === 'localhost'
       || location.hostname === '127.0.0.1';
-    // Gestiona los listeners de document que se registran al abrir el formulario
     this._outsideClick = new AbortController();
     // Ids de imágenes creadas durante esta sesión del formulario. Si el usuario
     // cancela en vez de guardar, quedan huérfanas en db.imagenes para siempre
@@ -71,7 +61,6 @@ export class ProductoForm {
     await new Promise(r => requestAnimationFrame(r));
     this.modal.querySelector('#nombre').focus();
     
-    // Manejar tecla Escape
     this.handleKeydown = (e) => {
       if (e.key === 'Escape') this.cerrar();
     };
@@ -140,8 +129,6 @@ export class ProductoForm {
       campo.focus();
     };
 
-    // Un solo carácter ya filtra más de la mitad de la lista, así que no se
-    // espera más que eso.
     const MINIMO = 2;
     const MAXIMO = 6;
 
@@ -164,8 +151,6 @@ export class ProductoForm {
         return;
       }
 
-      // El que está escrito exacto va primero: si ya lo escribió entero,
-      // probablemente quiere ése y no otro que lo contiene.
       const exacto = encontrados.findIndex(n => normalizarTexto(n) === escrito);
       if (exacto > 0) {
         const [primero] = encontrados.splice(exacto, 1);
@@ -226,15 +211,11 @@ export class ProductoForm {
     
     try {
       const img = await db.imagenes.get(this.producto.imagenId);
-      // Siempre la imagen completa, tenga miniatura o no: la miniatura es para
-      // las tarjetas del catálogo, que son de 64-80px.
       if (!img?.blob) return;
       
       this.imagenUrl = imagenUtils.crearObjectURL(img.blob);
       this._imagenUrlPropia = true;
     } catch (error) {
-      // Si falla, el preview sigue mostrando la miniatura del catálogo: es
-      // mejor eso que un formulario sin foto.
       console.error('No se pudo cargar la imagen completa del producto:', error);
     }
   }
@@ -261,8 +242,6 @@ export class ProductoForm {
     const step = tipoActual.step;
     const unidadBase = tipoActual.unidadBase || 'unid';
     const stockInicial = this.producto?.stock || 0;
-    // Stock mínimo por defecto: 1 para productos que se venden a peso, 5 para el resto.
-    // 'peso' no es un valor de TIPOS_VENTA (son peso_kg / peso_100g / peso_500g).
     const stockMinInicial = this.producto?.stockMinimo
       ?? (this.tipoVenta.startsWith('peso') ? 1 : 5);
     const costoInicial = this.producto?.costo || '';
@@ -660,7 +639,6 @@ export class ProductoForm {
       </div>
     `;
     
-    // Event listeners
     this.bindEvents(modal);
     return modal;
   }
@@ -670,7 +648,6 @@ export class ProductoForm {
     
     this.bindProveedor(modal);
     
-    // Cerrar
     modal.querySelector('#cerrar-form').addEventListener('click', () => this.cerrar());
     modal.querySelector('#btn-cancelar').addEventListener('click', () => this.cerrar());
     
@@ -693,7 +670,6 @@ export class ProductoForm {
     // llamaba a this.cambiarTipoVenta(), un método que no existe en la clase:
     // si algún día aparecía un data-tipo, reventaría con TypeError.
     
-    // Stock botones
     modal.querySelectorAll('[data-stock-action]').forEach(btn => {
       btn.addEventListener('click', () => this.ajustarStock(btn.dataset.stockAction));
     });
@@ -702,10 +678,8 @@ export class ProductoForm {
       btn.addEventListener('click', () => this.ajustarStockMin(btn.dataset.stockminAction));
     });
     
-    // Cámara
     modal.querySelector('#btn-camara').addEventListener('click', () => this.abrirCamara());
     
-    // Galería
     modal.querySelector('#btn-galeria').addEventListener('click', () => {
       modal.querySelector('#input-galeria').click();
     });
@@ -715,13 +689,11 @@ export class ProductoForm {
       e.target.value = '';
     });
     
-    // Quitar foto
     const btnQuitar = modal.querySelector('#quitar-foto');
     if (btnQuitar) {
       btnQuitar.addEventListener('click', () => this.quitarFoto());
     }
     
-    // Escanear código
     const btnEscanear = modal.querySelector('#btn-escanear');
     if (btnEscanear) {
       btnEscanear.addEventListener('click', () => {
@@ -733,16 +705,12 @@ export class ProductoForm {
       });
     }
     
-    // Calculadora de Precio
     this.inicializarCalculadoraPrecio(modal);
     
-    // Precios dinámicos
     this.configurarEventosPrecios(modal);
     
-    // Submit form
     form.addEventListener('submit', (e) => this.guardar(e));
     
-// Selector de categorías: elige varias, y la lista NO se cierra al marcar.
     const categoriaToggle = modal.querySelector('#categoria-toggle');
     const categoriaOptions = modal.querySelector('#categoria-options');
     const categoriaInput = modal.querySelector('#categoriaIds');
@@ -788,8 +756,6 @@ export class ProductoForm {
           const casilla = option.querySelector('.casilla-lista');
           if (casilla) casilla.classList.toggle('casilla-lista-marcada', !marcado);
           
-          // El campo oculto lleva los ids marcados, separados por coma. Es el
-          // único estado que se guarda: el resto es dibujo.
           const marcadas = [...categoriaOptions.querySelectorAll('[role="option"][aria-selected="true"]')];
           const ids = marcadas.map(opt => opt.dataset.id).filter(Boolean);
           // Los ids que ya estaban guardados y no aparecen en la lista (una
@@ -820,7 +786,6 @@ export class ProductoForm {
       });
     }
     
-    // Tipo de venta selector (dropdown)
     const tipoToggle = modal.querySelector('#tipo-venta-toggle');
     const tipoOptions = modal.querySelector('#tipo-venta-options');
     const tipoInput = modal.querySelector('#tipoVenta');
@@ -850,7 +815,6 @@ export class ProductoForm {
           tipoInput.value = value;
           tipoTexto.innerHTML = `${tipo.icon} ${tipo.label}`;
           
-          // Actualizar selección visual
           tipoOptions.querySelectorAll('[role="option"]').forEach(opt => {
             opt.classList.remove('opcion-elegida');
             opt.setAttribute('aria-selected', 'false');
@@ -861,27 +825,19 @@ export class ProductoForm {
           tipoOptions.classList.add('oculto');
           tipoToggle.setAttribute('aria-expanded', 'false');
           
-          // Re-renderizar precios y actualizar labels
           this.actualizarPorTipoVenta(modal, tipo);
         });
       });
     }
   }
   
-  // Handlers para precios dinámicos
   configurarEventosPrecios(modal) {
     const container = modal.querySelector('#precios-lista');
     if (!container) return;
     
-    // `#precios-lista` y `#btn-agregar-precio` son nodos estables (sólo se
-    // reemplaza su innerHTML al re-renderizar). Este método se vuelve a llamar
-    // en cada cambio de tipo de venta / unidad principal, así que sin este
-    // guarda los listeners se acumulan: un clic eliminaría N precios y un clic
-    // "agregar" añadiría N.
     if (!this._preciosEventosBound) {
       this._preciosEventosBound = true;
       
-      // Agregar nuevo precio
       modal.querySelector('#btn-agregar-precio')?.addEventListener('click', () => {
         const tipoActual = TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0];
         const subUnidades = tipoActual?.subUnidades || [];
@@ -893,18 +849,15 @@ export class ProductoForm {
           return;
         }
         
-        // Si solo hay una disponible, agregarla directo
         if (disponibles.length === 1) {
           this.agregarPrecioItem(container, disponibles[0]);
         } else {
-          // Mostrar selector
           this.mostrarSelectorUnidad(disponibles, (unidad) => {
             this.agregarPrecioItem(container, unidad);
           });
         }
       });
       
-      // Delegación para eliminar precios
       container.addEventListener('click', (e) => {
         const btnEliminar = e.target.closest('.eliminar-precio');
         if (btnEliminar) {
@@ -913,8 +866,6 @@ export class ProductoForm {
       });
     }
     
-    // `#unidad-principal` se recrea en cada render, así que su listener sí
-    // hay que volver a enganchar (el nodo viejo se garbage-collectea con el suyo)
     const unidadPrincipalSelect = modal.querySelector('#unidad-principal');
     if (unidadPrincipalSelect && !unidadPrincipalSelect.dataset.listener) {
       unidadPrincipalSelect.dataset.listener = '1';
@@ -941,7 +892,6 @@ export class ProductoForm {
           return { unidad, valor, label: d.label || unidad, icon: d.icon || '' };
         });
         
-        // Re-renderizar
         container.innerHTML = this.renderPreciosHTML(tipoActual.unidadBase, tipoActual, tipoActual.subUnidades);
         this.configurarEventosPrecios(modal);
         this.inicializarCalculadoraPrecio(modal);
@@ -1024,29 +974,24 @@ export class ProductoForm {
     const unidadBase = tipoActual.unidadBase || 'unid';
     const subUnidades = tipoActual.subUnidades || [];
     
-    // Actualizar inputs de stock
     const stockInput = modal.querySelector('#stock');
     const stockMinInput = modal.querySelector('#stockMinimo');
     stockInput.step = step;
     stockMinInput.step = step;
     
-    // Actualizar label stock
     const stockLabel = modal.querySelector('label[for="stock"]');
     stockLabel.innerHTML = `📦 Stock actual ${tipoActual.icon}`;
     
-    // Actualizar label costo con nueva unidad
     const costoLabel = modal.querySelector('label[for="costo"]');
     if (costoLabel) {
       costoLabel.innerHTML = `💵 Costo (${unidadBase})`;
     }
     
-    // Re-renderizar lista de precios con selector de unidad principal
     const preciosContainer = modal.querySelector('#precios-lista');
     if (preciosContainer) {
       preciosContainer.innerHTML = this.renderPreciosHTML(unidadBase, tipoActual, subUnidades);
     }
     
-    // Re-inicializar calculadora con nueva unidad principal
     requestAnimationFrame(() => {
       this.inicializarCalculadoraPrecio(modal);
       this.configurarEventosPrecios(modal);
@@ -1090,7 +1035,6 @@ export class ProductoForm {
       const margenMonto = costoConIva * (margenPct / 100);
       const precioCalc = costoConIva + margenMonto;
       
-      // Actualizar display
       costoBaseEl.textContent = `$${costo.toLocaleString('es-ES', {minimumFractionDigits: 2})}`;
       ivaCalculadoEl.textContent = `$${ivaMonto.toLocaleString('es-ES', {minimumFractionDigits: 2})}`;
       margenCalculadoEl.textContent = `$${margenMonto.toLocaleString('es-ES', {minimumFractionDigits: 2})}`;
@@ -1110,13 +1054,9 @@ export class ProductoForm {
       this.ultimoPrecioCalculado = precioCalc;
     };
     
-    // Inicializar
     this.ultimoPrecioCalculado = 0;
     calcular();
     
-    // Los 3 inputs de la calculadora son nodos estables: se enlazan una sola
-    // vez. Sin este guarda, cada cambio de tipo de venta / unidad principal
-    // (que re-invoca inicializarCalculadoraPrecio) añadiría otro `calcular`.
     if (!this._calculadoraEventosBound) {
       this._calculadoraEventosBound = true;
       [costoInput, ivaInput, margenInput].forEach(input => {
@@ -1125,8 +1065,6 @@ export class ProductoForm {
       });
     }
     
-    // El input de precio principal se recrea en cada render de la lista,
-    // así que su listener sí se engancha de nuevo al nodo nuevo.
     if (!precioInput.dataset.listener) {
       precioInput.dataset.listener = '1';
       
@@ -1137,7 +1075,6 @@ export class ProductoForm {
 
       precioInput.addEventListener('blur', () => {
         this.usuarioEditandoPrecio = false;
-        // Actualizar último precio calculado al valor manual
         const precioManual = parseFloat(precioInput.value) || 0;
         if (precioManual > 0) {
           this.ultimoPrecioCalculado = precioManual;
@@ -1202,7 +1139,6 @@ export class ProductoForm {
     }
     
     try {
-      // Mostrar loading en el botón
       const btnGaleria = this.modal.querySelector('#btn-galeria');
       const textoOriginal = btnGaleria.innerHTML;
       btnGaleria.disabled = true;
@@ -1211,8 +1147,6 @@ export class ProductoForm {
       const blob = await imagenUtils.fileAWebPBlob(archivo);
       const imagenId = dbUtils.generarId('img');
       
-      // Miniatura para el catálogo (ver imagenUtils.crearThumb). El preview del
-      // formulario usa la imagen completa.
       const thumb = await imagenUtils.crearThumb(blob);
       await dbUtils.guardarImagen(imagenId, blob, thumb);
       
@@ -1223,14 +1157,12 @@ export class ProductoForm {
       this.actualizarPreview(this.imagenUrl);
       toast.success('Foto guardada');
       
-      // Restaurar botón
       btnGaleria.disabled = false;
       btnGaleria.innerHTML = textoOriginal;
     } catch (error) {
       console.error('Error procesando imagen:', error);
       toast.error('Error procesando la imagen: ' + error.message);
       
-      // Restaurar botón
       const btnGaleria = this.modal.querySelector('#btn-galeria');
       if (btnGaleria) {
         btnGaleria.disabled = false;
@@ -1244,9 +1176,6 @@ export class ProductoForm {
     
     this.imagenId = null;
     
-    // Sólo se revoca la URL si es del formulario. La del catálogo es de App y la
-    // revocaba dbUtils.revocarImagenes() al recargar la vista; revocarla acá
-    // dejaba la tarjeta del producto con la imagen rota.
     if (this.imagenUrl && this._imagenUrlPropia) {
       imagenUtils.revocarObjectURL(this.imagenUrl);
     }
@@ -1354,7 +1283,6 @@ export class ProductoForm {
     const stock = stockNum.valor;
     const stockMinimo = stockMinNum.valor;
     
-    // Obtener todos los precios (base + sub-unidades)
     const precios = [];
     const tipoActual = TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0];
     const subUnidades = tipoActual?.subUnidades || [];
@@ -1362,14 +1290,11 @@ export class ProductoForm {
     for (const sub of subUnidades) {
       const leido = dbUtils.leerNumero(formData.get(`precio_${sub.value}`), sub.label, { min: 0 });
       if (leido.error) { toast.error(leido.error); return; }
-      // Sólo se guardan los precios cargados. Los que quedan en 0 no se
-      // guardan, para no distinguir "sin precio" de "precio gratis".
       if (leido.valor > 0) {
         precios.push({ unidad: sub.value, valor: leido.valor, label: sub.label, icon: sub.icon });
       }
     }
     
-    // Unidad principal elegida en el desplegable.
     const unidadPrincipal = formData.get('unidadPrincipal')
       || subUnidades[0]?.value
       || tipoActual.unidadBase;
@@ -1393,8 +1318,6 @@ export class ProductoForm {
     
     const precioPrincipal = precioDePrincipal.valor;
     
-    // let y no const: el diálogo de código repetido puede cambiarlo (sufijo o
-    // guardarlo sin código) y el valor final es el que se escribe.
     let codigoBarras = formData.get('codigoBarras')?.toString().trim() || null;
     // Las categorías llegan en un solo campo separadas por coma. Se parte y se
     // limpian los ids vacíos, porque un id con espacios alrededor rompería
@@ -1507,12 +1430,6 @@ export class ProductoForm {
         
         await db.productos.update(this.producto.id, datosProducto);
         
-        // La foto anterior NO se borra. Este producto acaba de entrar en el
-        // snapshot que se creó más arriba con su imagen vieja, así que borrar
-        // el blob dejaba ese punto de restauración apuntando a una imagen que
-        // ya no existía: al restaurar, el producto volvía sin foto. Ahora el
-        // blob queda y la limpieza de huérfanas lo retira cuando ni el
-        // inventario ni ningún punto del historial lo necesitan.
         toast.success('Producto actualizado');
       } else {
         const id = dbUtils.generarId('prod');
@@ -1531,14 +1448,10 @@ export class ProductoForm {
   
   renderPreciosHTML(unidadBase, tipoActual, subUnidades = []) {
     const precios = this.producto?.precios || [];
-    // Un tipo de venta sin subUnidades (al añadir uno nuevo y olvidarse) dejaba
-    // `principal` como undefined y reventaba con TypeError al leer .value,
-    // con el modal ya insertado en el DOM pero sin lista de precios.
     const subs = subUnidades.length > 0
       ? subUnidades
       : [{ value: unidadBase || tipoActual.unidadBase || 'unid', label: tipoActual.label, icon: tipoActual.icon }];
     
-    // Usar la unidad principal guardada en el producto, o la primera por defecto
     const unidadPrincipalGuardada = this.producto?.unidadPrincipal || subs[0].value;
     const principal = subs.find(s => s.value === unidadPrincipalGuardada) || subs[0];
     const baseUnidad = principal.value;
@@ -1548,7 +1461,6 @@ export class ProductoForm {
     const precioBase = precios.find(p => p.unidad === baseUnidad) || { valor: this.producto?.precio || 0 };
     const otrosPrecios = precios.filter(p => p.unidad !== baseUnidad);
     
-    // Selector de unidad principal
     let html = `
       <div class="con-margen-abajo">
         <label for="unidad-principal" class="etiqueta">⭐ Unidad en la que se muestra el precio</label>
@@ -1581,7 +1493,6 @@ export class ProductoForm {
       </div>
     `;
     
-    // Sub-unidades adicionales
     for (const sub of subs.filter(s => s.value !== baseUnidad)) {
       const precioSub = otrosPrecios.find(p => p.unidad === sub.value) || { valor: 0 };
       html += `
@@ -1616,8 +1527,6 @@ export class ProductoForm {
     return html;
   }
   
-  // Borrar las imágenes creadas en esta sesión si el formulario se cerró sin
-  // guardar. No se espera: cerrar() es síncrono y no debe retrasarse.
   limpiarImagenesSinGuardar() {
     if (this._guardado || this._imagenesNuevas.size === 0) return;
     
@@ -1647,7 +1556,6 @@ export class ProductoForm {
     if (this.handleKeydown) {
       document.removeEventListener('keydown', this.handleKeydown);
     }
-    // Desconectar los listeners de document registrados al abrir
     this._outsideClick?.abort();
     
     // Liberar la imagen completa que se cargó para el preview. Las URLs del
@@ -1658,9 +1566,6 @@ export class ProductoForm {
       this._imagenUrlPropia = false;
     }
     
-    // El usuario no guardó (canceló, Escape o ✕): las imágenes capturadas en
-    // esta sesión no las referencia ningún producto, así que se borran para no
-    // dejar blobs huérfanos ocupando espacio indefinidamente.
     this.limpiarImagenesSinGuardar();
     
     if (this.modal) {

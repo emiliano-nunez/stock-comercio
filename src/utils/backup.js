@@ -35,9 +35,6 @@ function normalizarProducto(p) {
   };
 }
 
-/**
- * Exportar backup completo a JSON (con imágenes en base64)
- */
 export async function exportarBackup() {
   const [productos, categorias, proveedores, historial, imagenes] = await Promise.all([
     db.productos.toArray(),
@@ -50,7 +47,6 @@ export async function exportarBackup() {
     db.imagenes.toArray()
   ]);
 
-  // Convertir blobs a base64
   const imagenesBase64 = await Promise.all(
     imagenes.map(async (img) => ({
       id: img.id,
@@ -90,9 +86,6 @@ export async function importarBackup(jsonStr) {
     throw new Error('Formato de backup inválido');
   }
 
-  // Los blobs se reconstruyen FUERA de la transacción: base64ToBlob() y
-  // createImageBitmap() no son operaciones de Dexie y no deben estirar el
-  // contexto transaccional.
   const imagenesBlobs = await Promise.all(
     (backup.imagenes || []).map(async (img) => ({
       id: img.id,
@@ -110,8 +103,6 @@ export async function importarBackup(jsonStr) {
     try {
       puntoPrevio = await dbUtils.crearPuntoRestauracion('Antes de importar backup');
     } catch (error) {
-      // No se puede deshacer, pero tampoco hay que abortar el import: el
-      // usuario sigue queriendo cargar el backup.
       console.error('No se pudo crear el punto previo a la importación:', error);
     }
   }
@@ -126,15 +117,12 @@ export async function importarBackup(jsonStr) {
     await db.productos.clear();
     await db.historial.clear();
 
-    // Orden referencial: imagenes -> categorias -> proveedores -> productos -> historial
     if (imagenesBlobs.length) {
       await db.imagenes.bulkPut(imagenesBlobs);
     }
     if (backup.categorias.length) {
       await db.categorias.bulkPut(backup.categorias);
     }
-    // Un backup viejo no trae proveedores. En ese caso se arma la lista con lo
-    // existiera: el nombre vive en el producto, así que no se pierde nada.
     if (backup.proveedores?.length) {
       await db.proveedores.bulkPut(backup.proveedores);
     }
@@ -167,8 +155,6 @@ export async function importarBackup(jsonStr) {
       await db.historial.bulkPut(backup.historial);
     }
 
-    // El punto previo se reinserta DENTRO de la transacción y al final, para
-    // que sea el estado más reciente: "Volver Atrás" lo muestra primero y
     if (puntoPrevio) {
       await db.historial.put(puntoPrevio);
     }
@@ -180,14 +166,10 @@ export async function importarBackup(jsonStr) {
     proveedores: backup.proveedores?.length || 0,
     historial: backup.historial?.length || 0,
     imagenes: imagenesBlobs.length,
-    // Para que la UI pueda avisar de que esto sí se puede deshacer
     reversible: !!puntoPrevio
   };
 }
 
-/**
- * Descargar archivo de backup
- */
 export function descargarBackup(jsonStr, nombre = `backup-stock-${new Date().toISOString().split('T')[0]}.json`) {
   const blob = new Blob([jsonStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -195,13 +177,9 @@ export function descargarBackup(jsonStr, nombre = `backup-stock-${new Date().toI
   a.href = url;
   a.download = nombre;
   a.click();
-  // Revocar de inmediato puede cancelar la descarga: hay que dar margen.
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
-/**
- * Leer archivo de backup subido
- */
 export function leerBackupArchivo(archivo) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -211,11 +189,9 @@ export function leerBackupArchivo(archivo) {
   });
 }
 
-// Helpers
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]); // Quitar "data:image/...;base64,"
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });

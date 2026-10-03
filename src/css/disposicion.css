@@ -44,8 +44,6 @@
   background-color: var(--color-superficie);
   border-bottom: 1px solid var(--color-borde-tenue);
 
-  /* Acá se cambia el color de todo lo que hay adentro de la cabecera: el
-     título, los botones y las pestañas lo heredan. */
   color: var(--color-texto);
 }
 
@@ -60,8 +58,6 @@
   gap: var(--espacio-2);
 }
 
-/* El tamaño y el grosor los pone base.css por la etiqueta. Acá sólo el
-   alto mínimo, que es una regla táctil y no una cuestión de tipo. */
 .cabecera-titulo {
   min-height: var(--toque-min);
   display: flex;
@@ -87,9 +83,6 @@
   margin-top: var(--espacio-2);
 }
 
-/* El hueco del campo del buscador va en controles.css, junto al resto de los
-   campos. Acá sólo va lo que se posiciona contra un borde: la lupa y el botón
-   del escáner. */
 
 .buscador-lupa {
   position: absolute;
@@ -166,9 +159,6 @@
   overflow-x: hidden;
 }
 
-/*
- * La rejilla del catálogo: 3 columnas en el teléfono y 4 a partir de 768px.
- */
 .rejilla {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -181,14 +171,6 @@
   }
 }
 
-/*
- * La rejilla del inventario: 1 columna en el teléfono y 2 a partir de 768px.
- *
- * La tarjeta de inventario lleva miniatura a la izquierda y tres filas de
- * controles a la derecha. Necesita más ancho que la del catálogo, que sólo
- * tiene la foto y el nombre. Con 1 columna en móvil y 2 en escritorio cada
- * tarjeta tiene el espacio que su contenido pide.
- */
 .rejilla-inventario {
   display: grid;
   grid-template-columns: 1fr;
@@ -216,12 +198,10 @@
   gap: var(--espacio-2);
 }
 
-/* Los dos extremos contra los bordes del padre. */
 .fila-separada {
   justify-content: space-between;
 }
 
-/* Alineado arriba, para cuando el texto de al lado es de dos líneas. */
 .fila-arriba {
   align-items: flex-start;
 }
@@ -230,12 +210,10 @@
   justify-content: center;
 }
 
-/* Más separación, para los grupos que tienen un ícono y dos textos. */
 .fila-amplia {
   gap: var(--espacio-3);
 }
 
-/* Menos separación, para los que juntan números con unidades. */
 .fila-corta {
   gap: 0.375rem;
 }
@@ -244,7 +222,6 @@
   gap: var(--espacio-1);
 }
 
-/* Al final de la fila, contra el borde derecho. */
 .al-final {
   justify-content: flex-end;
 }
@@ -289,7 +266,6 @@
   height: 100%;
 }
 
-/* Una fila que pasa a la línea siguiente cuando no entra. */
 .envuelto {
   flex-wrap: wrap;
 }
@@ -316,7 +292,6 @@
   border: 0;
 }
 
-/* Una pantalla completa y vacía, como cuando la base de datos no abre. */
 .vacio-pantalla {
   display: flex;
   flex-direction: column;
@@ -393,7 +368,6 @@
  * Desplazamiento
  * ================================================================= */
 
-/* Contenedor que se estira y deja que lo que sobre se desplace. */
 .desplaza {
   flex: 1 1 auto;
   overflow-y: auto;
@@ -425,18 +399,6 @@
   font-size: var(--texto-lg);
   line-height: 1;
   
-  /*
-  * El fondo y la sombra van acá y no en un atributo `style`.
-  *
-  * El reinicio de base.css le pone `background: none` a todos los botones, así
-  * que sin esto el botón flotante queda transparente y sólo se ve el signo +
-  * dibujado encima de las tarjetas. La sombra es la que lo despega del
-  * contenido: sin ella, un círculo de color plano encima de una foto no se
-  * distingue de nada.
-  *
-  * Con :active baja y se oscurece, que es el único aviso de que el toque se
-  * registró sin esperar a que aparezca la pantalla nueva.
-  */
   background-color: var(--color-marca);
   color: var(--color-texto-invertido);
   box-shadow: var(--sombra-lg);
@@ -451,15 +413,10 @@
  * Posición
  * ================================================================= */
 
-/*
- * El contenedor de referencia. Todo lo que se pone "encima de" algo lleva
- * `posicionado`, y el hijo se coloca contra sus bordes.
- */
 .posicionado {
   position: relative;
 }
 
-/* Un hijo que se estira sobre todo el padre, sin capturar el toque. */
 .capa-centrada {
   position: absolute;
   inset: 0;
@@ -469,7 +426,6 @@
   pointer-events: none;
 }
 
-/* Encima de la foto, pegado a una esquina. */
 .esquina-superior-derecha {
   position: absolute;
   top: var(--espacio-1);
@@ -482,7 +438,6 @@
   left: var(--espacio-1);
 }
 
-/* Una franja de pie por encima de la foto. */
 .franja-inferior {
   position: absolute;
   bottom: var(--espacio-4);

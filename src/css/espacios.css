@@ -60,11 +60,6 @@
   margin-inline-start: var(--espacio-3);
 }
 
-/*
- * El margen de arriba que se lleva el espacio de su propio padre. En una tarjeta
- * con dos filas de acciones, la segunda arranca con un borde arriba y necesita
- * aire por encima de ese borde, no por debajo.
- */
 .con-margen-arriba-auto {
   margin-block-start: auto;
 }

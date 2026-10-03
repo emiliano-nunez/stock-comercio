@@ -130,7 +130,7 @@ miró en un aparato. Casi nada se puede comprobar desde el escritorio.
       así que el usuario con la versión vieja, que es a quien hay que avisarle,
       no tiene el código que avisa y nunca la ve. Falta provocar una versión
       nueva y ver que aparece la tarjeta y que el botón trae la versión nueva.
-- [ ] **El pie con la versión.** Debe decir `v1.0.8` abajo del inventario, en
+- [ ] **El pie con la versión.** Debe decir `v1.0.9` abajo del inventario, en
       las dos versiones: la del host y la publicada. Es para distinguir cuál de
       las dos se está probando.
 - [ ] **El buscador de proveedores.** Escribir dos letras y ver si la lista sale,

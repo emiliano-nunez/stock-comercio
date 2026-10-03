@@ -108,9 +108,6 @@ db.version(6)
       }
       delete producto.categoriaId;
 
-      // Los dos campos nuevos nacen vacíos, no en null: se comparan y se
-      // concatenan como texto en la interfaz, y "" se puede pintar sin que cada
-      // lugar se acuerde del caso.
       if (typeof producto.proveedor !== 'string') producto.proveedor = '';
       if (typeof producto.notas !== 'string') producto.notas = '';
     });
@@ -180,7 +177,6 @@ export function categoriasDe(producto) {
   return [];
 }
 
-/** Un producto que está en la categoría dada, aunque tenga varias. */
 export function tieneCategoria(producto, categoriaId) {
   if (!categoriaId) return false;
   return categoriasDe(producto).includes(categoriaId);
@@ -225,29 +221,9 @@ export function claveProveedor(nombre) {
   return normalizarTexto(nombre);
 }
 
-// Nota sobre hooks:
-// Se eliminó el hook 'deleting' que tenía dos defectos:
-//   1) Accedía a trans.imagenes / trans.historial, pero la transacción que abre
-//      db.productos.delete() sólo abarca la tabla productos. Esas propiedades
-//      son undefined -> TypeError al borrar cualquier producto con foto.
-//   2) Guardaba un punto de restauración con snapshotProductos: [] (vacío).
-//      Como restaurarDesdeSnapshot() hace clear() + bulkAdd(), restaurar
-//      cualquiera de esos snapshots BORRABA todo el inventario.
-// El borrado con punto de restauración real está en dbUtils.eliminarProducto(),
-// que sí abre una transacción con las tres tablas implicadas.
 
-/*
- * No hay hook de actualización masiva. El que había usaba setTimeout, que se
- * ejecuta ya cerrado el commit: el snapshot guardaba el estado POST-cambio y no
- * servía para deshacer nada, y además se disparaba en cada +/- de stock copiando
- * el inventario entero. El punto previo a un cambio de precio se crea en
- * ProductoForm.guardar(), que conoce el estado anterior y corre una sola vez por
- * guardado.
- */
 
-// Utilidades de base de datos
 export const dbUtils = {
-  // Generar ID único
   generarId: (prefijo = 'id') => `${prefijo}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 
   /**
@@ -291,12 +267,10 @@ export const dbUtils = {
     return { valor: n };
   },
 
-  // Obtener todos los productos con imágenes
   async getAllProductosConImagenes() {
     const productos = await db.productos.toArray();
     const imagenesMap = new Map();
     
-    // Obtener todas las imágenes necesarias
     const imagenesIds = [...new Set(productos.map(p => p.imagenId).filter(Boolean))];
     if (imagenesIds.length > 0) {
       const imagenes = await db.imagenes.where('id').anyOf(imagenesIds).toArray();
@@ -306,10 +280,6 @@ export const dbUtils = {
     return productos.map(p => {
       if (p.imagenId && imagenesMap.has(p.imagenId)) {
         const img = imagenesMap.get(p.imagenId);
-        // La miniatura si existe; la imagen completa si el producto se guardó
-        // antes de que las miniaturas existieran. Esta función trae TODOS los
-        // blobs a memoria de una vez, así que usar la miniatura en vez de la
-        // completa es la diferencia entre pintar 300 fotos de 200px o de 800px.
         const fuente = img.thumb || img.blob;
         if (fuente) return { ...p, imagenUrl: URL.createObjectURL(fuente) };
       }
@@ -496,17 +466,10 @@ export const dbUtils = {
     if (!Array.isArray(productos)) return;
     for (const p of productos) {
       if (p?.imagenUrl) {
-        try { URL.revokeObjectURL(p.imagenUrl); } catch { /* ya liberado */ }
       }
     }
   },
   
-  // Cuántos productos de un snapshot conservan su foto.
-  //
-  // Casi todos la conservan (las imágenes ya no se borran), pero los productos
-  // eliminados o de los que se cambió la foto ANTES de ese cambio pueden
-  // tener el blob perdido. El diálogo de restauración usa esto para no
-  // prometer fotos que no van a volver.
   async resumenFotos(snapshotProductos = []) {
     const conFoto = snapshotProductos.filter(p => p.imagenId);
     const ids = [...new Set(conFoto.map(p => p.imagenId))];
@@ -532,11 +495,9 @@ export const dbUtils = {
     return db.productos.where('codigoBarras').equals(String(codigo)).toArray();
   },
 
-  // Crear punto de restauración (snapshot)
   async crearPuntoRestauracion(motivo = 'Manual') {
     const productos = await db.productos.toArray();
     const snapshot = {
-      // Sufijo aleatorio: dos snapshots en el mismo ms colapsarían en el mismo id
       id: `restauracion_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       fecha: new Date().toISOString(),
       motivo,
@@ -545,7 +506,6 @@ export const dbUtils = {
     
     await db.historial.add(snapshot);
     
-    // Mantener solo las últimas 10 versiones.
     const LIMITE = 10;
     const count = await db.historial.count();
     if (count > LIMITE) {
@@ -556,9 +516,6 @@ export const dbUtils = {
     return snapshot;
   },
 
-  /*
-   * La lista de proveedores, ordenada por nombre.
-   */
   async listarProveedores() {
     const lista = await db.proveedores.toArray();
     return lista.sort((a, b) => normalizarTexto(a.nombre).localeCompare(normalizarTexto(b.nombre), 'es'));
@@ -613,9 +570,6 @@ export const dbUtils = {
       const claveVieja = normalizarTexto(actual.nombre);
       const claveNueva = normalizarTexto(limpio);
 
-      // Renombrar a un nombre que ya existe juntaría dos proveedores distintos
-      // en el pedido. Se avisa en vez de hacerlo: juntarlos es decisión del
-      // usuario, y podría ser que sean dos proveedores de verdad.
       if (claveNueva !== claveVieja) {
         const choque = await db.proveedores.toCollection()
           .filter(p => p.id !== id && normalizarTexto(p.nombre) === claveNueva)
@@ -633,12 +587,6 @@ export const dbUtils = {
     });
   },
 
-  /*
-   * Sacar un proveedor de la lista.
-   *
-   * No borra productos: sólo les saca el proveedor. Borrar el proveedor es
-   * sacarlo de la lista, no borrar todo lo que le compramos.
-   */
   async eliminarProveedor(id) {
     return db.transaction('rw', [db.proveedores, db.productos], async () => {
       const actual = await db.proveedores.get(id);
@@ -693,7 +641,6 @@ export const dbUtils = {
     // inventario sin red. El error sube al llamador, que avisa y no toca nada.
     await this.crearPuntoRestauracion('Antes de restaurar');
     
-    // Usar transacción para atomicidad
     await db.transaction('rw', db.productos, async () => {
       await db.productos.clear();
       await db.productos.bulkPut(productos);
@@ -716,8 +663,6 @@ export const dbUtils = {
     
     await db.transaction('rw', [db.productos, db.historial], async () => {
       if (conPuntoRestauracion) {
-        // El producto AÚN está en la tabla, así que el snapshot lo contiene:
-        // restaurar este punto devuelve el producto con su stock.
         const productos = await db.productos.toArray();
         await db.historial.add({
           id: `restauracion_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
@@ -726,7 +671,6 @@ export const dbUtils = {
           snapshotProductos: productos.map(p => ({ ...p }))
         });
         
-        // Mantener solo los últimos 10 puntos
         const count = await db.historial.count();
         if (count > 10) {
           const masAntiguos = await db.historial.orderBy('fecha').limit(count - 10).toArray();
@@ -755,9 +699,6 @@ export const dbUtils = {
         throw new Error('Ya existe un producto con ese código, no se restauró');
       }
       
-      // La copia de la app viene de getAllProductosConImagenes() y trae un
-      // imagenUrl (un ObjectURL temporal). No debe persistirse: es un valor
-      // válido sólo durante esta sesión y ocupa espacio en cada fila.
       const { imagenUrl, ...datos } = producto;
       
       await db.productos.add(datos);
@@ -766,12 +707,10 @@ export const dbUtils = {
     return producto;
   },
   
-  // Obtener historial de restauraciones
   async getHistorial() {
     return db.historial.orderBy('fecha').reverse().toArray();
   },
   
-  // Buscar productos por texto o código de barras
   async buscarProductos(query) {
     const lowerQuery = query.toLowerCase().trim();
     if (!lowerQuery) return [];
@@ -784,14 +723,12 @@ export const dbUtils = {
       .toArray();
   },
   
-  // Obtener productos con stock bajo (para pedidos)
   async getProductosStockBajo() {
     return db.productos
       .filter(p => p.stock <= p.stockMinimo)
       .toArray();
   },
   
-  // Incrementar/Decrementar stock atómicamente
   async ajustarStock(id, delta) {
     const producto = await db.productos.get(id);
     if (!producto) throw new Error('Producto no encontrado');
@@ -806,31 +743,10 @@ export const dbUtils = {
   }
 };
 
-// 20 colores para categorías (formato hex)
 export const COLORES_CATEGORIAS = [
-  '#EF4444', // Rojo
-  '#F97316', // Naranja
-  '#F59E0B', // Ámbar
-  '#EAB308', // Amarillo
-  '#84CC16', // Lima
-  '#22C55E', // Verde
-  '#10B981', // Esmeralda
-  '#14B8A6', // Turquesa
-  '#06B6D4', // Cian
-  '#0EA5E9', // Sky
-  '#3B82F6', // Azul
-  '#6366F1', // Índigo
-  '#8B5CF6', // Violeta
-  '#A855F7', // Púrpura
-  '#D946EF', // Fucsia
-  '#EC4899', // Rosa
-  '#F43F5E', // Rosa-600
-  '#78716C', // Stone
-  '#64748B', // Slate
-  '#1F2937', // Gris oscuro
 ];
 
-// Categorías por defecto - VACÍO (el usuario crea las suyas)
+// VACÍO a propósito: las categorías las crea el usuario, no la app.
 export const CATEGORIAS_DEFAULT = [];
 
 export const TIPOS_VENTA = [
@@ -993,9 +909,6 @@ export function getPrecioPrincipal(producto) {
     return { valor: exacto.valor, unidad: principal.value, label: principal.label, esPrincipal: true };
   }
   
-  // Sin precio para la unidad principal: se usa el primero disponible, con SU
-  // unidad. Es el caso de los productos guardados antes de que la unidad
-  // principal hiciese algo, y de los que tienen el precio principal en blanco.
   const primero = precios.find(p => p.valor > 0);
   if (primero) {
     return { valor: primero.valor, unidad: primero.unidad, label: primero.label || primero.unidad, esPrincipal: false };
@@ -1010,9 +923,7 @@ export function getPrecioPrincipal(producto) {
   };
 }
 
-// Inicializar categorías - NO crear por defecto, el usuario crea las suyas
+// No crea nada: sólo devuelve las que el usuario ya definió.
 export async function inicializarCategorias() {
-  // No crear categorías por defecto - el usuario define las suyas
-  // Solo retorna las que existan
   return await db.categorias.toArray();
 }

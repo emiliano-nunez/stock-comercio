@@ -76,7 +76,6 @@ export class ScannerModal {
   }
   
   async iniciarEscaneo() {
-    // Verificar contexto seguro (HTTPS o localhost)
     const esContextoSeguro = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     
     if (!esContextoSeguro) {
@@ -91,17 +90,14 @@ export class ScannerModal {
     this.scanner = new Html5Qrcode('scanner-container');
     
     try {
-      // Obtener cámaras disponibles
       const cameras = await Html5Qrcode.getCameras();
       let cameraId = null;
       
-      // Preferir cámara trasera en móvil, frontal en desktop
       const isMobile = /Android|iPhone|iPad|iPod|mobile/i.test(navigator.userAgent);
       if (isMobile) {
         const backCam = cameras.find(c => c.label.toLowerCase().includes('back') || c.label.toLowerCase().includes('rear') || c.label.toLowerCase().includes('environment'));
         cameraId = backCam?.id || cameras[0]?.id;
       } else {
-        // Desktop: usar la primera disponible (webcam frontal)
         cameraId = cameras[0]?.id;
       }
       
@@ -109,7 +105,6 @@ export class ScannerModal {
         throw new Error('No se encontraron cámaras');
       }
       
-      // Configuración optimizada para códigos de barras 1D (EAN, UPC, etc.)
       const config = {
         fps: 15,
         /*
@@ -131,7 +126,6 @@ export class ScannerModal {
           width: Math.max(50, Math.round(ancho * 0.9)),
           height: Math.max(50, Math.min(alto * 0.5, Math.round(alto * 0.4))),
         }),
-        aspectRatio: undefined, // Dejar que use el nativo de la cámara
         formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
           Html5QrcodeSupportedFormats.EAN_8,
@@ -151,11 +145,9 @@ export class ScannerModal {
         config,
         (decodedText, decodedResult) => this.onCodigoDetectado(decodedText),
         (errorMessage) => {
-          // Ignorar errores de escaneo continuo (normal)
         }
       );
       
-      /* start() resuelve cuando se ve la cámara, NO cuando escanea. isScanning es la única señal de que el bucle arrancó. */
       await new Promise(r => setTimeout(r, 300));
       if (!this.scanner.isScanning) {
         throw new Error('La cámara se abrió pero el lector no pudo arrancar.');
@@ -169,7 +161,6 @@ export class ScannerModal {
     } catch (error) {
       console.error('Error iniciando escáner:', error);
       await this.soltarCamara();
-      // Mensaje según la causa, en lugar de uno genérico que no dice nada
       let mensaje = 'No se pudo acceder a la cámara.';
       if (error?.name === 'NotAllowedError') {
         mensaje = 'Permisos de cámara denegados. Actívalos en el candado de la barra de direcciones.';
@@ -185,14 +176,6 @@ export class ScannerModal {
     }
   }
   
-  /**
-   * Apaga la cámara aunque el escáner no llegó a marcarse como escaneando.
-   *
-   * Si el arranque falla después de que la cámara ya arrancó, el foco queda
-   * encendido en el teléfono y el próximo intento choca contra un stream vivo.
-   * Por eso no alcanza con detenerEscaneo(), que sólo actúa cuando isScanning
-   * está en true.
-   */
   async soltarCamara() {
     this.isScanning = false;
     if (!this.scanner) return;
@@ -240,7 +223,6 @@ export class ScannerModal {
         try {
           await this.iniciarEscaneo();
         } catch {
-          // mostrarError() ya dejó el mensaje en el DOM
         }
       });
     }
@@ -305,15 +287,12 @@ export class ScannerModal {
     
     this.isScanning = false;
     
-    // Vibración háptica
     if (navigator.vibrate) {
       navigator.vibrate(200);
     }
     
-    // Sonido de beep (opcional)
     this.reproducirBeep();
     
-    // Actualizar UI
     const statusEl = this.modal.querySelector('#scanner-status');
     statusEl.textContent = `✅ Código detectado: ${codigo}`;
     statusEl.className = 'dialogo-cuerpo centro-texto detalle texto-marca-fuerte';
@@ -361,7 +340,6 @@ export class ScannerModal {
       try {
         await this.scanner.stop();
       } catch (e) {
-        // Ignorar errores al detener
       }
       this.isScanning = false;
     }
@@ -387,13 +365,6 @@ export class ScannerModal {
     }
   }
   
-  /**
-   * Cierra el escáner. Idempotente y devuelve una promesa que se resuelve
-   * cuando el modal ya salió del DOM.
-   *
-   * La promesa la necesita onCodigoDetectado(): su callback corre 800 ms
-   * el formulario del producto, para no montar uno sobre el otro.
-   */
   cerrar() {
     if (this._cerrado) return Promise.resolve();
     this._cerrado = true;

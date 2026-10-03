@@ -16,7 +16,6 @@ import { normalizarTexto } from './utils/texto.js';
 const SIN_CATEGORIA_ORDEN = '\uFFFF';
 
 export class App {
-  // Cuántos productos se pintan por tanda. Ver productosVisibles().
   static LIMITE_RENDER = 60;
 
   // Los tres grupos en que se ordena el catálogo, en el orden en que se
@@ -45,18 +44,13 @@ export class App {
     this.ordenarPor = 'nombre';
     this.ordenDireccion = 'asc';
     this.vistaActual = 'inventario';
-    // Categoría abierta en el catálogo. Es null cuando se ve el catálogo entero.
     this.categoriaVista = null;
     // Estado de stock abierto en el catálogo, o null. Es una forma más de mirar
     // el catálogo, igual que la categoría, y no se acumulan entre sí: al abrir
     // una se suelta la otra, porque "Bebidas sin stock" ya es un grupo entero y
     // meterle una categoría encima lo dejaría vacío casi siempre.
     this.estadoVista = null;
-    // Proveedor abierto en el catálogo, o null. Es lo mismo que la categoría y
-    // el estado: una forma más de mirar el mismo catálogo, y se sueltan entre sí
-    // al abrir una.
     this.proveedorVista = null;
-    // La lista de proveedores que usa el inventario. Viene de la base, no de los
     this.proveedores = [];
     this.ultimoEliminado = null;
     this.timeoutDeshacer = null;
@@ -105,7 +99,6 @@ export class App {
     }
   }
   
-  // Pantalla de error de arranque con opciones de recuperación
   mostrarErrorArranque(error) {
     const cont = document.getElementById('app');
     if (!cont) return;
@@ -511,10 +504,6 @@ export class App {
   }
 
   renderCargarMasHTML(visibles) {
-    // Se cuenta sobre lo que realmente se pintó y no sobre _limiteRender: en el
-    // catálogo el reparto por grupos deja huecos sin usar cuando un grupo es
-    // chico, y con _limiteRender el botón anunciaba más productos de los que
-    // aparecían.
     const faltan = this.productosDeLaVista().length - visibles.length;
     if (faltan <= 0) return '';
 
@@ -537,8 +526,6 @@ export class App {
       const nombre = cat
         ? cat.nombre
         : (App.ESTADOS_STOCK.find(e => e.clave === this.estadoVista)?.etiqueta || 'Este grupo');
-      // Con productos cargados el grupo es el que está vacío; sin ellos no hay
-      // nada que vaciarse, y el ícono de bandeja vacía mentiría.
       const hayProductos = this.productosFiltrados.length > 0;
       return `
         <div class="apilado-4">
@@ -569,23 +556,12 @@ export class App {
       `;
     }
 
-    // El catálogo agrupa por estado de stock, no por categoría: primero lo que
-    // hay, después lo que se está por acabar y al final lo que ya se acabó. Es
-    // el orden en que un local necesita leer el catálogo, que es "qué puedo
-    // ofrecer hoy y qué tengo que reponer".
-    //
-    // La categoría no se pierde: cada tarjeta lleva su chip con el color y el
-    // nombre, y el orden elegido con el desplegable sigue funcionando dentro de
-    // cada grupo (incluida la opción "Categoría A-Z").
     const visibles = this.productosVisibles();
     const porEstado = new Map(App.ESTADOS_STOCK.map(e => [e.clave, []]));
     for (const p of visibles) {
       porEstado.get(estadoStock(p)).push(p);
     }
     
-    // Con un estado o un proveedor abierto el catálogo muestra un solo grupo, así
-    // que la cabecera repetiría el aviso de filtro de arriba, con el mismo nombre
-    // y el mismo número. Va la grilla sola.
     if (this.estadoVista || this.proveedorVista) {
       return this.renderFiltroVistaHTML()
         + `<div class="cuadricula">${visibles.map(p => this.renderCatalogoItemHTML(p)).join('')}</div>`
@@ -663,7 +639,6 @@ export class App {
     this.vistaActual = 'catalogo';
     this._limiteRender = App.LIMITE_RENDER;
     this.render();
-    // El catálogo arranca arriba, que es donde está el nombre del grupo.
     document.getElementById('contenido-principal')?.scrollIntoView({ block: 'start' });
   }
   
@@ -934,7 +909,6 @@ export class App {
     `;
   }
 
-  /** Ver los productos de un proveedor. */
   abrirProveedor(proveedor) {
     this.categoriaVista = null;
     this.estadoVista = null;
@@ -955,8 +929,6 @@ export class App {
     // definidos (no se sabe cuántas unidades tiene una caja), y un stock
     // guardado en kg reinterpretado como 500g daría números que no existen.
     const unidad = tipo.unidadBase || 'unid';
-    // base, así que un producto con principal "500g" aparecía con el precio del
-    // kilo al lado de la etiqueta equivocada.
     const precio = getPrecioPrincipal(p);
     const stockMinimo = p.stockMinimo || 0;
     const imagenHTML = p.imagenUrl 
@@ -974,12 +946,6 @@ export class App {
          </p>`
       : '';
     
-    // Colores para badge de stock.
-    // Las clases js-stock-* son los ganchos que usa actualizarTarjetaStock()
-    // para refrescar la tarjeta en el sitio al cambiar el stock, sin
-    // re-renderizar el catálogo entero.
-    // El nombre de la clase, no el color. Los tres estados tienen su clase en
-    // superficies.css y el color vive en tokens.css: acá no se escribe un color.
     const stockBadgeClass = stock === 0
       ? 'insignia-sin'
       : stock <= stockMinimo
@@ -1219,7 +1185,6 @@ export class App {
   }
   
   async ajustarStock(id, delta) {
-    // Guard contra clicks rápidos encadenados
     if (this._ajustandoStock?.[id]) return;
     this._ajustandoStock = this._ajustandoStock || {};
     this._ajustandoStock[id] = true;
@@ -1276,9 +1241,6 @@ export class App {
     const stock = producto.stock || 0;
     const stockMinimo = producto.stockMinimo || 0;
     
-    // Insignia de estado. Se reescribe entera con className, así que la clase
-    // de estado va primero y el gancho de JavaScript va con ella: sin el
-    // "js-stock-badge" el próximo ajuste no encontraría la insignia.
     const badge = card.querySelector('.js-stock-badge');
     if (badge) {
       const clases = stock === 0
@@ -1561,9 +1523,6 @@ export class App {
     
     modal.querySelectorAll('.color-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        // Se quita la marca de elegida a todas y se pone sólo a la que se tocó.
-        // El gancho "color-btn" se conserva: sin él el siguiente clic no
-        // encontraría los botones.
         modal.querySelectorAll('.color-btn').forEach(b => {
           b.className = 'color-btn muestra-color';
           b.style.borderColor = b.dataset.color + '40';
@@ -1603,7 +1562,6 @@ export class App {
 
     const count = this.contarProductosCategoria(categoriaId);
     const productosAfectados = this.productos.filter(p => tieneCategoria(p, categoriaId));
-    // Cuántos de esos siguen en alguna categoría después de quitar ésta.
     const conOtra = productosAfectados.filter(p => categoriasDe(p).length > 1).length;
     const mensaje = count === 0
       ? `¿Eliminar "${cat.nombre}"?`
@@ -1615,15 +1573,11 @@ export class App {
 
     try {
       await db.categorias.delete(categoriaId);
-      // Se saca la categoría de la lista de cada producto en vez de dejarla en
-      // null: el producto puede estar en varias, y vaciarle la lista entera
-      // borraría de un plumazo las otras que sí existen.
       for (const p of productosAfectados) {
         await db.productos.update(p.id, {
           categoriaIds: categoriasDe(p).filter(id => id !== categoriaId)
         });
       }
-      // Si se estaba mirando esa categoría en el catálogo, el filtro queda
       if (this.categoriaVista === categoriaId) this.categoriaVista = null;
       toast.success('Categoría eliminada');
       await this.cargarTodo();
@@ -1719,12 +1673,6 @@ export class App {
     });
   }
 
-  /**
-   * Sacar un proveedor de la lista.
-   *
-   * No borra productos: sólo les saca el proveedor. Borrar el proveedor es sacarlo
-   * de la lista, no borrar todo lo que se le compró.
-   */
   async eliminarProveedor(proveedorId) {
     const prov = this.proveedores.find(p => p.id === proveedorId);
     if (!prov) return;
@@ -1800,7 +1748,6 @@ export class App {
       };
       
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) return cerrar(false);  // clic en el fondo
         const accion = e.target.closest('[data-accion]')?.dataset.accion;
         if (accion === 'aceptar') cerrar(true);
         else if (accion === 'cancelar') cerrar(false);
@@ -1881,8 +1828,6 @@ export class App {
    */
   vigilarActualizacion() {
     if (!('serviceWorker' in navigator)) return;
-    // En desarrollo no hay service worker: /sw.js sólo existe después del build,
-    // y registrarlo acá tiraría un error de MIME type en la consola.
     if (import.meta.env.DEV) return;
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -1891,13 +1836,6 @@ export class App {
     });
   }
 
-  /**
-   * Recarga y entra la versión nueva.
-   *
-   * No hay que pedirle nada al service worker: con autoUpdate ya está activo y
-   * tomando el control. Recargar es lo único que cambia el código que está
-   * corriendo la página.
-   */
   aplicarActualizacion() {
     const boton = document.getElementById('btn-actualizar-ahora');
     if (boton) {

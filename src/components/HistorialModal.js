@@ -161,8 +161,6 @@ export class HistorialModal {
       if (e.target === modal) this.cerrar();
     });
     
-    // Delegación de eventos para los puntos de restauración.
-    // Selector propio (data-snapshot-id) para no chocar con otros data-id.
     modal.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-snapshot-id]');
       if (btn) {
@@ -170,7 +168,6 @@ export class HistorialModal {
       }
     });
     
-    // Backup buttons
     modal.querySelector('#btn-exportar-backup')?.addEventListener('click', async () => {
       try {
         const json = await exportarBackup();
@@ -194,8 +191,6 @@ export class HistorialModal {
       try {
         const json = await leerBackupArchivo(archivo);
         
-        // Importar REEMPLAZA todo el contenido actual. Sin esta confirmación un
-        // clic equivocado en "Importar Backup" destruye el inventario.
         const confirmado = await this.confirmarImportacion(archivo.name, json);
         if (!confirmado) return;
         
@@ -349,7 +344,6 @@ formatearFecha(fechaISO) {
       'cierre': 'Cierre diario',
       'precios': 'Cambio de precios',
       'inventario': 'Inventario masivo',
-      // Motivo que genera dbUtils.eliminarProducto() al borrar un producto
       'eliminacion': 'Antes de una eliminación',
       // Motivo que genera importarBackup() para que el import se pueda deshacer
       'Antes de importar backup': 'Antes de importar un backup',
@@ -541,8 +535,6 @@ formatearFecha(fechaISO) {
     });
   }
   
-  // diálogo cuántos productos y categorías trae y no dejar al usuario
-  // esperando un confirm con datos a ciegas.
   async confirmarImportacion(nombreArchivo, json) {
     let resumen = null;
     try {

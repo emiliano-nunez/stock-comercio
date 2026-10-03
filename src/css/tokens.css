@@ -1,14 +1,3 @@
-/*
- * Variables de la app.
- *
- * Acá vive todo valor que se repite: colores, tamaños de letra, espacios, radios
- * y sombras. Ningún otro archivo escribe un color o un tamaño en crudo, así que
- * cambiar la paleta o agrandar todo el texto se hace desde acá y en un solo
- * lugar.
- *
- * Se lee de arriba abajo: paleta, tipografía, espacio, medidas táctiles, radios,
- * sombras, capas y movimiento.
- */
 
 :root {
   /* -----------------------------------------------------------------
@@ -19,7 +8,6 @@
    * que la app usa: una paleta de diez pasos por color que nadie usa es ruido.
    * ----------------------------------------------------------------- */
 
-  /* Gris: fondos y texto */
   --gris-50:  #f9fafb;
   --gris-100: #f3f4f6;
   --gris-200: #e5e7eb;
@@ -31,7 +19,6 @@
   --gris-800: #1f2937;
   --gris-900: #111827;
 
-  /* Verde: la marca, lo que tiene stock, la acción principal */
   --verde-50:  #f0fdf4;
   --verde-100: #dcfce7;
   --verde-200: #bbf7d0;
@@ -40,14 +27,12 @@
   --verde-700: #15803d;
   --verde-800: #166534;
 
-  /* Ámbar: avisos y stock bajo */
   --ambar-50:  #fffbeb;
   --ambar-100: #fef3c7;
   --ambar-200: #fde68a;
   --ambar-600: #d97706;
   --ambar-700: #b45309;
 
-  /* Rojo: errores y borrar */
   --rojo-50:  #fef2f2;
   --rojo-100: #fee2e2;
   --rojo-200: #fecaca;
@@ -56,14 +41,6 @@
   --rojo-700: #b91c1c;
   --rojo-900: #7f1d1d;
 
-  /*
-   * Roles: lo que la app llama con una palabra y no con un color.
-   *
-   * Esta capa es la que hace que el CSS sea mantenible. Si mañana cambia el
-   * verde de la marca, se cambia acá y no en los cuarenta lugares que hoy dicen
-   * "verde de stock bajo". Sin esta capa, cada color está repetido por todo el
-   * proyecto y cambiar la paleta es buscar y reemplazar a mano.
-   */
   --color-fondo:           var(--gris-50);
   --color-superficie:      #ffffff;
   --color-texto:           var(--gris-900);
@@ -90,16 +67,10 @@
    * ----------------------------------------------------------------- */
   --fuente: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  --texto-xs:    0.75rem;   /* 12px: metadatos y códigos */
   --texto-xs-al: 1rem;
-  --texto-sm:    0.875rem;  /* 14px: texto secundario */
   --texto-sm-al: 1.25rem;
-  --texto-base:  1.125rem;  /* 18px: el cuerpo de la app */
   --texto-base-al: 1.5rem;
-  --texto-lg:    1.25rem;   /* 20px: títulos de diálogo */
   --texto-lg-al: 1.75rem;
-  --texto-xl:    1.5rem;    /* 24px: los signos + y − del ajuste de stock */
-
   --grosor-normal: 400;
   --grosor-medio:  500;
   --grosor-fuerte: 700;
@@ -122,7 +93,6 @@
   --espacio-12: 3rem;
   --espacio-16: 4rem;
 
-  /* Relleno interno de un control. El botón y el campo lo comparten. */
   --relleno-control: var(--espacio-3) var(--espacio-4);
 
   /* -----------------------------------------------------------------
@@ -136,13 +106,8 @@
   --toque-min-grande: 60px;
   --toque-flotante:   56px;
 
-  /* Ancho máximo de la app. En una pantalla grande no se estira: se dibuja en
-     una columna angosta y centrada. */
   --ancho-app: 48rem;
 
-  /* Tope de la foto de un producto, en las tarjetas y en la hoja del detalle.
-     La foto no crece con la tarjeta: más allá de esto deja de ayudar a reconocer
-     el producto y lo único que agranda es la tarjeta. */
   --tope-foto: 200px;
 
   /* -----------------------------------------------------------------
@@ -159,11 +124,6 @@
   --sombra-lg: 0 8px 24px rgb(0 0 0 / 12%);
   --sombra-xl: 0 12px 32px rgb(0 0 0 / 18%);
 
-  /*
-   * Las capas van por número y de menor a mayor: el velo de un diálogo tapa la
-   * app, y el botón de agregar queda por encima de las tarjetas pero por debajo
-   * de un diálogo.
-   */
   --capa-cabecera: 40;
   --capa-flotante: 50;
   --capa-velo:     60;

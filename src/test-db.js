@@ -1,23 +1,3 @@
-/**
- * Test manual de la base de datos.
- *
- * Uso: con la app ya cargada en http://localhost:5173 (o el build servido),
- * desde la consola del navegador:
- *
- *   const { testDatabase } = await import('/src/test-db.js');
- *   await testDatabase();
- *
- * Todo lo que crea lleva el prefijo 'test_' y se limpia al terminar, incluso si
- * un test falla a mitad (bloque finally).
- *
- * ⚠️ CORRERLO DESTRUYE EL INVENTARIO REAL. No es cosa de los datos que crea el
- * test: es que testFotosConHistorial() llama a restaurarDesdeSnapshot(), que
- * hace db.productos.clear() y deja la base con el contenido del snapshot. O
- * sea que tu catálogo se reemplaza por el del punto de restauración. Se puede
- * recuperar con "Volver Atrás" (el propio test genera el punto "Antes de
- * restaurar"), pero es un susto. Corrélo sobre una base vacía o con un backup
- * exportado.
- */
 import { db, dbUtils, TIPOS_VENTA, getUnidadBase, getPrecioPrincipal } from './db.js';
 
 const PREFIJO = 'test_';
@@ -32,11 +12,9 @@ async function testDatabase() {
   const productoId = `${PREFIJO}prod`;
 
   try {
-    // Test 1: la BD se abre
     await db.open();
     ok('Base de datos abierta');
 
-    // Test 2: los CRUD de categorías funcionan
     await db.categorias.put({
       id: categoriaId,
       nombre: 'Categoría de prueba',
@@ -45,8 +23,6 @@ async function testDatabase() {
     const cats = await db.categorias.toArray();
     ok(`Categorías: ${cats.length} en total, la de prueba existe`);
 
-    // Test 3: insertar producto.
-    // existe, y la categoría 'cat_verduras', que la app ya no crea sola.
     const testProducto = {
       id: productoId,
       nombre: 'Tomate Redondo Test',
@@ -65,12 +41,10 @@ async function testDatabase() {
     await db.productos.put(testProducto);
     ok('Producto insertado');
 
-    // Test 4: leerlo
     const producto = await db.productos.get(productoId);
     if (!producto) throw new Error('el producto insertado no se pudo leer');
     ok(`Producto leído: ${producto.nombre}`);
 
-    // Test 5: ajustar stock (peso_kg -> paso de 0.5)
     await dbUtils.ajustarStock(productoId, -0.5);
     const actualizado = await db.productos.get(productoId);
     if (actualizado.stock !== 14) {
@@ -78,31 +52,24 @@ async function testDatabase() {
     }
     ok(`Stock ajustado a ${actualizado.stock}`);
 
-    // Test 6: crear punto de restauración y comprobar que NO viene vacío.
-    // Un snapshot sin productos hace que restaurarDesdeSnapshot() vacíe el
-    // inventario, así que este es el test que más riesgo tenía.
     const snapshot = await dbUtils.crearPuntoRestauracion('Test automático');
     if (!snapshot.snapshotProductos.length) {
       throw new Error('el snapshot se creó vacío: restaurarlo borraría el inventario');
     }
     ok(`Punto de restauración creado con ${snapshot.snapshotProductos.length} producto(s)`);
 
-    // Test 7: historial
     const historial = await dbUtils.getHistorial();
     ok(`Historial: ${historial.length} punto(s)`);
 
-    // Test 8: búsqueda
     const resultados = await dbUtils.buscarProductos('Tomate');
     ok(`Búsqueda "Tomate": ${resultados.length} resultado(s)`);
 
-    // Test 9: con stock 14 y mínimo 3 no debe entrar en stock bajo
     const bajos = await dbUtils.getProductosStockBajo();
     if (bajos.some(p => p.id === productoId)) {
       throw new Error('apareció en stock bajo teniendo 14 y un mínimo de 3');
     }
     ok('Stock bajo: 0 coincidencias (correcto con stock 14 / mínimo 3)');
 
-    // Test 10: ahora sí debe detectarse
     await db.productos.update(productoId, { stock: 1 });
     const bajos2 = await dbUtils.getProductosStockBajo();
     if (!bajos2.some(p => p.id === productoId)) {
@@ -153,8 +120,6 @@ async function testFotosConHistorial() {
   const imagenVieja = `${PREFIJO}img_vieja`;
   const contenido = 'contenido-de-prueba';
 
-  // Blob real, no un string: db.imagenes guarda Blobs y getAllProductosConImagenes()
-  // llama a createObjectURL sobre ellos.
   const blob = new Blob([contenido], { type: 'image/webp' });
 
   // Se guarda el historial previo para no medir fotos ajenas al test, y para no
@@ -168,7 +133,6 @@ async function testFotosConHistorial() {
       { id: imagenNueva, blob, fecha: new Date().toISOString() }
     ]);
 
-    // Producto con la foto VIEJA.
     await db.productos.put({
       id: productoId,
       nombre: 'Producto con foto (test)',
@@ -179,14 +143,12 @@ async function testFotosConHistorial() {
       imagenId: imagenVieja
     });
 
-    // Snapshot: guarda el producto apuntando a la foto vieja.
     const snap = await dbUtils.crearPuntoRestauracion('Test fotos');
     const enSnap = snap.snapshotProductos.find(p => p.id === productoId);
     if (enSnap?.imagenId !== imagenVieja) {
       throw new Error('el snapshot no guardó el imagenId del producto');
     }
 
-    // Se cambia la foto. La vieja tiene que seguir existiendo.
     await db.productos.update(productoId, { imagenId: imagenNueva });
     const sigueLaVieja = await db.imagenes.get(imagenVieja);
     if (!sigueLaVieja) {
@@ -206,7 +168,6 @@ async function testFotosConHistorial() {
     if (!await db.imagenes.get(imagenNueva)) throw new Error('desapareció la foto del producto');
     ok('Abrir la app no borra ninguna foto (ni la del producto ni la del snapshot)');
 
-    // Deshacer un borrado devuelve el producto con su foto.
     const eliminado = await dbUtils.eliminarProducto(productoId, { conPuntoRestauracion: false });
     if (await db.imagenes.get(imagenNueva)) {
       throw new Error('eliminarProducto borró la foto; el deshacer la necesita');
@@ -218,7 +179,6 @@ async function testFotosConHistorial() {
     }
     ok('Deshacer un borrado devuelve el producto CON su foto');
 
-    // Volver atrás: con fotos y sin fotos.
     await dbUtils.restaurarDesdeSnapshot(snap.id, { conFotos: true });
     const conFoto = await db.productos.get(productoId);
     if (conFoto?.imagenId !== imagenVieja) {
@@ -234,7 +194,6 @@ async function testFotosConHistorial() {
     if (!sinFoto) throw new Error('restaurar sin fotos no devolvió el producto');
     ok('Restaurar sin fotos devuelve el inventario con los productos sin imagen');
 
-    // resumenFotos debe estar de acuerdo con lo que hay en la base.
     const resumen = await dbUtils.resumenFotos(snap.snapshotProductos);
     if (resumen.conFoto !== 1 || resumen.disponibles !== 1) {
       throw new Error(`resumenFotos informed ${JSON.stringify(resumen)}, se esperaba 1 con foto y 1 disponible`);
@@ -313,9 +272,6 @@ async function testFotosConHistorial() {
 async function testEjemplosTipoVenta() {
   const ids = [];
   
-  // Un precio por sub-unidad, con valores reconocibles para poder verificar de
-  // un vistazo que la pantalla muestra el de la unidad principal y no otro.
-  // El valor es 1000 + el número de la sub-unidad, así el esperado es obvious.
   const ejemplos = [
     { nombre: 'Ej. Tomate (peso_kg)', tipoVenta: 'peso_kg', principal: '500g', stock: 4 },
     { nombre: 'Ej. Panela (peso_100g)', tipoVenta: 'peso_100g', principal: '100g', stock: 12 },
@@ -364,8 +320,6 @@ async function testEjemplosTipoVenta() {
     
     ok(`Ejemplos cargados: ${ids.length}, uno por cada tipo de venta`);
     
-    // Comprobación de la lógica de unidad principal sobre datos reales leídos
-    // de la BD, no sobre objetos construidos a mano.
     for (const [i, ej] of ejemplos.entries()) {
       const leido = await db.productos.get(ids[i]);
       const esperado = 1000 + TIPOS_VENTA

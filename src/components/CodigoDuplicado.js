@@ -16,8 +16,6 @@ import { esc, escAttr, fmtPrecio } from '../utils/html.js';
  * duplicó el producto y sabe cuál es cuál.
  */
 
-// Tope de productos listados. Con cuarenta duplicados el diálogo deja de ser una
-// herramienta de decisión y pasa a ser un muro; el resto se resume en una línea.
 const MAX_LISTADOS = 8;
 
 /**
@@ -67,9 +65,6 @@ export async function primerCodigoLibre(base) {
  */
 export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBorrar }) {
   return new Promise((resolve) => {
-    // Copia propia: al borrar hay que sacar de la lista lo que se borró, y
-    // mutar el array del escáner dejaría al llamador con una lista que ya no
-    // refleja la base.
     let conflictos = productos.map(p => ({ ...p }));
 
     const box = document.createElement('div');
@@ -82,14 +77,9 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
     };
     const onKey = (e) => { if (e.key === 'Escape') cerrar({ accion: 'cancelar' }); };
 
-    // ---------------------------------------------------------------- pintado
-
     function filaProducto(p, indice) {
       const stock = p.stock || 0;
       const minimo = p.stockMinimo || 0;
-      // El corte de "pocas unidades" sale de estadoStock(), no de un if propio:
-      // el badge de acá tiene que decir lo mismo que el grupo del catálogo donde
-      // va a aparecer este mismo producto.
       const ETIQUETA = {
         ok: { clase: 'insignia-ok', texto: 'OK' },
         poco: { clase: 'insignia-poco', texto: 'Poco' },
@@ -123,9 +113,6 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       `;
     }
 
-    // Confirmación de borrado en el lugar, reemplazando el botón. El nombre del
-    // producto queda a la vista mientras se decide: borrar desde una lista sin
-    // nombre es como se borran productos equivocados.
     function filaConfirmando(p, indice) {
       return `
         <div class="tarjeta apilado tarjeta-peligro" data-fila="${indice}">
@@ -248,8 +235,6 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       boton.dataset.candidato = libre;
       texto.textContent = `Distinguir: ${libre}`;
     }
-
-    // ------------------------------------------------------------- Delegados
 
     async function borrar(indice) {
       const producto = conflictos[indice];

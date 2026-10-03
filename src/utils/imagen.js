@@ -1,18 +1,11 @@
 import imageCompression from 'browser-image-compression';
 
 export const imagenUtils = {
-  // Configuración de compresión optimizada para hardware limitado
   opcionesCompresion: {
-    maxSizeMB: 0.1,           // 100 KB máximo
-    maxWidthOrHeight: 800,    // 800px máximo
-    useWebWorker: true,       // Usar Web Worker para no bloquear UI
-    fileType: 'image/webp',   // WebP para mejor compresión
-    quality: 0.75,            // Calidad 75%
     initialQuality: 0.75,
     alwaysKeepResolution: false
   },
   
-  // Comprimir archivo de imagen
   async comprimir(archivo) {
     try {
       const archivoComprimido = await imageCompression(archivo, this.opcionesCompresion);
@@ -23,7 +16,6 @@ export const imagenUtils = {
     }
   },
   
-  // Convertir File a Blob WebP
   async fileAWebPBlob(archivo) {
     const comprimido = await this.comprimir(archivo);
     return comprimido;
@@ -65,21 +57,14 @@ export const imagenUtils = {
     });
   },
 
-  // Capturar frame de video y comprimir
   async capturarDeVideo(videoElement) {
     const maxDim = 800;
     const { videoWidth, videoHeight } = videoElement;
 
     if (!videoWidth || !videoHeight) {
-      // Sin dimensiones no hay frame que capturar: el drawImage devolvería un lienzo
-      // de 0x0 y el error caería más adelante y menos claro.
       throw new Error('El vídeo aún no tiene dimensiones. Probá de nuevo.');
     }
 
-    // Lienzo ORIGEN: el frame del vídeo a la mejor resolución disponible
-    // (800px de lado mayor, sin ampliar si el vídeo es más chico). Los
-    // intentos siguientes recortan desde acá, así que el vídeo se lee una
-    // sola vez.
     let ancho = videoWidth;
     let alto = videoHeight;
     if (videoWidth > maxDim || videoHeight > maxDim) {
@@ -132,9 +117,6 @@ export const imagenUtils = {
       }
     }
 
-    // Ningún intento entró en el tope (imagen muy ruidosa y ya en el piso de
-    // 320px). Se devuelve el último y se avisa: seguir bajando produciría una
-    // foto inservible a cambio de unos KB.
     const kb = Math.round(ultimoBlob.size / 1024);
     console.warn(
       `imagenUtils: la foto de cámara quedó en ${kb}KB, por encima del tope de ` +
@@ -143,7 +125,6 @@ export const imagenUtils = {
     return ultimoBlob;
   },
   
-  // Crear ObjectURL para previsualización
   crearObjectURL(blob) {
     return URL.createObjectURL(blob);
   },
@@ -192,27 +173,20 @@ export const imagenUtils = {
       console.warn('No se pudo generar la miniatura, se usará la imagen completa:', error);
       return null;
     } finally {
-      // createImageBitmap reserva memoria fuera del GC hasta que se cierra.
-      // Sin esto, cada foto abierta dejaba su decodificación colgada.
       bitmap.close?.();
     }
   },
   
-  // Revocar ObjectURL para liberar memoria
   revocarObjectURL(url) {
     URL.revokeObjectURL(url);
   },
   
-  // Validar archivo de imagen
   validarArchivo(archivo) {
     // Sólo formatos que browser-image-compression sabe decodificar en todos los
     // navegadores. HEIC/HEIF se acceptaban aquí pero fallaban al comprimir
     // ( salvo Safari), así que el usuario elegía un archivo "válido" y le
     // salía "No se pudo comprimir la imagen".
     const tiposValidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    const maxSizeMB = 10; // 10MB antes de comprimir
-    
-    // Algunos móviles (iPhone) reportan type: '' en HEIC
     const extension = (archivo.name?.match(/\.([a-z0-9]+)$/i)?.[1] || '').toLowerCase();
     const esHeicPorExtension = ['heic', 'heif'].includes(extension);
     

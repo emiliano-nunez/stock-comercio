@@ -31,7 +31,6 @@
   color: var(--gris-700);
 }
 
-/* Título de un grupo dentro de una pantalla, con una línea abajo. */
 .titulo-seccion {
   font-size: var(--texto-base);
   line-height: var(--texto-base-al);
@@ -48,7 +47,6 @@
   color: var(--rojo-900);
 }
 
-/* Títulos grandes de los diálogos y del estado vacío. */
 .grande {
   font-size: var(--texto-lg);
   line-height: var(--texto-lg-al);
@@ -69,7 +67,6 @@
   line-height: var(--texto-sm-al);
 }
 
-/* Lo más chico que se lee sin esfuerzo: unidades, códigos, notas al pie. */
 .micro {
   font-size: var(--texto-xs);
   line-height: var(--texto-xs-al);

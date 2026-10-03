@@ -7,7 +7,6 @@
  * asociado al producto equivocado.
  */
 
-/** Escapa para el contenido de un elemento. Sustituye & < > por sus entidades. */
 export function esc(texto) {
   if (texto === null || texto === undefined) return '';
   return String(texto)
@@ -21,7 +20,6 @@ export function escAttr(texto) {
   return esc(texto).replace(/"/g, '&quot;');
 }
 
-/** Un número como precio. Vacío en vez de "NaN" cuando no es número. */
 export function fmtPrecio(valor) {
   const n = Number(valor);
   if (!Number.isFinite(n)) return '';

@@ -61,12 +61,6 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   const claseEstado = estado === 'vacio' ? 'insignia-sin' : estado === 'poco' ? 'insignia-poco' : 'insignia-ok';
   const textoEstado = estado === 'vacio' ? 'Agotado' : estado === 'poco' ? 'Poco' : 'OK';
 
-  /*
-   * Cada renglón de la planilla es un par (lo que se busca, lo que se encontró).
-   * Armarla con una lista y no con el HTML escrito a mano es lo que permite que
-   * un dato vacío no ocupe una fila: los renglones sin contenido no se pintan, y
-   * la planilla queda corta en vez de llena de líneas en blanco.
-   */
   const filas = [];
   const fila = (dato, valor, extra = '') => {
     if (valor === null || valor === undefined || valor === '') return;
@@ -92,10 +86,6 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
     );
   }
 
-  /*
-   * Los precios de las demás unidades van en renglones propios, rotulados con la
-   * unidad y no con el nombre de la opción: "Precio kg", "Precio 500g".
-   */
   const otros = (Array.isArray(p.precios) ? p.precios : []).filter(pr => pr.unidad !== precio.unidad && pr.valor > 0);
   for (const otro of otros) {
     fila(`Precio ${otro.unidad}`, `$${fmtPrecio(otro.valor)}`);
@@ -198,9 +188,6 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   const cerrar = () => {
     document.removeEventListener('keydown', alTeclado);
     modal.remove();
-    // Sólo se limpia la referencia si sigue siendo esta hoja: si al cerrarla
-    // desde adentro ya había otra montada encima, el puntero tiene que quedar en
-    // la nueva.
     if (abierta === hoja) abierta = null;
   };
   const alTeclado = (e) => {

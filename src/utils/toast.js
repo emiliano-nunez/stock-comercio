@@ -10,7 +10,6 @@ export class ToastManager {
   init() {
     this.container = document.createElement('div');
     this.container.id = 'pila-avisos';
-    // La pila queda por encima del teclado y del botón de abajo, que está fijo.
     this.container.className = 'pila-avisos';
     document.body.appendChild(this.container);
   }
@@ -77,7 +76,6 @@ export class ToastManager {
     this.container.appendChild(toast);
     this.toasts.set(id, toast);
     
-    // Se va solo pasado el tiempo, si el que llama no pidió otra cosa.
     if (duration > 0) {
       setTimeout(() => this.remove(id), duration);
     }
@@ -113,7 +111,6 @@ export class ToastManager {
     return this.show(message, { ...options, type: 'info' });
   }
   
-  // Toast especial para "Deshacer" con acción
   undo(message, onUndo, duration = 5000) {
     return this.show(message, {
       type: 'info',
@@ -124,5 +121,4 @@ export class ToastManager {
   }
 }
 
-// Una sola pila para toda la app.
 export const toast = new ToastManager();

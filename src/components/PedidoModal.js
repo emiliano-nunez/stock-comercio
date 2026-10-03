@@ -194,8 +194,6 @@ export class PedidoModal {
       this.cambiarCantidad(btn.dataset.id, Number(btn.dataset.delta));
     });
 
-    // El campo de cantidad a pedir también se puede escribir con el teclado, no
-    // sólo con los botones.
     modal.querySelectorAll('.campo-cantidad').forEach(campo => {
       campo.addEventListener('change', () => {
         const n = Math.max(0, Math.round(Number(campo.value) || 0));

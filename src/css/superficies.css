@@ -1,10 +1,3 @@
-/*
- * Superficies: tarjetas, diálogos, insignias y avisos.
- *
- * Todo lo que tiene fondo propio y se apoya sobre otra cosa. Los diálogos son
- * la parte con más cuidado: el velo tapa la app, el cuerpo encima, y el botón
- * de agregar tiene que quedar entre los dos.
- */
 
 /* =================================================================
  * Tarjetas
@@ -24,8 +17,6 @@
   overflow: hidden;
 }
 
-/* La variante sin relleno, para las tarjetas que traen una imagen o un mapa que
-   tienen que llegar hasta el borde. */
 .tarjeta-sin-relleno {
   padding: 0;
 }
@@ -34,7 +25,6 @@
   padding: var(--espacio-3);
 }
 
-/* La miniatura del producto. */
 .miniatura {
   flex-shrink: 0;
   width: 4rem;
@@ -62,16 +52,6 @@
   font-size: 1.25rem;
 }
 
-/*
- * La foto de una categoría: cuadrada. El borde punteado marca el lugar donde se
- * puede tocar para agregar, que es lo que un rectángulo vacío no dice.
- *
- * El position no es decorativo: es el ancla de todo lo que va encima de la
- * foto. La insignia de stock, la franja, la etiqueta de la categoría y el botón
- * de cerrar son position absolute y se colocan contra sus bordes. Sin esto se
- * ancla al elemento positioned de más arriba, y la etiqueta de la categoría
- * aparecía flotando en la esquina de la página, a tres fotos de la suya.
- */
 .marco-foto {
   position: relative;
   width: 100%;
@@ -99,7 +79,6 @@
   border-radius: var(--radio-lg);
 }
 
-/* La imagen que llena su marco sin deformarse. */
 .foto-llena {
   width: 100%;
   height: 100%;
@@ -115,8 +94,6 @@
   overflow: hidden;
 }
 
-/* Donde entra el video de la cámara. Cuadrado y sin bordes propios: lo que se ve
-   es el video, y el marco del escáner va encima. */
 .visor-video {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -161,7 +138,6 @@
   border-bottom: 0;
 }
 
-/* La etiqueta que va por encima de la foto, abajo a la izquierda. */
 .marca-foto {
   position: absolute;
   bottom: var(--espacio-1);
@@ -179,7 +155,6 @@
   color: var(--gris-700);
 }
 
-/* El botón de cerrar la foto, arriba a la derecha. */
 .boton-cerrar-foto {
   position: absolute;
   top: var(--espacio-2);
@@ -198,26 +173,21 @@
   line-height: 1;
 }
 
-/* Un diálogo cuyo contenido no se desplaza: el cuerpo ya trae su propio
-   desplazamiento y dejarlo así acá hace que la página entera se mueva. */
 .dialogo-sin-desplazar {
   overflow: hidden;
 }
 
-/* Una tarjeta que ocupa toda la altura de su celda en la grilla. */
 .tarjeta-alta {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-/* La tarjeta de un producto marcado para borrar, con borde rojo. */
 .tarjeta-peligro {
   border-color: var(--rojo-200);
   background-color: var(--color-peligro-tenue);
 }
 
-/* La etiqueta chica y neutra, como el precio de lista al lado del de venta. */
 .etiqueta-tenue {
   display: inline-flex;
   align-items: center;
@@ -229,7 +199,6 @@
   color: var(--color-texto-suave);
 }
 
-/* Un texto del color de la marca. */
 .marca {
   color: var(--color-marca-fuerte);
 }
@@ -244,11 +213,6 @@
 
 .punto,
 .punto-medio {
-  /*
-   * El display no es decorativo: un <span> es en línea y a un elemento en línea
-   * el ancho y el alto no se le aplican, así que el punto se dibujaba de cero
-   * píxeles y el color de la categoría no se veía.
-   */
   display: inline-block;
   width: 1.5rem;
   height: 1.5rem;
@@ -264,8 +228,6 @@
   flex-shrink: 0;
 }
 
-/* Las flechas de los selectores. No son puntos de color: van con el color del
-   texto que heredan y no llevan fondo. */
 .flecha,
 .flecha-medio {
   display: inline-block;
@@ -374,8 +336,6 @@
   background-color: var(--ambar-200);
 }
 
-/* El bloque de texto largo que se puede desplazar, como el detalle de un
-   producto con muchos precios. */
 .bloque-datos {
   margin-block-start: var(--espacio-4);
   padding: var(--espacio-3);
@@ -389,20 +349,12 @@
   white-space: pre-wrap;
 }
 
-/* Una lista con viñetas, para las instrucciones de un diálogo. */
 .lista {
   list-style: disc;
   padding-inline-start: var(--espacio-5);
   color: var(--gris-700);
 }
 
-/*
- * La fila de acciones al pie de la tarjeta.
- *
- * El margen automático la baja al pie: en una grilla de dos columnas las
- * tarjetas no miden lo mismo y sin esto los botones de cada columna quedan a
- * distinta altura.
- */
 .tarjeta-acciones {
   display: flex;
   align-items: center;
@@ -476,11 +428,6 @@
   border-bottom: 1px solid var(--color-borde-tenue);
 }
 
-/*
- * La cabecera de un diálogo largo no baja con el contenido. Sin esto, en la
- * pantalla del escáner el título se iba con la lista de productos y la foto
- * grande, y se perdía el botón de cerrar.
- */
 .dialogo-cabecera-fija {
   flex-shrink: 0;
   background-color: var(--color-marca-tenue);
@@ -488,7 +435,6 @@
   border-top-right-radius: var(--radio-xl);
 }
 
-/* Un diálogo que avisa, con la cabecera en ámbar. */
 .dialogo-cabecera-aviso {
   background-color: var(--color-aviso-tenue);
 }
@@ -500,10 +446,6 @@
   font-weight: var(--grosor-fuerte);
 }
 
-/*
- * Cierre del diálogo, arriba a la derecha. Es un botón cuadrado con el mínimo
- * táctil: el ✕ solo mide unos 16px y con eso el toque se pierde.
- */
 .dialogo-cerrar {
   flex-shrink: 0;
   min-width: var(--toque-min);
@@ -567,14 +509,12 @@
   -webkit-backdrop-filter: blur(4px);
 }
 
-/* Un pie que también es un mensaje, no una fila de botones. */
 .pie-suave {
   background-color: var(--gris-50);
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
 
-/* El diálogo de confirmación usa un título con su propio color. */
 .dialogo-cabecera-peligro {
   background-color: var(--color-peligro-tenue);
 }
@@ -608,7 +548,6 @@
   border-color: var(--color-borde);
 }
 
-/* La más reciente, que es la que se va a restaurar. */
 .entrada-lista-destacada {
   background-color: var(--color-marca-tenue);
   border-color: var(--verde-200);
@@ -643,7 +582,6 @@
 .anim-bajar    { animation: bajar var(--transicion-media); }
 
 @media (prefers-reduced-motion: reduce) {
-  /* A quien el movimiento le hace mal, no se le muestra. */
   .anim-aparecer,
   .anim-subir,
   .anim-bajar {
@@ -703,7 +641,6 @@
   color: var(--verde-800);
 }
 
-/* La categoría, como etiqueta chica sobre la tarjeta del catálogo. */
 .categoria-chip {
   display: inline-flex;
   align-items: center;
@@ -772,7 +709,6 @@
   margin-top: var(--espacio-3);
 }
 
-/* El punto de color que abre el título de la sección. */
 .seccion-punto {
   flex-shrink: 0;
   width: 1.5rem;
@@ -826,8 +762,6 @@
   }
 }
 
-/* El aviso en sí. Ocupa todo el ancho de la pila en el teléfono, que es lo que
-   lo hace legible, y en la pantalla grande toma lo que le deja el contenedor. */
 .aviso {
   width: 100%;
   padding: var(--espacio-3) var(--espacio-4);
@@ -845,12 +779,6 @@
 .aviso-alerta  { background-color: var(--ambar-600); }
 .aviso-info    { background-color: var(--gris-800); }
 
-/*
- * Un aviso SIN botón cabe en una línea angosta. Uno CON botón necesita el botón
- * a 52px de alto, y con el ancho de una línea el mensaje quedaba en un tercio
- * de espacio y se partía en tres renglones. Por eso los de botón se apilan en
- * vertical y toman el ancho disponible.
- */
 .aviso-con-boton {
   display: flex;
   flex-direction: column;
@@ -913,8 +841,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* El último renglón sin la línea de abajo: la tabla ya está cerrada por el borde
-   del diálogo, y una línea al final invites a pensar que hay más abajo. */
 .planilla tr:last-child th,
 .planilla tr:last-child td {
   border-bottom: none;
