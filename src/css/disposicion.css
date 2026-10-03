@@ -310,8 +310,9 @@
 .contenido {
   flex: 1;
   padding: var(--espacio-3);
-  /* Espacio de abajo para que el botón flotante no tape la última tarjeta. */
-  padding-bottom: var(--espacio-16);
+  /* Este espacio de abajo era para que el botón de agregar no tapara la última
+     tarjeta. El botón ya no flota, así que la lista puede bajar hasta el borde. */
+  padding-bottom: calc(var(--espacio-4) + env(safe-area-inset-bottom));
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -413,18 +414,40 @@
     justify-content: flex-start;
   }
 
-  .cabecera-cuerpo > .posicionado {
-    order: 2;
-    margin-block-start: 0;
-    margin-block-end: var(--espacio-3);
+  /*
+   * La fila del buscador gira a columna, así que el botón de agregar queda abajo
+   * del buscador y no a su derecha. Sin esto el botón de 52px se leía como algo
+   * pegado al buscador en vez de como una acción propia de la barra.
+   */
+  .fila-busca {
+    flex-direction: column;
+    gap: var(--espacio-2);
+  }
+
+  .fila-busca > .posicionado {
+    width: 100%;
+    margin-block-end: 0;
+  }
+
+  /* En la barra el botón toma todo el ancho, que es lo que lo hace legible como
+     la acción principal de la pantalla. El margen de arriba lo puso el `gap` de
+     la columna, así que acá se saca. */
+  .boton-agregar {
+    width: 100%;
+    margin-top: 0;
   }
 
   /*
-   * El orden de abajo hacia arriba es el que se lee: el nombre, el buscador, las
-   * tres pestañas, el botón de agregar pegado a ellas, y al pie historial y
-   * pedido, que son los dos que se usan de vez en cuando y no compiten con lo
-   * que se está mirando.
+   * El orden de abajo hacia arriba es el que se lee: el nombre, el buscador, el
+   * botón de agregar, las tres pestañas, y al pie historial y pedido, que son
+   * los dos que se usan de vez en cuando y no compiten con lo que se está
+   * mirando.
    */
+  .fila-busca {
+    order: 2;
+    margin-block-end: var(--espacio-3);
+  }
+
   .cabecera-cuerpo > .pestanas {
     order: 3;
   }
@@ -526,19 +549,7 @@
     padding-block-start: var(--espacio-4);
   }
 
-  /* El botón de agregar deja de flotar y se acomoda pegado a las pestañas, que es
-     donde el usuario está mirando. Flotando tapaba productos de la grilla, que
-     es lo único que hay que mirar. */
-  .boton-flotante {
-    position: static;
-    z-index: auto;
-    order: 4;
-    width: 100%;
-    height: var(--toque-min);
-    margin-block-start: var(--espacio-2);
-    border-radius: var(--radio-lg);
   }
-}
 
 /*
  * Las columnas de la grilla, con la barra lateral ya descontada del ancho.
@@ -612,6 +623,58 @@
 
 .fila-corta {
   gap: 0.375rem;
+}
+
+/*
+ * La segunda fila del header: el buscador y el botón de agregar.
+ *
+ * El buscador toma el ancho que sobra y el botón se queda con su cuadrado, que
+ * es lo mínimo que permite tocarlo. `min-width: 0` en el buscador es lo que
+ * deja que en realidad encoja: sin eso, un input con `width: 100%` se niega a
+ * bajar del ancho que le da su contenido y empuja el botón fuera de la fila.
+ */
+.fila-busca {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+}
+
+.fila-busca > .posicionado {
+  flex: 1;
+  min-width: 0;
+}
+
+/*
+ * El botón de agregar, a la derecha del buscador.
+ *
+ * Toma la misma altura y la misma curva que el campo de al lado, y no las suyas
+ * propias: así los dos se leen como una sola fila y no como dos cosas sueltas.
+ * Por eso el alto y la curva salen de las variables del campo en vez de
+ * escribirse como números acá.
+ *
+ * El ancho sí es el suyo, porque tiene que ser cuadrado para que el ícono quede
+ * centrado y no seatechique.
+ */
+.boton-agregar {
+  flex: 0 0 auto;
+  width: var(--toque-min);
+  height: var(--toque-min);
+  margin-top: var(--espacio-2);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: var(--radio-lg);
+  background-color: var(--color-marca);
+  color: var(--color-texto-invertido);
+  font-size: var(--texto-lg);
+  line-height: 1;
+}
+
+.boton-agregar:active {
+  background-color: var(--color-marca-fuerte);
+  transform: scale(0.95);
 }
 
 .fila-apretada {
@@ -770,40 +833,7 @@
   min-height: 0;
 }
 
-/* =================================================================
- * El botón de agregar
- *
- * Es fixed, así que se ancla a la VENTANA y no a la columna de la app. Con la
- * columna centrada, un margen fijo lo dejaba botado en la esquina opuesta de la
- * app. El margen se calcula contra la mitad de la ventana menos la mitad de la
- * columna: en pantallas angostas el cálculo da negativo y gana el margen de
- * teléfono de siempre.
- * ================================================================= */
 
-.boton-flotante {
-  position: fixed;
-  bottom: calc(var(--espacio-6) + env(safe-area-inset-bottom));
-  right: max(var(--espacio-4), calc(50vw - (var(--ancho-app) / 2) + var(--espacio-4)));
-  z-index: var(--capa-flotante);
-
-  width: var(--toque-flotante);
-  height: var(--toque-flotante);
-  border-radius: var(--radio-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--texto-lg);
-  line-height: 1;
-
-  background-color: var(--color-marca);
-  color: var(--color-texto-invertido);
-  box-shadow: var(--sombra-lg);
-}
-
-.boton-flotante:active {
-  background-color: var(--color-marca-fuerte);
-  transform: scale(0.95);
-}
 
 /* =================================================================
  * Posición

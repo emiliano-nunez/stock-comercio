@@ -810,16 +810,17 @@
 .pila-avisos {
   position: fixed;
   /*
-   * La separación de abajo NO es un número redondo: es la altura del botón de
-   * agregar más la suya, más un aire. Ese botón es fijo abajo a la derecha y
-   * ocupa desde los 24px del borde hasta los 80px, así que una pila apoyada en
-   * los 64px le tapaba los últimos 16 píxeles, y como la pila va por encima en
-   * el orden de capas, no sólo lo tapaba: se comía el toque y el usuario no
-   * podía agregar un producto con un aviso en pantalla.
+   * La separación de abajo sube por el botón de agregar. Ese botón estaba fijo
+   * abajo a la derecha, así que una pila apoyada en el borde le tapaba los
+   * últimos píxeles y, como la pila va por encima en el orden de capas, no sólo
+   * lo tapaba: se comía el toque y el usuario no podía agregar un producto con
+   * un aviso en pantalla.
+   *
+   * El botón ya no flota: está en el header, en el buscador. Por eso la pila
+   * vuelve al margen de siempre, y el alto que se liberó acá lo gana la última
+   * fila de tarjetas, que antes quedaba escondida detrás del botón.
    */
-  bottom: calc(
-    var(--espacio-6) + env(safe-area-inset-bottom) + var(--toque-flotante) + var(--espacio-2)
-  );
+  bottom: calc(var(--espacio-6) + env(safe-area-inset-bottom));
   left: var(--espacio-3);
   right: var(--espacio-3);
   z-index: var(--capa-aviso);

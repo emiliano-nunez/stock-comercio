@@ -303,6 +303,12 @@ export class App {
               </div>
             </div>
 
+            <!--
+              La segunda fila del teléfono: el buscador y, a su derecha, el botón
+              de agregar. En el escritorio esta misma fila gira a columna, así que
+              el botón queda abajo del buscador y antes de las pestañas.
+            -->
+            <div class="fila-busca">
             <div class="posicionado con-margen-arriba">
               <label for="buscador" class="solo-lector">Buscar productos</label>
               <input
@@ -343,6 +349,22 @@ export class App {
               </ul>
             </div>
 
+              <!--
+                El botón de agregar va en el header y no flotando sobre la grilla.
+                Flotando tapaba productos, que es lo único que hay que mirar, y
+                además quedaba lejos del buscador, que es donde ya está la mano.
+                En el teléfono se ve como un botón cuadrado a la derecha del
+                buscador; en el escritorio toma todo el ancho de la barra.
+              -->
+              <button
+                id="btn-agregar-fab"
+                class="boton-agregar"
+                aria-label="Agregar producto"
+              >
+                ${icono('mas')}
+              </button>
+            </div>
+
           <div class="pestanas">
             <button
               id="tab-inventario"
@@ -366,21 +388,6 @@ export class App {
               ${icono('carpeta')}<span>Categorías</span>
             </button>
           </div>
-
-          <!--
-            El boton de agregar va DENTRO de la cabecera. En el telefono sigue
-            siendo el flotante de siempre, porque boton-flotante es fixed y no le
-            hace caso donde este. En el escritorio, en cambio, la barra lateral ya
-            tiene las otras cinco opciones, asi que el boton se acomoda al pie de
-            esa lista en vez de flotar sobre la grilla, donde tapaba productos.
-          -->
-          <button
-            id="btn-agregar-fab"
-            class="boton-flotante"
-            aria-label="Agregar producto"
-          >
-            ${icono('mas')}
-          </button>
         </div>
       </header>
 

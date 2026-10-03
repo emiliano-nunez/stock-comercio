@@ -161,14 +161,29 @@ svg {
  *
  * Cuadrado y del tamaño del mínimo táctil, que la clase base ya no deja bajar:
  * sacar el texto ahorra ancho pero el área que se toca con el dedo sigue siendo
- * la misma. Por eso el ícono va grande: en un botón de 52px un ícono de 20px
- * deja 16px de aire arriba y abajo y el botón se ve hueco.
+ * la misma.
+ *
+ * El ícono arranca chico en el teléfono. Con 1.75rem dentro de 52px el botón se
+ * ve como un ícono gigante con un borde finito alrededor, y en las tarjetas
+ * del inventario, que son angostas, la fila de los tres botones quedaba más
+ * ancha que la foto de arriba. Achicar el ícono deja que los tres entren con
+ * aire. El botón NO baja de 52px: eso es lo que se toca con el dedo.
  */
 .btn-icono-solo {
   width: var(--toque-min);
   height: var(--toque-min);
   padding: 0;
-  font-size: 1.75rem;
+  font-size: 1.3rem;
+}
+
+/*
+ * A partir de 768px las tarjetas son más anchas y el ícono grande no estorba, así
+ * que vuelve a su tamaño. El botón sigue siendo de 52px en los dos casos.
+ */
+@media (min-width: 768px) {
+  .btn-icono-solo {
+    font-size: 1.75rem;
+  }
 }
 
 /* El ícono de los títulos y los slotted, que va más grande que el del botón. */
