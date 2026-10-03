@@ -7,6 +7,11 @@
  * Todos los contenedores de acá heredan el color y el tamaño de letra del
  * cuerpo. Por eso los hijos no los repiten: un título de la cabecera no dice de
  * qué color es, lo hereda.
+ *
+ * La rejilla de productos decide cuántas tarjetas entran por fila, y el interior
+ * de la tarjeta --la foto, los datos, los botones-- lo dibujan las reglas de
+ * `.tarjeta-alta` en superficies.css. Si se cambia el corte de acá, hay que ver
+ * que la tarjeta siga entrando en el ancho que queda.
  */
 
 /* =================================================================

@@ -171,4 +171,77 @@
   --transicion-rapida: 100ms ease-out;
   --transicion-media:  200ms ease-out;
   --transicion-lenta:  300ms ease-out;
+
+  /* =================================================================
+   * Estándar de la tarjeta de producto
+   *
+   * Este bloque es la referencia. La tarjeta de producto --la del inventario y la
+   * del catálogo-- sigue esta escala de espaciado, estos tamaños de texto, estos
+   * radios y esta paleta. Los valores vienen del estándar de mercado que Circulation
+   * pasó para las tarjetas: fondo blanco, borde casi invisible, esquinas de 8px,
+   * un relieve apenas, el título en 14px sin negrita, el precio en 20px y los
+   * datos en 12px.
+   *
+   * Es una escala propia y no la general de la app a propósito. La general está
+   * corrida un paso (--espacio-3 son 10px) y sirve para el resto de las
+   * pantallas; la de la tarjeta va en la escala de 4/8/12/16 del estándar, y así
+   * una tarjeta se parece a cualquier otra sin tocar lo demás.
+   *
+   * Cuando haga falta un valor de la tarjeta que no esté acá, se agrega acá con
+   * su nombre, y no se escribe el número en el CSS.
+   * ================================================================= */
+
+  /* Espaciado: 4 / 8 / 12 / 16. */
+  --tarjeta-espacio-xs:  4px;
+  --tarjeta-espacio-sm:  8px;
+  --tarjeta-espacio-md:  12px;
+  --tarjeta-espacio-lg:  16px;
+
+  /* El relleno de la tarjeta. En el formato de lista horizontal va uno más grande,
+     que es lo que dice el estándar. */
+  --tarjeta-relleno:     var(--tarjeta-espacio-md);
+  --tarjeta-relleno-fila:var(--tarjeta-espacio-lg);
+
+  /* Texto. El precio va en 20px en el teléfono y en 24px en pantalla ancha. */
+  --tarjeta-texto-xs:     12px;
+  --tarjeta-texto-sm:     14px;
+  --tarjeta-texto-precio: 20px;
+  --tarjeta-interlinea-1: 1.1;
+  --tarjeta-interlinea-2: 1.3;
+
+  /* Los tres grises del estándar: principal, secundario y el apagado. */
+  --tarjeta-texto:   #333333;
+  --tarjeta-texto-2: #666666;
+  --tarjeta-texto-3: #999999;
+
+  /* Bordes, radios y sombra de la tarjeta. */
+  --tarjeta-borde: #ededed;
+  --tarjeta-radio: 8px;
+  --tarjeta-sombra: 0 1px 2px 0 rgb(0 0 0 / 12%);
+
+  /* Radios de lo que va adentro: el botón de la acción y la insignia. */
+  --tarjeta-radio-boton:   6px;
+  --tarjeta-radio-insignia: 4px;
+
+  /*
+   * El azul del estándar: el del botón de acción de la tarjeta.
+   *
+   * El botón de la tarjeta es el secundario --fondo azul al 15% con letra azul--,
+   * y no el primario, porque la acción principal de una tarjeta de producto no es
+   * tocarla: es compararla. Hay dos tintes del mismo azul, el de reposo y el de
+   * encima del dedo.
+   *
+   * El verde del estándar no está: es el de los rótulos de texto sobre fondo
+   * blanco, como "envío gratis" o el descuento. La insignia de stock va sobre un
+   * verde pálido y necesita más contraste del que da ese verde, así que sigue con
+   * el verde oscuro de la app.
+   */
+  --tarjeta-azul:              #3483fa;
+  --tarjeta-azul-tenue:        rgb(65 137 230 / 15%);
+  --tarjeta-azul-tenue-fuerte: rgb(65 137 230 / 25%);
+
+  /* El botón de borrar no va en azul: es la acción que borra. Mismo formato que
+     el azul, con el rojo de la app en vez del azul del estándar. */
+  --tarjeta-rojo-tenue:        rgb(220 38 38 / 10%);
+  --tarjeta-rojo-tenue-fuerte: rgb(220 38 38 / 18%);
 }

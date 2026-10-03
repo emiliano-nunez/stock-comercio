@@ -9,11 +9,13 @@
  * escribir dos clases.
  */
 .tarjeta {
-  padding: var(--espacio-4);
+  /* Los tokens `--tarjeta-*` son el estándar de la tarjeta de producto. Está
+     escrito en tokens.css y ese es el lugar donde se cambia. */
+  padding: var(--tarjeta-relleno);
   background-color: var(--color-superficie);
-  border: 1px solid var(--color-borde-tenue);
-  border-radius: var(--radio-xl);
-  box-shadow: var(--sombra-sm);
+  border: 1px solid var(--tarjeta-borde);
+  border-radius: var(--tarjeta-radio);
+  box-shadow: var(--tarjeta-sombra);
   overflow: hidden;
 }
 
@@ -25,23 +27,6 @@
   padding: var(--espacio-3);
 }
 
-/*
- * La tarjeta del inventario va con menos relleno que la base, porque en la
- * pantalla se ven varias a la vez y cada centímetro de alto que sobra es una
- * tarjeta menos. El nombre, el bloque de datos y los botones no se tocan: el
- * bloque de datos tiene el alto reservado y los botones no bajan del mínimo
- * táctil.
- */
-.tarjeta-alta {
-  padding: var(--espacio-3);
-}
-
-/*
- * El bloque de datos de la tarjeta: precio, costo y código. El alto está
- * reservado a propósito: si dependiera de qué datos tiene el producto, la
- * tarjeta cambiaría de alto y los botones de cada columna quedarían a distinta
- * altura.
- */
 /*
  * El puntero va sólo sobre la miniatura y el título: son las dos cosas que
  * parecen un objetivo. Sobre el precio o el código, que son sólo datos, el cursor
@@ -60,46 +45,106 @@
 }
 
 /*
+ * El nombre del producto, en el inventario y en el catálogo.
+ *
+ * Va en 14px y sin negrita: el estándar de la tarjeta dice que el precio es lo
+ * único que tiene peso visual, y un título en negrita compite con él. Se corta en
+ * dos renglones con puntitos en vez de en uno, que es lo que hace el resto de las
+ * tarjetas y lo que aprovecha una columna de 130px.
+ *
+ * `white-space: normal` deshace el `.cortado` que trae el nombre en el HTML: ese
+ * es de una línea, y acá lo que se quiere son dos.
+ */
+.tarjeta h3,
+.tarjeta h4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  overflow: hidden;
+  white-space: normal;
+
+  font-size: var(--tarjeta-texto-sm);
+  line-height: var(--tarjeta-interlinea-2);
+  font-weight: var(--grosor-normal);
+  color: var(--tarjeta-texto);
+  margin-block-end: var(--tarjeta-espacio-xs);
+}
+
+/*
  * Los datos de la tarjeta de inventario van uno por renglón, como los del
  * catálogo.
  *
  * Antes era una fila con `flex-wrap`, así que el precio, el costo, el mínimo y el
  * código se acomodaban uno al lado del otro según el ancho que sobrara, y dos
  * números juntos en la misma línea se leían como uno.
- *
- * El `min-height` que tenía ya no hace falta: la tarjeta llena la fila con
- * `min-height: 100%`, así que las de una misma línea quedan iguales de altas
- * solas.
  */
 .datos-producto {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--espacio-1);
-  margin-block-start: var(--espacio-1);
+  gap: var(--tarjeta-espacio-xs);
+  margin-block-start: 0;
 }
 
+/*
+ * El precio de la tarjeta.
+ *
+ * Es lo único de la tarjeta que tiene tamaño grande: 20px, sin negrita y en el
+ * color principal, con la línea apretada. Es lo que el usuario compara entre
+ * productos, así que si el nombre o el código llaman más la atención que el
+ * precio, la tarjeta está mal.
+ *
+ * Se toma por la clase `texto-marca` que ya traía y no por el lugar, porque si el
+ * producto no tiene precio el primer renglón es el cartel de "Sin precio" y ese sí
+ * tiene que seguir siendo un cartel y no un número grande.
+ */
+.datos-producto .texto-marca {
+  font-size: var(--tarjeta-texto-precio);
+  line-height: var(--tarjeta-interlinea-1);
+  font-weight: var(--grosor-normal);
+  color: var(--tarjeta-texto);
+}
+
+/* El costo, el mínimo y el código son los datos de apoyo: 12px y en el gris
+   secundario del estándar. */
+.datos-producto .micro {
+  font-size: var(--tarjeta-texto-xs);
+}
+
+.datos-producto .apagado {
+  color: var(--tarjeta-texto-2);
+}
+
+.datos-producto .tenue {
+  color: var(--tarjeta-texto-3);
+}
+
+/*
+ * La foto de la tarjeta de inventario.
+ *
+ * Es de 5rem en todas las pantallas. Antes tenía dos medidas, 40px en el teléfono
+ * y 80px en la PC, y con la tarjeta en tres columnas esa medida chica dejaba la
+ * columna de la foto con un ícono de producto en el medio de un cuadrado vacío.
+ *
+ * La del historial es otra cosa y tiene la suya: 3rem en pantalla ancha y 2.5rem
+ * en el teléfono, porque ahí no es una columna con su propio ancho sino un
+ * detalle de una fila.
+ */
 .miniatura {
   flex-shrink: 0;
   /* Para que la insignia de stock se ubique contra la foto y no contra la
      tarjeta entera, igual que hace .marco-foto en el catálogo. */
   position: relative;
-  width: 3rem;
-  height: 3rem;
+  width: 5rem;
+  height: 5rem;
   background-color: var(--gris-100);
-  border-radius: var(--radio-lg);
+  border-radius: var(--tarjeta-radio);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-}
-
-@media (min-width: 640px) {
-  .miniatura {
-    width: 5rem;
-    height: 5rem;
-  }
 }
 
 .miniatura-marca {
@@ -109,20 +154,7 @@
   font-size: 1.25rem;
 }
 
-/*
- * Entre 600px y 839px la lista de productos ya va en dos columnas y la tarjeta
- * tiene la forma de la PC: la foto achica para dejarle lugar a la información.
- *
- * Por debajo de 600px no aplica: ahí la tarjeta es de una sola columna con las tres
- * piezas en un renglón, y la foto tiene columna propia y vuelve a su medida
- * grande. Está en `.tarjeta-alta .stock-foto .miniatura` y no acá a propósito: la
- * regla dice a qué pieza de qué tarjeta pertenece, y no depende de cuál de las
- * dos se escriba después.
- *
- * La del catálogo no entra en ninguna de las dos: es otra medida y ya está bien.
- */
 @media (max-width: 839px) {
-  .miniatura,
   .miniatura-marca {
     width: 2.5rem;
     height: 2.5rem;
@@ -147,25 +179,19 @@
 }
 
 /*
- * El teléfono: la tarjeta de una columna.
+ * Todo lo que no es PC: teléfono y tablet.
  *
- * La foto toma el ancho de su columna, que es de 5rem, y queda cuadrada. Es la
- * misma medida que tiene en la PC, y no agranda la tarjeta: la columna de los
- * botones, con dos cuadrados de 52px apilados, mide 104px, y la foto con la fecha
- * debajo llegan a 97px.
+ * La foto y los botones van en columna y no en fila, así que la foto no se estira
+ * a lo alto de la tarjeta y la fecha queda pegada abajo de la foto en vez de al
+ * pie de la tarjeta. El alto lo manda la columna de los botones, que con dos
+ * cuadrados de 52px apilados mide 104px.
  *
- * La columna de la información se queda con lo que sobra, alrededor de 200px a
- * 390px de pantalla, que es lo que necesitan el nombre y los cuatro renglones de
- * datos.
+ * El aviso de la foto perdida queda en el ícono solo: son cuatro renglones de
+ * texto en una columna angosta, y con uno de esos productos la tarjeta quedaba el
+ * doble de alta que las demás. El texto entero sigue en la hoja del producto, que
+ * es donde se abre al tocar la tarjeta.
  */
-@media (max-width: 599px) {
-  .tarjeta-alta .stock-foto .miniatura {
-    width: 5rem;
-    height: 5rem;
-    font-size: 1.5rem;
-  }
-
-  /* La fecha va pegada abajo de la foto, no al pie de la tarjeta. */
+@media (max-width: 839px) {
   .tarjeta-alta .stock-foto {
     align-self: start;
   }
@@ -174,13 +200,6 @@
     margin-block-start: 0;
   }
 
-  /*
-   * El aviso de la foto perdida queda en el ícono solo.
-   *
-   * Son cuatro renglones de texto en una columna de 200px, y con uno de esos
-   * productos la tarjeta quedaba dos veces más alta que las demás. El texto
-   * entero sigue en la hoja del producto, que es donde se abre al tocar la tarjeta.
-   */
   .tarjeta-alta .nota-texto {
     display: none;
   }
@@ -202,7 +221,7 @@
   flex-shrink: 0;
   /* Se estira a lo alto de la fila para que la fecha, que lleva `margin` de
      arriba, baje al pie de la tarjeta y no quede pegada a la foto desperdiciando
-     el alto sobrante. En el teléfono no: ahí la columna se ajusta a la foto y a la
+     el alto sobrante. Fuera de la PC no: ahí la columna se ajusta a la foto y a la
      fecha, que es más corta que la de los botones. */
   align-self: stretch;
   display: flex;
@@ -215,26 +234,37 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* La fecha va bajo el stock para que se lea de qué día es el precio, y se apoya en
-   el borde de abajo de la tarjeta. El gris es más oscuro que el del resto de los
-   datos secundarios porque a 11px, con el color tenue no se veía. */
+/* La fecha va bajo el stock para que se lea de qué día es el precio, y en la PC se
+   apoya en el borde de abajo de la tarjeta. Fuera de la PC queda pegada abajo de la
+   foto: es un dato de apoyo y no tiene por qué caer al fondo de la tarjeta. */
 .stock-fecha {
   margin-block-start: auto;
-  color: var(--gris-600);
+  font-size: var(--tarjeta-texto-xs);
+  color: var(--tarjeta-texto-2);
   white-space: nowrap;
 }
 
+/*
+ * La foto del catálogo. Va cuadrada siempre y con la imagen entera adentro, sin
+ * recortar: el estándar de la tarjeta dice `object-fit: contain`, y con las fotos
+ * de producto --que tienen fondo y no se cortan bien-- completar el cuadro se ve
+ * mejor que llenar.
+ */
 .marco-foto {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
   background-color: var(--gris-100);
-  border-radius: var(--radio-lg);
+  border-radius: var(--tarjeta-radio);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
+}
+
+.marco-foto img {
+  object-fit: contain;
 }
 
 .marco-foto-centrado {
@@ -255,6 +285,41 @@
 .catalogo-foto {
   flex-shrink: 0;
   width: 6rem;
+}
+
+/*
+ * Los datos de la tarjeta del catálogo.
+ *
+ * Es la misma escalera que en la del inventario: el precio grande y sin negrita, y
+ * debajo los datos de apoyo en 12px con el gris secundario. Se scopea a
+ * `.cuadricula` porque `marca` y `micro` son clases generales que también están en
+ * el formulario y en la lista de categorías.
+ *
+ * El relleno es el de lista horizontal del estándar, que es un paso más grande que
+ * el de la tarjeta en vertical. El catálogo es una lista horizontal: la foto a la
+ * izquierda y los datos a la derecha.
+ */
+.cuadricula .tarjeta {
+  padding: var(--tarjeta-relleno-fila);
+}
+
+.cuadricula .tarjeta .marca {
+  font-size: var(--tarjeta-texto-precio);
+  line-height: var(--tarjeta-interlinea-1);
+  font-weight: var(--grosor-normal);
+  color: var(--tarjeta-texto);
+}
+
+.cuadricula .tarjeta .micro {
+  font-size: var(--tarjeta-texto-xs);
+}
+
+.cuadricula .tarjeta .apagado {
+  color: var(--tarjeta-texto-2);
+}
+
+.cuadricula .tarjeta .tenue {
+  color: var(--tarjeta-texto-3);
 }
 
 .marco-foto-vacio {
@@ -368,20 +433,25 @@
  * la fecha, la información, y los botones. Las dos pantallas usan el mismo HTML y
  * lo que cambia es el reparto.
  *
- * En el teléfono las tres van en un renglón -- foto | información | botones -- y
- * por eso el alto lo manda la columna de los botones. Antes la foto y la
- * información compartían un renglón y los botones ocupaban otro entero debajo: la
- * tarjeta medía dos filas de alto y para llegar a borrar había que bajar hasta el
- * final, con la foto y los datos muy lejos de los botones.
+ * Fuera de la PC -- teléfono y tablet -- las tres van en un renglón: foto |
+ * información | botones. Por eso el alto lo manda la columna de los botones.
+ * Antes la foto y la información compartían un renglón y los botones ocupaban
+ * otro entero debajo: la tarjeta medía dos filas de alto y para llegar a borrar
+ * había que bajar hasta el final, con la foto y los datos muy lejos de los botones.
  *
  * En la PC vuelven a ser dos renglones: la foto y la información arriba, y los
  * botones abajo ocupando el ancho entero. La fila de arriba crece con `1fr`, que
  * es lo mismo que hacía antes el `margin-top: auto` de los botones.
  *
- * El corte va en 600px porque es donde la lista de productos pasa a dos columnas.
- * Los dos cambios tienen que moverse juntos: con la tarjeta de una sola columna
- * de ancho y las tres piezas al lado, la información queda de 200px y no entra
- * ningún nombre.
+ * El corte va en 840px, que es donde la cabecera pasa a ser la barra lateral y la
+ * lista de productos toma el ancho que sobra. En todo lo que está por debajo el
+ * renglón es uno solo, sin importar si la lista va en una columna o en dos: con
+ * la foto, la información y los botones en dos filas, el botón de borrar volvía a
+ * caer abajo de la última fila y la tarjeta se partía en tres.
+ *
+ * Las tres columnas van separadas por 8px y no por 12px porque lo que se queda
+ * angosto es la información: a 600px de ventana la tarjeta mide 285px y con 12px
+ * de separación el nombre entraba en quince letras por renglón.
  */
 .tarjeta-alta {
   /* `min-height`, no `height`: la tarjeta tiene que llenar la fila para que los
@@ -392,17 +462,20 @@
   display: grid;
   grid-template-columns: 5rem minmax(0, 1fr) auto;
   grid-template-areas: "foto info acciones";
-  column-gap: var(--espacio-3);
-  padding: var(--espacio-3);
+  column-gap: var(--tarjeta-espacio-sm);
+  padding: var(--tarjeta-relleno);
 }
 
-@media (min-width: 600px) {
+@media (min-width: 840px) {
   .tarjeta-alta {
     grid-template-columns: auto minmax(0, 1fr);
     grid-template-rows: 1fr auto;
     grid-template-areas:
       "foto      info"
       "acciones  acciones";
+    /* En la PC lo único que hay entre columnas es la foto y el texto, y ahí sí hay
+       lugar: va en el paso de 12px del estándar. */
+    column-gap: var(--tarjeta-espacio-md);
   }
 }
 
@@ -423,7 +496,7 @@
 /*
  * Los botones de la tarjeta.
  *
- * En el teléfono van en columna: editar arriba y borrar abajo, para que los dos
+ * Fuera de la PC van en columna: editar arriba y borrar abajo, para que los dos
  * entren en la pantalla sin bajar hasta el final de la tarjeta. Siguen siendo
  * cuadrados de 52px, que es el mínimo que se toca con el dedo.
  *
@@ -433,20 +506,62 @@
 .acciones-tarjeta {
   grid-area: acciones;
   display: flex;
-  gap: var(--espacio-2);
+  gap: var(--tarjeta-espacio-sm);
 }
 
-@media (max-width: 599px) {
+@media (max-width: 839px) {
   .acciones-tarjeta {
     flex-direction: column;
   }
 }
 
-@media (min-width: 600px) {
+@media (min-width: 840px) {
   .acciones-tarjeta {
-    border-block-start: 1px solid var(--color-borde-tenue);
-    padding-block-start: var(--espacio-1);
+    border-block-start: 1px solid var(--tarjeta-borde);
+    padding-block-start: var(--tarjeta-espacio-sm);
   }
+}
+
+/*
+ * El botón de la tarjeta: el azul del estándar, en su versión secundaria.
+ *
+ * Fondo azul al 15% con letra azul, que es lo que el estándar dice para el botón
+ * que no es la acción principal. Va en las esquinas de 6px.
+ *
+ * Del estándar se toma el color, la forma y el tipo. El tamaño no: sus 36px de
+ * alto son para una web donde se apunta con el mouse, y acá el mínimo que se toca
+ * con el dedo son 52px, que no se baja. Por eso el botón es un cuadrado de 52px en
+ * lugar de una barra.
+ *
+ * El tamaño de la letra tampoco se toca: en el estándar el botón dice "Comprar" y
+ * acá es un ícono, así que su 14px es para texto y el ícono sigue con el tamaño que
+ * tenía.
+ */
+.acciones-tarjeta .btn-icono-solo {
+  border-radius: var(--tarjeta-radio-boton);
+  background-color: var(--tarjeta-azul-tenue);
+  color: var(--tarjeta-azul);
+}
+
+.acciones-tarjeta .btn-icono-solo:hover {
+  background-color: var(--tarjeta-azul-tenue-fuerte);
+}
+
+/*
+ * Borrar no va en azul: es la acción que borra. Mismo formato que el de editar, con
+ * el rojo de la app en lugar del azul del estándar.
+ *
+ * El color va escrito aunque el botón ya traiga `texto-peligro` en el HTML: la
+ * regla de arriba tiene dos clases y le gana, así que sin esto el botón de borrar
+ * saldría azul.
+ */
+.acciones-tarjeta .texto-peligro {
+  background-color: var(--tarjeta-rojo-tenue);
+  color: var(--color-peligro-fuerte);
+}
+
+.acciones-tarjeta .texto-peligro:hover {
+  background-color: var(--tarjeta-rojo-tenue-fuerte);
 }
 
 .tarjeta-peligro {
@@ -974,8 +1089,9 @@
 }
 
 .insignia-pequena {
-  padding: 2px var(--espacio-2);
-  font-size: var(--texto-xs);
+  padding: 2px var(--tarjeta-espacio-xs);
+  border-radius: var(--tarjeta-radio-insignia);
+  font-size: var(--tarjeta-texto-xs);
 }
 
 /* =================================================================
