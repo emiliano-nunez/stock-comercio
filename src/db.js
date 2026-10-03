@@ -83,20 +83,13 @@ db.version(5).stores({
  *
  * Por qué NO se indexa categoriaIds:
  *   - Un índice sobre un campo que es una lista crea UNA ENTRADA POR ELEMENTO
- *     (ver la nota de la v5 sobre precios). Con 3 categorías son 3 filas por
- *     producto.
- *   - Y, sobre todo, no hay ninguna consulta que lo use. Todo el filtrado pasa
- *     por App.aplicarFiltroYOrden() y por productosDeLaVista(), que filtran en
- *     memoria sobre el inventario ya cargado. El índice se pagaría en cada
- *     escritura y no se cobraría nunca.
- *
- * Se saca el índice de categoriaId porque ese campo ya no existe. Dexie
- * rebuilda los índices al cambiar de versión, así que dejarlo sería un índice
- * sobre una columna siempre vacía.
- *
- * La migración mueve el valor viejo a una lista de un solo elemento. Es
- * reversible: nada se borra de la foto ni del historial, y el campo nuevo
- * contiene exactamente lo que tenía el anterior.
+ *     de la lista. Buscar por categoría devolvería productos repetidos.
+ *   - Dexie no indexa arrays con varias claves: la consulta no se puede
+ *     escribir.
+ *   - El filtro por categoría se hace en memoria, y son como pocos cientos de
+ *     productos: no se nota.
+ * El índice viejo de categoriaId se queda declarado en la v5 a propósito, para
+ * que las bases ya existentes se puedan reindexar sin perder nada.
  */
 db.version(6)
   .stores({
@@ -114,11 +107,20 @@ db.version(6)
         producto.categoriaIds = producto.categoriaId ? [producto.categoriaId] : [];
       }
       delete producto.categoriaId;
+
+      // Los dos campos nuevos nacen vacíos, no en null: se comparan y se
+      // concatenan como texto en la interfaz, y "" se puede pintar sin que cada
+      // lugar se acuerde del caso.
+      if (typeof producto.proveedor !== 'string') producto.proveedor = '';
+      if (typeof producto.notas !== 'string') producto.notas = '';
+    });
+  });
+
 /*
  * v7: los proveedores pasan a ser una lista propia.
  *
  * Hasta acá el proveedor era sólo texto dentro del producto. Eso alcanzan para
- * agrupar un pedido, pero no para administering la lista: no había forma de
+ * agrupar un pedido, pero no para administrar la lista: no había forma de
  * agregar un proveedor antes de tener un producto suyo, ni de renombrar uno sin
  * editar producto por producto.
  *
@@ -135,7 +137,7 @@ db.version(6)
  * base, que es después de que el módulo terminó de evaluarse, así que
  * funcionando funciona; pero depender del orden de las declaraciones para que
  * algo ande es lo que después rompe sin que nadie toque nada.
-  */
+ */
 db.version(7)
   .stores({
     productos: 'id, codigoBarras, tipoVenta, costo, fechaCompra',
@@ -157,18 +159,12 @@ db.version(7)
     }
     if (!vistos.size) return;
     await tx.table('proveedores').bulkPut(
-      [...vistos.values()].map(nombre => ({ id: dbUtils.generarId('prov'), nombre }))
+      [...vistos.values()].map(nombre => ({
+        id: `prov_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        nombre
+      }))
     );
   });
-
-      // Los dos campos nuevos nacen vacíos, no en null: se comparan y se
-      // concatenan como texto en la interfaz, y "" se puede pintar sin que cada
-      // lugar se acuerde del caso.
-      if (typeof producto.proveedor !== 'string') producto.proveedor = '';
-      if (typeof producto.notas !== 'string') producto.notas = '';
-    });
-  });
-
 /**
  * Las categorías de un producto, siempre como lista de ids.
  *
