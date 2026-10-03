@@ -96,22 +96,15 @@
 }
 
 /*
- * En el teléfono la foto toma el ancho de la columna en vez de un cuadrado fijo.
- * El ancho lo marca la fecha, que es el elemento más ancho de los tres: antes la
- * foto se quedaba en 36px con aire a los dos lados mientras la fecha ocupaba la
- * columna entera.
+ * En el teléfono la foto de la tarjeta de inventario achica. La del catálogo no
+ * entra acá: es otra medida y ya está bien.
  */
 @media (max-width: 839px) {
-  .stock-foto {
-    min-width: 3.5rem;
-  }
-
   .miniatura,
   .miniatura-marca {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1;
-    font-size: 1.1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
   }
 }
 
@@ -167,6 +160,20 @@
   max-width: var(--tope-foto);
   margin-inline: auto;
   margin-block-end: var(--espacio-2);
+}
+
+/*
+ * La tarjeta del catálogo es de dos columnas: la foto con sus dos etiquetas a la
+ * izquierda y la información a la derecha.
+ *
+ * La foto tiene ancho fijo porque `.marco-foto` es de `width: 100%`, y dentro de
+ * una columna de ancho automático eso es circular: el ancho de la foto terminaría
+ * marcando el de la columna. Con un ancho fijo la columna se mide por la foto y
+ * la información toma lo que sobra, que es lo que interesa.
+ */
+.catalogo-foto {
+  flex-shrink: 0;
+  width: 6rem;
 }
 
 .marco-foto-vacio {

@@ -729,32 +729,36 @@ export class App {
     return `
       <article class="tarjeta" data-id="${escAttr(p.id)}" data-action="detalle" role="button" tabindex="0"
         aria-label="Ver la hoja de ${escAttr(p.nombre)}">
-        <div class="marco-foto marco-foto-centrado">
-          ${imagenHTML}
-          <div class="esquina-superior-derecha insignia insignia-pequena ${this.getStockClass(p)}">
-            ${this.getStockLabel(p)}
-          </div>
-          ${cat ? `
-            <div class="marca-foto">
-              <span class="punto-mini" style="background-color: ${escAttr(cat.color || '#64748B')}"></span>
-              <span class="micro con-medio cortado ancho-etiqueta">${esc(cat.nombre)}</span>
-              ${categorias.length > 1 ? `<span class="micro tenue">+${categorias.length - 1}</span>` : ''}
+        <div class="fila fila-arriba fila-amplia crece">
+          <div class="marco-foto catalogo-foto">
+            ${imagenHTML}
+            <div class="esquina-superior-derecha insignia insignia-pequena ${this.getStockClass(p)}">
+              ${this.getStockLabel(p)}
             </div>
-          ` : ''}
-        </div>
-        <h4 class="detalle fuerte cortado con-margen-abajo-chica">${esc(p.nombre)}</h4>
-        ${p.codigoBarras ? `<p class="micro tenue mono cortado con-margen-abajo-chica">${esc(p.codigoBarras)}</p>` : ''}
-        ${avisoFotoPerdida}
-        ${p.precios && p.precios.length > 1 ? `
-          <div class="fila envuelto fila-corta con-margen-abajo-chica">
-            ${p.precios.map(pr => `
-              <span class="categoria-chip">${esc(pr.icon || '📦')} $${fmtPrecio(pr.valor)}/${esc(pr.unidad)}</span>
-            `).join('')}
+            ${cat ? `
+              <div class="marca-foto">
+                <span class="punto-mini" style="background-color: ${escAttr(cat.color || '#64748B')}"></span>
+                <span class="micro con-medio cortado ancho-etiqueta">${esc(cat.nombre)}</span>
+                ${categorias.length > 1 ? `<span class="micro tenue">+${categorias.length - 1}</span>` : ''}
+              </div>
+            ` : ''}
           </div>
-        ` : (p.precio ? `<p class="marca fuerte detalle">$${fmtPrecio(p.precio)}/${esc(unidad)}</p>` : '<p class="micro tenue">Sin precio</p>')}
-        <p class="micro apagado">Stock: ${p.stock || 0} ${esc(unidad)}</p>
-        ${p.costo ? `<p class="micro apagado">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</p>` : ''}
-        ${p.fechaCompra ? `<p class="micro tenue">📅 ${new Date(p.fechaCompra).toLocaleDateString('es-ES')}</p>` : ''}
+          <div class="crece ancho-cero columna apilado">
+            <h4 class="detalle fuerte cortado">${esc(p.nombre)}</h4>
+            ${p.codigoBarras ? `<p class="micro tenue mono cortado">${esc(p.codigoBarras)}</p>` : ''}
+            ${avisoFotoPerdida}
+            ${p.precios && p.precios.length > 1 ? `
+              <div class="fila envuelto fila-corta">
+                ${p.precios.map(pr => `
+                  <span class="categoria-chip">${esc(pr.icon || '📦')} $${fmtPrecio(pr.valor)}/${esc(pr.unidad)}</span>
+                `).join('')}
+              </div>
+            ` : (p.precio ? `<p class="marca fuerte detalle">$${fmtPrecio(p.precio)}/${esc(unidad)}</p>` : '<p class="micro tenue">Sin precio</p>')}
+            <p class="micro apagado">Stock: ${p.stock || 0} ${esc(unidad)}</p>
+            ${p.costo ? `<p class="micro apagado">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</p>` : ''}
+            ${p.fechaCompra ? `<p class="micro tenue">📅 ${new Date(p.fechaCompra).toLocaleDateString('es-ES')}</p>` : ''}
+          </div>
+        </div>
       </article>
     `;
   }
