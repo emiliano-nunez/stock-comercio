@@ -170,7 +170,7 @@
    * datos. En el teléfono, donde van en columna, `flex: 1` los estiraría a lo alto
    * y cada uno se llevaría media tarjeta.
    *
-   * No baja el mínimo táctil: siguen siendo cuadrados de 52px, que es lo que se
+   * No baja el mínimo táctil: siguen siendo cuadrados de 40px, que es lo que se
    * toca con el dedo. Lo que se achica es el ancho.
    */
   .acciones-tarjeta .btn-crece {
@@ -184,7 +184,7 @@
  * La foto y los botones van en columna y no en fila, así que la foto no se estira
  * a lo alto de la tarjeta y la fecha queda pegada abajo de la foto en vez de al
  * pie de la tarjeta. El alto lo manda la columna de los botones, que con dos
- * cuadrados de 52px apilados mide 104px.
+ * cuadrados de 40px apilados mide 88px.
  *
  * El aviso de la foto perdida queda en el ícono solo: son cuatro renglones de
  * texto en una columna angosta, y con uno de esos productos la tarjeta quedaba el
@@ -327,7 +327,7 @@
 }
 
 .foto-cuadro {
-  border-radius: var(--radio-lg);
+  border-radius: var(--interfaz-radio);
 }
 
 .foto-llena {
@@ -336,19 +336,25 @@
   object-fit: cover;
 }
 
-/* El marco del video de la cámara, negro para que se vea la imagen. */
+/*
+ * El marco del video de la cámara, negro para que se vea la imagen.
+ *
+ * Va con las medidas del estándar: esquinas de 8px y 8px de aire alrededor. Antes
+ * usaba los radios viejos de la app y quedaba más redondeado que el resto del
+ * diálogo, que ya va en 8px.
+ */
 .marco-video {
   position: relative;
   background-color: var(--gris-900);
-  padding: var(--espacio-2);
-  border-radius: var(--radio-lg);
+  padding: var(--interfaz-espacio-2);
+  border-radius: var(--interfaz-radio);
   overflow: hidden;
 }
 
 .visor-video {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: var(--radio-md);
+  border-radius: var(--interfaz-radio);
   overflow: hidden;
   background-color: var(--gris-900);
 }
@@ -358,13 +364,17 @@
  * arriba se dibujan con dos pseudo-elementos, y por eso hace falta
  * position: relative en el recuadro: sin él los pseudo-elementos se acomodan
  * contra el ancestro con posición y las esquinas quedan arriba de la pantalla.
+ *
+ * El marco va en azul y no en el verde de antes: es lo único que el estándar pinta
+ * de color dentro de una superficie, y el verde de la app ya está en la cabecera.
+ * Encima del video negro es lo que mejor se ve.
  */
 .marco-escaner {
   position: relative;
   width: 75%;
   height: 75%;
-  border: 4px solid color-mix(in srgb, var(--color-marca) 50%, transparent);
-  border-radius: var(--radio-lg);
+  border: 4px solid color-mix(in srgb, var(--interfaz-azul) 50%, transparent);
+  border-radius: var(--interfaz-radio);
 }
 
 .marco-escaner::before,
@@ -374,7 +384,7 @@
   top: -6px;
   width: 2rem;
   height: 2rem;
-  border: 4px solid var(--color-marca);
+  border: 4px solid var(--interfaz-azul);
 }
 
 .marco-escaner::before {
@@ -498,7 +508,7 @@
  *
  * Fuera de la PC van en columna: editar arriba y borrar abajo, para que los dos
  * entren en la pantalla sin bajar hasta el final de la tarjeta. Siguen siendo
- * cuadrados de 52px, que es el mínimo que se toca con el dedo.
+ * cuadrados del mínimo táctil, que es lo que se toca con el dedo.
  *
  * En la PC vuelven a ser una fila que ocupa el ancho de la tarjeta, con el
  * separador de siempre arriba y el relleno que lo separaba del contenido.
@@ -530,8 +540,7 @@
  *
  * Del estándar se toma el color, la forma y el tipo. El tamaño no: sus 36px de
  * alto son para una web donde se apunta con el mouse, y acá el mínimo que se toca
- * con el dedo son 52px, que no se baja. Por eso el botón es un cuadrado de 52px en
- * lugar de una barra.
+ * con el dedo es el de la app. Por eso el botón es un cuadrado y no una barra.
  *
  * El tamaño de la letra tampoco se toca: en el estándar el botón dice "Comprar" y
  * acá es un ícono, así que su 14px es para texto y el ícono sigue con el tamaño que
@@ -847,9 +856,9 @@
  * formulario tiene veinte campos: con tanto aire entre ellos el alto crece y
  * el pie queda lejos del contenido, con tres pantallas de scroll por delante.
  *
- * No baja el alto táctil de los controles: eso se queda en 52px en todos los
- * tamaños. Lo que se achica es el aire alrededor, y nunca por debajo del paso de
- * 12px del estándar.
+ * No baja el alto táctil de los controles: eso se queda en el mínimo táctil en
+ * todos los tamaños. Lo que se achica es el aire alrededor, y nunca por debajo
+ * del paso de 12px del estándar.
  */
 @media (max-width: 480px) {
   .velo {
@@ -989,8 +998,11 @@
   width: 100%;
 }
 
+/* El pie de los diálogos cortos, los que no tienen lista larga: mismo fondo que
+   el pie fijo del estándar, y sin las esquinas de arriba porque las del diálogo
+   las redondea el diálogo, no el pie. */
 .pie-suave {
-  background-color: var(--gris-50);
+  background-color: var(--dialogo-pie-fondo);
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
@@ -1310,25 +1322,32 @@
  * El nombre del dato va en `<th>` para que el lector de pantalla anuncie el dato
  * antes que su valor. Sin eso, una lista de celdas sueltas se lee como una
  * secuencia de números sin saber qué son.
+ *
+ * La escala es la del estándar: 14px para los dos lados, el nombre del dato en el
+ * gris secundario, la línea de abajo en el borde del estándar y 8px de aire por
+ * renglón. El precio no se agranda acá aunque en la tarjeta sea lo único grande:
+ * en una tabla de dos columnas una celda de 20px al lado de nueve de 14px se ve
+ * como un error de formato y no como una jerarquía.
  * ================================================================= */
 
 .planilla {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--texto-base);
+  font-size: var(--interfaz-texto-sm);
+  color: var(--interfaz-texto);
 }
 
 .planilla th,
 .planilla td {
-  padding: var(--espacio-3) var(--espacio-1);
-  border-bottom: 1px solid var(--color-borde-tenue);
+  padding: var(--interfaz-espacio-2) var(--interfaz-espacio-1);
+  border-bottom: 1px solid var(--interfaz-borde);
   vertical-align: top;
 }
 
 .planilla th {
   text-align: left;
   font-weight: var(--grosor-medio);
-  color: var(--color-texto-suave);
+  color: var(--interfaz-texto-2);
   white-space: nowrap;
   width: 1%;
 }
@@ -1340,7 +1359,7 @@
 
 /* El campo que el usuario no llenó: se ve como texto, no como dato. */
 .sin-llenar {
-  color: var(--gris-400);
+  color: var(--interfaz-texto-3);
   font-style: italic;
   font-variant-numeric: normal;
 }

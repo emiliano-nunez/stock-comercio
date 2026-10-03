@@ -308,7 +308,6 @@ export class ProductoForm {
                   value="${escAttr(this.producto?.nombre || '')}"
                   required
                   autocomplete="off"
-                  autofocus
                 >
               </div>
 

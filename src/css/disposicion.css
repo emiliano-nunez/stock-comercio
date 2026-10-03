@@ -313,9 +313,15 @@
  * Las pestañas
  * ================================================================= */
 
+/*
+ * Las pestañas.
+ *
+ * Sin línea arriba: la cabecera es verde y una línea gris entre el buscador y las
+ * pestañas se veía como una mancha. Lo que separa una fila de la otra es que la
+ * pestaña elegida lleva fondo blanco.
+ */
 .pestanas {
   display: flex;
-  border-top: 1px solid var(--interfaz-borde);
   overflow-x: hidden;
   /* Las pestañas ocupan su propio renglón, abajo del buscador. */
   order: 5;
@@ -490,7 +496,7 @@
  * productos toma el ancho que sobra.
  *
  * El corte está en 840px porque es donde las tarjetas todavía dejan los tres
- * botones de la fila (156px de botones, 12 de separación, 22 de relleno y borde)
+ * botones de la fila (120px de botones, 16 de separación, 22 de relleno y borde)
  * con aire. Antes las tarjetas se angostaban, los botones se repartían con
  * `flex: 1` y el último se salía de la caja, que tiene `overflow: hidden`.
  */
@@ -521,6 +527,14 @@
  * elemento del árbol, así que los selectores del `order` tendrían que pasar por
  * la fila intermedia y uno mal escrito deja de matchear sin avisar.
  */
+  /*
+   * El nombre de la app.
+   *
+   * El margen de arriba es más grande que el del resto porque en la barra lateral
+   * es lo primero que aparece y con el aire del encabezado quedaba pegado al
+   * borde de la ventana. Es también el único renglón que no se toca y que puede
+   * tener una línea entera de aire antes de la primera cosa que se toca.
+   */
   .cabecera-cuerpo {
     flex-direction: column;
     flex-wrap: nowrap;
@@ -528,6 +542,7 @@
     gap: var(--espacio-2);
     height: 100%;
     min-height: 0;
+    padding-block-start: var(--tarjeta-relleno-fila);
   }
 
   .cabecera-cuerpo > h1 {
@@ -835,14 +850,14 @@
  *
  * El corte está en 480px y no en 768px porque la medida no la da la pantalla sino
  * la fila de controles que tiene que entrar adentro. La fila de stock es un
- * botón de 52px, un campo y otro botón de 52px, y el campo no baja de 36px
- * aunque le quede el ancho justo: 52 + 6 + 36 + 6 + 52 son 152px, más los 32px
+ * botón de 40px, un campo y otro botón de 40px, y el campo no baja de 36px
+ * aunque le quede el ancho justo: 40 + 6 + 36 + 6 + 40 son 128px, más los 32px
  * de relleno del diálogo. En dos columnas a 320px de pantalla cada una quedaba
  * de 124px y el botón de sumar se salía de la caja.
  *
  * Por eso las dos cuadrículas del formulario usan esta y no la de arriba: la del
  * catálogo sí aguanta dos columnas en un teléfono angosto, porque cada hijo es un
- * renglón de texto y no tres controles de 52px.
+ * renglón de texto y no tres controles táctiles.
  */
 .cuadricula-apilada {
   display: grid;
@@ -921,15 +936,17 @@
   left: var(--espacio-1);
 }
 
+/* La franja de los botones sobre el video de la cámara. El aire es el del
+   estándar, 16px, y antes eran 13px. */
 .franja-inferior {
   position: absolute;
-  bottom: var(--espacio-4);
-  left: var(--espacio-4);
-  right: var(--espacio-4);
+  bottom: var(--interfaz-espacio-4);
+  left: var(--interfaz-espacio-4);
+  right: var(--interfaz-espacio-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--espacio-4);
+  gap: var(--interfaz-espacio-4);
 }
 
 /* =================================================================

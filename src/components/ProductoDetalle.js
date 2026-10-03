@@ -123,7 +123,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
    * cargando un pedido.
    *
    * El rótulo va en su propia línea arriba de los botones. En una fila sola los
-   * tres controles con su mínimo táctil de 52px más el rótulo no entran en un
+   * tres controles con su mínimo táctil más el rótulo no entran en un
    * teléfono, y lo que sobra es el texto: se ve cortado sin aviso. Arriba se lee
    * entero o pasa a dos líneas, pero nunca se corta.
    */
@@ -178,11 +178,10 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
           ${ajustarHTML}
           <div class="fila">
             <!--
-              El botón de duplicar vive acá y no en la tarjeta en el teléfono: la
-              tarjeta lleva los tres botones de 52px en una fila, y eso le pone un
-              piso de 190px de ancho que no deja entrar dos columnas en una
-              pantalla de 390px. Sacándolo de la tarjeta, la fila baja a dos
-              botones y el piso queda en 132px. En el escritorio el botón vuelve a
+              El botón de duplicar vive acá y no en la tarjeta en el teléfono. La
+              tarjeta lleva los botones en una columna al costado y con los tres
+              dedans la fila de la tarjeta se pone más alta; sacándolo de la
+              tarjeta, la columna queda con dos. En el escritorio el botón vuelve a
               la tarjeta, que es donde se lo usa, y acá se esconde.
             -->
             <button

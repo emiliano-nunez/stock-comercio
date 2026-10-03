@@ -160,16 +160,19 @@ svg {
 }
 
 /*
- * El botón de sólo ícono: cuadrado y del tamaño del mínimo táctil. El ícono va
- * chico porque con 1.75rem dentro de 52px se ve como un ícono gigante con un
- * borde alrededor, y la fila de las tarjetas quedaba más ancha que la foto. El
- * botón NO baja de 52px: ése es el que se toca con el dedo.
+ * El botón de sólo ícono: cuadrado y del tamaño del mínimo táctil.
+ *
+ * El ícono va a 1.05rem, que es la misma proporción que tenía sobre el botón de
+ * 52px. Si se dejara en 1.3rem, sobre un cuadrado de 40px el ícono ocuparía la
+ * mitad del ancho y parecería un ícono con un borde alrededor, en vez de un botón
+ * con un ícono. El botón NO baja del mínimo táctil: ése es el que se toca con el
+ * dedo.
  */
 .btn-icono-solo {
   width: var(--toque-min);
   height: var(--toque-min);
   padding: 0;
-  font-size: 1.3rem;
+  font-size: 1.05rem;
 }
 
 /* El ícono de los títulos y los slotted, que va más grande que el del botón. */
@@ -412,8 +415,8 @@ svg {
    * El número que va entre los botones de restar y sumar. Se mide 3rem, que
    * entra de sobra con cuatro cifras, pero cede si no hay lugar: en un
    * teléfono de 320px la columna de texto de la tarjeta queda en 162px y los
-   * tres controles necesitan 168px. Los botones no ceden porque tienen el
-   * mínimo táctil de 52px, así que el que cede es el número, y hasta 2.25rem:
+   * tres controles necesitan 132px. Los botones no ceden porque tienen el
+   * mínimo táctil, así que el que cede es el número, y hasta 2.25rem:
    * por abajo el "-12" ya se ve apretado.
    */
   width: 3rem;

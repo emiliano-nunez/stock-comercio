@@ -88,7 +88,7 @@
    * cuatro productos, y en un teléfono eso es una sola tanda.
    *
    * Lo que no se toca es `--toque-min`, más abajo: el área que se toca con el
-   * dedo sigue siendo de 52px aunque la letra sea un punto más chica.
+   * dedo sigue siendo de 40px aunque la letra sea un punto más chica.
    * ----------------------------------------------------------------- */
   --fuente: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
@@ -134,28 +134,22 @@
   /* -----------------------------------------------------------------
    * Medidas táctiles
    *
-   * 52px es el mínimo, y es el mínimo en las DOS dimensiones: no es un ancho ni
+   * 40px es el mínimo, y es el mínimo en las DOS dimensiones: no es un ancho ni
    * un alto, son los dos a la vez. Por eso el ancho y el alto comparten
    * variable, y no hay dos números que puedan dejar de coincidir.
+   *
+   * Estuvo en 52px y bajó porque con 52 la app se veía aireada de más: los
+   * botones medían la mitad del ancho de la tarjeta y el formulario de producto
+   * ocupaba tres pantallas de scroll para veinte campos. 40px es lo que dice el
+   * estándar de diseño para un control y sigue siendo un objetivo cómodo con el
+   * dedo.
+   *
    * ----------------------------------------------------------------- */
-  --toque-min:        52px;
-  --toque-min-grande: 60px;
-  --toque-flotante:   56px;
+  --toque-min: 40px;
 
   --ancho-app: 48rem;
 
   --tope-foto: 200px;
-
-  /* -----------------------------------------------------------------
-   * El ancho de las tarjetas
-   *
-   * Es el mínimo de la columna, no una medida. Con `auto-fill` y `1fr` de
-   * máximo este número decide cuántas columnas entran, y por eso tiene que ser
-   * el ancho mínimo que la tarjeta necesita: los tres botones de 52px de la fila
-   * de acciones. Con 13rem ninguna tarjeta baja de 208px y ningún botón queda
-   * angosto.
-   * ----------------------------------------------------------------- */
-  --ancho-tarjeta-min: 13rem;
 
   /* -----------------------------------------------------------------
    * Radios, sombras y capas
@@ -200,10 +194,9 @@
    *
    * Lo que el estándar NO fija, porque son reglas de la app y no del diseño:
    *
-   *   - El alto de los controles. El estándar dice 48px para los campos y 40px
-   *     para el buscador, y habla de una web de escritorio. Acá el mínimo que se
-   *     toca con el dedo son 52px, que no se baja: por eso `--campo-alto` y el
-   *     alto del buscador valen 52 y no lo que dice el estándar.
+   *   - El alto del buscador. El estándar lo deja en 40px y ahí está: es el
+   *     mismo número que el mínimo táctil de la app, así que el campo del
+   *     buscador y los botones que tiene pegados al costado miden lo mismo.
    *   - El alto máximo del diálogo, que el estándar deja en 70vh. Acá va en 92vh
    *     porque los diálogos tienen veinte campos y con 70 queda siempre un
    *     pedazo de formulario fuera de la pantalla.
@@ -303,8 +296,9 @@
    * Los formularios
    * ----------------------------------------------------------------- */
 
-  /* 52px y no los 48px del estándar: es el mínimo que se toca con el dedo. */
-  --campo-alto:         52px;
+  /* El alto sale del mínimo táctil y no se escribe otra vez: si bajan los
+     controles, los campos bajan con ellos. */
+  --campo-alto: var(--toque-min);
   --campo-borde:        #cccccc;
   --campo-relleno:      var(--interfaz-espacio-3);
   --campo-grupo-hueco:  6px;

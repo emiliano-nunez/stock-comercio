@@ -378,7 +378,7 @@ formatearFecha(fechaISO) {
         <div class="dialogo">
           <div class="dialogo-cabecera dialogo-cabecera-aviso">
             <h2 class="titulo fila">
-              <span class="icono-rosa">${icono('alerta')}</span> ${esc(titulo)}
+              <span>${icono('alerta')}</span> ${esc(titulo)}
             </h2>
             <button class="btn-fantasma btn-icono" data-accion="cancelar" aria-label="Cerrar">✕</button>
           </div>

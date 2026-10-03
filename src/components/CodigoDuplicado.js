@@ -173,7 +173,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
         <div class="dialogo">
           <div class="dialogo-cabecera dialogo-cabecera-aviso">
             <h2 class="titulo fila ancho-cero">
-              <span class="icono-rosa">${icono('alerta')}</span>
+              <span>${icono('alerta')}</span>
               <span class="cortado">Código repetido</span>
             </h2>
             <button class="btn-fantasma btn-icono no-crece" data-accion="cancelar" aria-label="Cerrar">✕</button>

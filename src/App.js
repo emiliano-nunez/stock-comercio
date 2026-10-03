@@ -1520,7 +1520,7 @@ export class App {
         <form id="form-categoria" class="dialogo-cuerpo apilado-4">
           <div>
             <label class="etiqueta">Nombre</label>
-            <input type="text" id="cat-nombre" class="campo" value="${escAttr(cat?.nombre || '')}" required autocomplete="off" autofocus placeholder="Ej: Verduras">
+            <input type="text" id="cat-nombre" class="campo" value="${escAttr(cat?.nombre || '')}" required autocomplete="off" placeholder="Ej: Verduras">
           </div>
           <div>
             <label class="etiqueta">Color</label>
@@ -1541,6 +1541,7 @@ export class App {
     `;
 
     document.body.appendChild(modal);
+    modal.querySelector('#cat-nombre').focus();
 
     const cerrar = () => {
       this._categoriaModalAbierto = false;
@@ -1653,7 +1654,6 @@ export class App {
               value="${escAttr(prov?.nombre || '')}"
               required
               autocomplete="off"
-              autofocus
             >
             <p class="micro apagado con-margen-arriba-chica">
               ${esEdicion
@@ -1670,6 +1670,7 @@ export class App {
     `;
 
     document.body.appendChild(modal);
+    modal.querySelector('#prov-nombre').focus();
 
     const cerrar = () => {
       this._proveedorModalAbierto = false;
