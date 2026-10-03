@@ -1000,17 +1000,20 @@ export class ProductoForm {
   inicializarCalculadoraPrecio(modal) {
     const costoInput = modal.querySelector('#costo');
 
-    // Ojo: NO usar :first-of-type, porque el primer <div> hijo de #precios-lista
-
     /*
-     * El campo de precio se busca cada vez que hace falta y no se guarda en una
-     * variable. `#precios-lista` se vuelve a pintar cuando cambia el tipo de
-     * venta, así que el campo atrapado en el cierre quedaba viejo: los
-     * listeners de costo, IVA y margen están atados una sola vez y seguían
-     * escribiendo en un campo que ya no estaba en la página, y la calculadora
-     * parecía no andar.
-     */
-    const campoPrecio = () => modal.querySelector('#precios-lista .precio-item input[name^="precio_"]');
+ * El campo de precio se busca cada vez que hace falta y no se guarda en una
+ * variable. `#precios-lista` se vuelve a pintar cuando cambia el tipo de venta,
+ * así que el campo atrapado en el cierre quedaba viejo: los listeners de costo,
+ * IVA y margen están atados una sola vez y seguían escribiendo en un campo que ya
+ * no estaba en la página.
+ *
+ * El selector es el primer `precio_` de la lista, sin `.precio-item`: esa clase
+ * sólo la llevan los precios de sub-unidades, y el campo "Precio final" —al que
+ * calcula esta herramienta— está fuera de ella. Con un producto sin sub-unidades
+ * no había ningún `.precio-item`, el selector no matcheaba nada y la guardaba de
+ * abajo cortaba la inicialización entera.
+ */
+    const campoPrecio = () => modal.querySelector('#precios-lista input[name^="precio_"]');
 
     const ivaInput = modal.querySelector('#ivaPorcentaje');
     const margenInput = modal.querySelector('#margenPorcentaje');
