@@ -7,7 +7,7 @@ import { abrirCodigoDuplicado } from './components/CodigoDuplicado.js';
 import { abrirDetalleProducto } from './components/ProductoDetalle.js';
 import { toast } from './utils/toast.js';
 import { esc, escAttr, fmtPrecio } from './utils/html.js';
-import { normalizarTexto } from './utils/texto.js';
+import { normalizarTexto, fechaEnDia } from './utils/texto.js';
 import { icono } from './utils/iconos.js';
 
 // Clave interna para ordenar los productos sin categoría al final.
@@ -984,6 +984,7 @@ export class App {
               ${imagenHTML}
             </div>
             <span class="js-stock-badge insignia insignia-stock ${stockBadgeClass}">${stock}</span>
+            ${p.fecha ? `<span class="micro tenue stock-fecha">${esc(fechaEnDia(p.fecha))}</span>` : ''}
           </div>
           <div class="crece ancho-cero columna apilado">
             <div class="ancho-cero">

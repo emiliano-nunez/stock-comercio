@@ -603,13 +603,30 @@
   }
 
   /*
- * Inventario y catálogo van de dos columnas en el teléfono y de N en pantalla
- * ancha, con el mismo `minmax`. El mínimo del token es lo que impide que la
- * tarjeta se angoste: por eso el número de columnas sube solo con la ventana, en
- * vez de tener un número fijo por tamaño.
+ * Las columnas de las dos grillas: dos siempre, y tres o cuatro en pantalla
+ * ancha. El número va explícito y no con `auto-fill`, porque con `auto-fill` el
+ * ancho de columna depende del mínimo elegido y a 1920px salían siete tarjetas
+ * angostas con la información cortada.
  */
-
+  .contenido .rejilla-inventario,
+  .contenido .cuadricula {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+@media (min-width: 1280px) {
+  .contenido .rejilla-inventario,
+  .contenido .cuadricula {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .contenido .rejilla-inventario,
+  .contenido .cuadricula {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
 
 /* =================================================================
  * Filas
