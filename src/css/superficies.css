@@ -33,35 +33,19 @@
  * táctil.
  */
 .tarjeta-alta {
-  padding: var(--espacio-3);
+  padding: var(--espacio-2);
 }
 
 /*
- * El bloque de datos de la tarjeta de inventario: precio, costo, estado y código.
- *
- * El alto está reservado a propósito. Antes esta fila era sólo una `fila
- * envuelto` y su alto dependía de qué datos tuviera el producto: con precio y
- * sin costo ocupaba un renglón, con los dos ocupaba dos, y con el código de
- * barras encima. Como el botón de eliminar va después con `margin-top: auto`, la
- * tarjeta entera cambiaba de alto según el producto, y en dos columnas los
- * botones quedaban a distinta altura.
- *
- * Con el alto reservado, la fila ocupa siempre dos renglones. El precio se
- * escribe siempre, aunque sea "Sin precio", para que el renglón no quede
- * vacío y el bloque se vea parejo en todas las tarjetas.
+ * El bloque de datos de la tarjeta: precio, costo y código. El alto está
+ * reservado a propósito: si dependiera de qué datos tiene el producto, la
+ * tarjeta cambiaría de alto y los botones de cada columna quedarían a distinta
+ * altura.
  */
 /*
- * El puntero de las tarjetas.
- *
- * La tarjeta entera abre la hoja del producto, pero el puntero va sólo sobre la
- * miniatura y el título: son las dos cosas que se leen como "esto se puede tocar"
- * porque parecen un objetivo. Ponerlo en toda la tarjeta hacía que el cursor
- * saltara al pasar por cualquier lado, incluso por el precio, el mínimo y el
- * código de barras, que son sólo datos y con el puntero encima parecían
- *buttons que no hacen nada.
- *
- * Con `[data-action="detalle"]` se cubren las dos tarjetas clickables —la del
- * inventario y la del catálogo— sin tener que agregar una clase a cada una.
+ * El puntero va sólo sobre la miniatura y el título: son las dos cosas que
+ * parecen un objetivo. Sobre el precio o el código, que son sólo datos, el cursor
+ * hace pensar que hay un botón que no hace nada.
  */
 [data-action="detalle"] .miniatura,
 [data-action="detalle"] .marco-foto,
@@ -70,11 +54,7 @@
   cursor: pointer;
 }
 
-/*
- * El bloque de datos y el texto suelto de la tarjeta se dejan como están: con el
- * cursor de texto se puede seleccionar y copiar el código de barras, que es lo
- * que alguien va a querer hacer con él.
- */
+/* Con cursor de texto se puede seleccionar y copiar el código de barras. */
 [data-action="detalle"] .datos-producto {
   cursor: text;
 }
@@ -113,6 +93,28 @@
   height: 3rem;
   background-color: var(--verde-100);
   font-size: 1.25rem;
+}
+
+/*
+ * La foto con el stock debajo.
+ *
+ * El stock estaba en el bloque de datos, junto al precio y el código, y ahí
+ * competía por el ancho con ellos. Bajo la foto no le ocupa lugar a nadie y el
+ * renglón de los datos queda libre para lo que el usuario compara.
+ *
+ * La insignia va sólo con el número, sin la palabra de OK o Agotado: el color ya
+ * lo dice, y con el texto la etiqueta quedaba más ancha que la foto.
+ */
+.stock-foto {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-1);
+}
+
+.insignia-stock {
+  font-variant-numeric: tabular-nums;
 }
 
 .marco-foto {

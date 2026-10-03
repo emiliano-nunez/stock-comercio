@@ -228,12 +228,6 @@ export const dbUtils = {
   /**
    * Leer un número del formulario rechazando lo que no es número.
    *
-   * El código usaba parseFloat(valor) || 0 en todos lados. Eso protege contra
-   * NaN, pero a costa de convertir en 0 cualquier error de tipeo: "abc", "1,5"
-   * o un campo vacío se guardaban como 0. Para el stock eso es lo peor que
-   * puede pasar, porque el producto pasa a "Agotado" y entra solo en el pedido
-   * al proveedor. Un 0 silencioso es más peligroso que un error visible.
-   *
    * @param {FormDataEntryValue|string|null} valor
    * @param {string} etiqueta nombre del campo, para el mensaje de error.
    * @param {{ min?: number, max?: number, requerido?: boolean }} [opciones]

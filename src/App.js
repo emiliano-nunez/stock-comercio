@@ -974,14 +974,16 @@ export class App {
       : stock <= stockMinimo
         ? 'insignia-poco'
         : 'insignia-ok';
-    const stockBadgeText = stock === 0 ? 'Agotado' : stock <= stockMinimo ? 'Poco' : 'OK';
 
     return `
       <article class="tarjeta tarjeta-alta" data-id="${escAttr(p.id)}" data-action="detalle"
         role="button" tabindex="0" aria-label="Ver la hoja de ${escAttr(p.nombre)}">
         <div class="fila fila-arriba fila-amplia crece">
-          <div class="miniatura">
-            ${imagenHTML}
+          <div class="stock-foto">
+            <div class="miniatura">
+              ${imagenHTML}
+            </div>
+            <span class="js-stock-badge insignia insignia-stock ${stockBadgeClass}">${stock}</span>
           </div>
           <div class="crece ancho-cero columna apilado">
             <div class="ancho-cero">
@@ -989,9 +991,6 @@ export class App {
               <div class="datos-producto">
                 ${precio.valor ? `<span class="detalle medio texto-marca">$${fmtPrecio(precio.valor)}/${esc(precio.unidad)}</span>` : '<span class="etiqueta-tenue">Sin precio</span>'}
                 ${p.costo ? `<span class="etiqueta-tenue">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</span>` : ''}
-                <span class="js-stock-badge insignia ${stockBadgeClass}">
-                  ${stockBadgeText}: ${stock}
-                </span>
                 <span class="micro apagado">Mín: ${stockMinimo}</span>
                 ${p.codigoBarras ? `<span class="micro tenue mono">${esc(p.codigoBarras)}</span>` : ''}
               </div>
@@ -1297,8 +1296,8 @@ export class App {
         : stock <= stockMinimo
           ? 'insignia-poco'
           : 'insignia-ok';
-      badge.className = `js-stock-badge insignia ${clases}`;
-      badge.textContent = `${stock === 0 ? 'Agotado' : stock <= stockMinimo ? 'Poco' : 'OK'}: ${stock}`;
+      badge.className = `js-stock-badge insignia insignia-stock ${clases}`;
+      badge.textContent = `${stock}`;
     }
   }
 

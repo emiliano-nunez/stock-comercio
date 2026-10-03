@@ -157,20 +157,10 @@ svg {
 }
 
 /*
- * El botón de sólo ícono.
- *
- * Cuadrado y del tamaño del mínimo táctil, que la clase base ya no deja bajar:
- * sacar el texto ahorra ancho pero el área que se toca con el dedo sigue siendo
- * la misma.
- *
- * El ícono va chico en todos los tamaños. Con 1.75rem dentro de 52px el botón se
- * ve como un ícono gigante con un borde finito alrededor, y en las tarjetas del
- * inventario la fila de los tres botones quedaba más ancha que la foto de
- * arriba. Achicar el ícono deja que los tres entren con aire.
- *
- * El botón NO baja de 52px: ése es el que se toca con el dedo, y en el
- * escritorio también, porque se usa con el mouse en la misma grilla que en el
- * teléfono.
+ * El botón de sólo ícono: cuadrado y del tamaño del mínimo táctil. El ícono va
+ * chico porque con 1.75rem dentro de 52px se ve como un ícono gigante con un
+ * borde alrededor, y la fila de las tarjetas quedaba más ancha que la foto. El
+ * botón NO baja de 52px: ése es el que se toca con el dedo.
  */
 .btn-icono-solo {
   width: var(--toque-min);
@@ -198,15 +188,10 @@ svg {
 }
 
 /*
- * El botón de duplicar de la tarjeta no se ve en el teléfono.
- *
- * Va en la hoja del producto en su lugar: la tarjeta lleva los botones en una
- * fila y con tres de 52px esa fila no deja entrar dos columnas en un teléfono.
- * En tablet ancha y en PC vuelve a la tarjeta.
- *
- * Está acá y no en disposicion.css porque `.btn` pone `display: inline-flex` y,
- * a igual especificidad, gana la regla que esté más abajo en el bundle. Acá está
- * después de ella, así que alcanza con un solo nombre de clase.
+ * El botón de duplicar de la tarjeta no se ve en el teléfono: va en la hoja del
+ * producto. Está esta regla acá y no en disposicion.css porque `.btn` pone
+ * `display: inline-flex` y a igual especificidad gana la regla más abajo del
+ * bundle.
  */
 @media (max-width: 839px) {
   .duplicar-tarjeta {

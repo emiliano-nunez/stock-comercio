@@ -132,6 +132,17 @@
   --tope-foto: 200px;
 
   /* -----------------------------------------------------------------
+   * El ancho de las tarjetas
+   *
+   * Es el mínimo de la columna, no una medida. Con `auto-fill` y `1fr` de
+   * máximo este número decide cuántas columnas entran, y por eso tiene que ser
+   * el ancho mínimo que la tarjeta necesita: los tres botones de 52px de la fila
+   * de acciones. Con 13rem ninguna tarjeta baja de 208px y ningún botón queda
+   * angosto.
+   * ----------------------------------------------------------------- */
+  --ancho-tarjeta-min: 13rem;
+
+  /* -----------------------------------------------------------------
    * Radios, sombras y capas
    * ----------------------------------------------------------------- */
   --radio-sm:   0.25rem;
