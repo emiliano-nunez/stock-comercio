@@ -1124,7 +1124,7 @@
 
 .insignia-ok {
   background-color: var(--verde-100);
-  color: var(--verde-800);
+  color: var(--verde-texto);
 }
 
 .insignia-poco {

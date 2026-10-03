@@ -125,10 +125,13 @@
   gap: var(--espacio-1);
 }
 
+/* Los dos botones de la cabecera. El texto toma el de la cabecera, que es el gris
+   principal: son los únicos dos que usan esta clase y viven siempre sobre el
+   verde. */
 .btn-texto {
   background-color: transparent;
   border-color: transparent;
-  color: var(--gris-500);
+  color: var(--cabecera-texto);
 }
 
 .btn-texto:active:not(:disabled) {

@@ -348,7 +348,7 @@
  * La pestaña activa.
  *
  * Fondo blanco y una línea azul abajo. El fondo va blanco y no el gris pálido de
- * antes porque la cabecera es verde y un bloque gris encima se ve como una mancha.
+ * antes porque la cabecera es verde muy claro y un bloque gris encima se pierde.
  */
 .pestana-activa {
   color: var(--interfaz-texto);
@@ -576,6 +576,9 @@
     order: 6;
   }
 
+  /* El color no se escribe acá: lo toma `.btn-texto`, que ya lo pone en el color de
+     la cabecera. Ponerlo otra vez acá ganaría por tener dos clases y dejaba el
+     color de la barra y el de la cabecera distintos sin que nadie lo notara. */
   .cabecera-cuerpo > .btn-texto {
     min-height: var(--toque-min);
     justify-content: flex-start;
@@ -583,7 +586,6 @@
     padding-inline: var(--espacio-3);
     border-radius: 0;
     border-left: 3px solid transparent;
-    color: var(--gris-600);
     font-size: var(--texto-sm);
   }
 
@@ -624,7 +626,7 @@
   }
 
   .pestana-activa {
-    border-left-color: var(--color-marca);
+    border-left-color: var(--interfaz-azul);
   }
 
   /* El contenido es columna para que el pie con la versión baje del todo, y el

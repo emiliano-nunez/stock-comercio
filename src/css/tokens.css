@@ -26,6 +26,17 @@
   --verde-600: #16a34a;
   --verde-700: #15803d;
   --verde-800: #166534;
+  /*
+   * El verde del texto de las insignias de color.
+   *
+   * Va entre el 700 y el 800 porque el fondo de la insignia es un verde pálido y
+   * el 800 quedaba más oscuro de lo que hace falta: con este el contraste es de
+   * 4.7 a 1 y se lee.
+   *
+   * El verde del estándar (#00a650) no sirve para acá: sobre el mismo fondo queda
+   * en 2.9 a 1, y es el que está en la insignia en la app.
+   */
+  --verde-texto: #008000;
 
   --ambar-50:  #fffbeb;
   --ambar-100: #fef3c7;
@@ -268,22 +279,20 @@
    * ----------------------------------------------------------------- */
 
   /*
-   * El fondo de la cabecera es el verde del ícono de la app, no el amarillo que
-   * trae el estándar: es el color con el que la app ya se reconoce y con el que
-   * queda pintada la barra del navegador en el celular instalado.
+   * El fondo de la cabecera es un verde, no el amarillo que trae el estándar.
    *
-   * Es el `--verde-600`, que es el color del ícono, y no el `--verde-700` que
-   * estaba antes porque ése se veía casi negro. El texto va en blanco como el
-   * ícono: el blanco sobre este verde queda en 3 a 1, que no alcanza el 4 a 1 que
-   * pide el contraste, y es el mismo precio que paga el ícono. Si se quiere más
-   * contraste hay que subir el verde al `--verde-500` y pintar el texto de negro.
+   * Es el `--verde-200`, que es el paso más claro de la paleta: tiene la misma
+   * luminosidad que el amarillo del estándar --0.82 contra 0.85-- y por eso se ve
+   * igual de claro, con el verde en vez del amarillo. El texto va en el gris
+   * principal, que sobre este fondo queda en 10 a 1. Con el verde del ícono, que
+   * es mucho más oscuro, el texto blanco sólo llegaba a 3 a 1.
    */
-  --cabecera-fondo:  var(--verde-600);
+  --cabecera-fondo:  var(--verde-200);
   --cabecera-sombra: 0 1px 2px 0 rgb(0 0 0 / 10%);
 
-  /* El texto de la cabecera va en blanco. Sobre el verde no sirve ningún gris de
-     la app: el más claro que hay es el 400, y con el verde queda en 3 a 1. */
-  --cabecera-texto: #ffffff;
+  /* El texto de la cabecera va en el gris principal. Sobre un verde tan claro el
+     blanco no se lee: queda en 1.2 a 1. */
+  --cabecera-texto: var(--interfaz-texto);
 
   /* El buscador es una caja blanca sin borde, con relieve y esquinas de 2px: es
      la única parte de la app que va encima del verde de la cabecera. */
