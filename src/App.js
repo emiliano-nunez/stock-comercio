@@ -984,7 +984,7 @@ export class App {
               ${imagenHTML}
             </div>
             <span class="js-stock-badge insignia insignia-stock ${stockBadgeClass}">${stock}</span>
-            ${p.fecha ? `<span class="micro tenue stock-fecha">${esc(fechaEnDia(p.fecha))}</span>` : ''}
+            ${p.fecha ? `<span class="micro stock-fecha">${esc(fechaEnDia(p.fecha))}</span>` : ''}
           </div>
           <div class="crece ancho-cero columna apilado">
             <div class="ancho-cero">

@@ -96,6 +96,20 @@
 }
 
 /*
+ * En el teléfono la miniatura achica. En dos columnas la tarjeta mide 180px y la
+ * foto se comía 48 de ellos, o sea casi un tercio, y el nombre y el precio
+ * quedaban en 100px. Bajarla a 36px le devuelve 12px al texto.
+ */
+@media (max-width: 839px) {
+  .miniatura,
+  .miniatura-marca {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1.1rem;
+  }
+}
+
+/*
  * La foto con el stock debajo.
  *
  * El stock estaba en el bloque de datos, junto al precio y el código, y ahí
@@ -117,9 +131,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* La fecha va bajo el stock para que se lea de qué día es el precio, sin
-   mezclarse con el precio y el código. */
+/* La fecha va bajo el stock para que se lea de qué día es el precio. El gris es
+   más oscuro que el del resto de los datos secundarios porque a 11px, con el color
+   tenue no se veía. */
 .stock-fecha {
+  color: var(--gris-600);
   white-space: nowrap;
 }
 
