@@ -40,12 +40,10 @@ export class ToastManager {
 
     const toast = document.createElement('div');
 
-    //
+    toast.className = `aviso anim-aviso-entra ${colores[type] || colores.info} ${action ? 'aviso-con-boton' : 'aviso-sin-boton'}`;
 
-    // app: es el control que el usuario toca cuando se equivocó, y con una
-
-    toast.className = `aviso anim-subir ${colores[type] || colores.info} ${action ? 'aviso-con-boton' : 'aviso-sin-boton'}`;
-    // El mensaje suele traer el nombre de un producto (dato del usuario), así
+    // El mensaje suele traer el nombre de un producto, que es dato del usuario, así
+    // que va escapado antes de entrar en el HTML.
     toast.innerHTML = action
       ? `
         <div class="fila fila-amplia">
@@ -81,8 +79,8 @@ export class ToastManager {
   remove(id) {
     const toast = this.toasts.get(id);
     if (toast) {
-      toast.classList.add('anim-bajar');
-      toast.classList.remove('anim-subir');
+      toast.classList.add('anim-aviso-sale');
+      toast.classList.remove('anim-aviso-entra');
       setTimeout(() => {
         if (toast.parentNode) toast.remove();
         this.toasts.delete(id);

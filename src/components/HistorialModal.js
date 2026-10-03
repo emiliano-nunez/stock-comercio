@@ -257,14 +257,14 @@ export class HistorialModal {
             (${s.megas.toFixed(1)} MB) que son de productos que ya eliminaste.
             Están guardadas sólo para que "Volver Atrás" te las devuelva.
           </p>
-          <div class="aviso aviso-info detalle">
+          <div class="nota-info detalle">
             <p class="fuerte con-margen-abajo-chica">Esto NO toca:</p>
             <ul class="lista">
               <li>Las fotos de los productos que tenés ahora.</li>
               <li>Los productos borrados: si restaurás, vuelven igual.</li>
             </ul>
           </div>
-          <div class="aviso aviso-peligro detalle">
+          <div class="nota-peligro detalle">
             <p class="fuerte con-margen-abajo-chica">Esto SÍ:</p>
             <ul class="lista">
               <li>Las fotos se van para siempre.</li>
@@ -455,7 +455,7 @@ formatearFecha(fechaISO) {
     };
 
     const vuelvenHTML = cambios.vuelven.length > 0 ? `
-      <div class="aviso aviso-info">
+      <div class="nota-info">
         <p class="detalle fuerte con-margen-abajo-chica">
           ↩️ Vuelven ${cambios.vuelven.length} producto(s) que borraste después de esa fecha
         </p>
@@ -464,7 +464,7 @@ formatearFecha(fechaISO) {
     ` : '';
 
     const seVanHTML = cambios.seVan.length > 0 ? `
-      <div class="aviso aviso-peligro">
+      <div class="nota-peligro">
         <p class="detalle fuerte con-margen-abajo-chica">
           🗑️ Desaparecen ${cambios.seVan.length} producto(s) que cargaste o cambiaste después
         </p>

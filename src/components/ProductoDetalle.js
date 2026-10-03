@@ -152,7 +152,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
       <div class="dialogo-cuerpo apilado-3">
         ${
           p.fotoPerdida
-            ? `<p class="aviso aviso-atencion fila-corta"><span class="no-crece">${icono('alerta')}</span><span>Falta la foto: no se encuentra en el dispositivo</span></p>`
+            ? `<p class="nota-atencion fila-corta"><span class="no-crece">${icono('alerta')}</span><span>Falta la foto: no se encuentra en el dispositivo</span></p>`
             : ''
         }
 

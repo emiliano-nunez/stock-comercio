@@ -797,15 +797,34 @@
   to   { opacity: 0; transform: translateY(20px); }
 }
 
+/* Los avisos entran y salen desde el borde de arriba, que es de donde están.
+   Van al revés que `subir` y `bajar`, que sirven para los diálogos: un diálogo
+   sube desde abajo del todo, un aviso baja desde el borde superior de la
+   pantalla. */
+@keyframes aviso-entra {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes aviso-sale {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-16px); }
+}
+
 .anim-aparecer { animation: aparecer var(--transicion-media); }
 .anim-subir    { animation: subir var(--transicion-lenta); }
 .anim-bajar    { animation: bajar var(--transicion-media); }
+
+.anim-aviso-entra { animation: aviso-entra var(--transicion-media); }
+.anim-aviso-sale  { animation: aviso-sale var(--transicion-media); }
 
 @media (prefers-reduced-motion: reduce) {
 
   .anim-aparecer,
   .anim-subir,
-  .anim-bajar {
+  .anim-bajar,
+  .anim-aviso-entra,
+  .anim-aviso-sale {
     animation: none;
   }
 }
@@ -875,13 +894,18 @@
 }
 
 /* =================================================================
- * Avisos
+ * Notas
  *
- * Un bloque con color propio que explica algo. El tono se elige con una clase
- * más, no repitiendo el bloque entero.
+ * Un bloque con color propio que explica algo y queda dentro de la pantalla, en
+ * un diálogo o en una tarjeta. El tono se elige con una clase más, no repitiendo
+ * el bloque entero.
+ *
+ * Se llama `nota` y no `aviso` a propósito: `aviso` es el cartel que sale flotando
+ * arriba y se va solo. Con el mismo nombre en los dos, cada uno pisaba los colores
+ * del otro y sólo los separaba el orden del archivo.
  * ================================================================= */
 
-.aviso {
+.nota {
   padding: var(--espacio-3);
   border-radius: var(--radio-lg);
   border: 1px solid transparent;
@@ -889,19 +913,19 @@
   line-height: var(--texto-sm-al);
 }
 
-.aviso-info {
+.nota-info {
   background-color: var(--color-marca-tenue);
   border-color: var(--verde-200);
   color: var(--verde-800);
 }
 
-.aviso-peligro {
+.nota-peligro {
   background-color: var(--color-peligro-tenue);
   border-color: var(--rojo-200);
   color: var(--rojo-700);
 }
 
-.aviso-atencion {
+.nota-atencion {
   background-color: var(--color-aviso-tenue);
   border-color: var(--ambar-200);
   color: var(--ambar-700);
@@ -984,22 +1008,27 @@
   }
 }
 
+/* Todos los avisos son la misma caja: fondo blanco, la misma sombra y la misma
+   forma. Lo único que cambia es el color del riel de la izquierda y el del
+   texto, que es lo que dice si la operación salió bien o salió mal. Antes cada
+   tipo tenía su propio fondo de color y con cuatro avisos juntos se leía como
+   cuatro pantallas distintas. */
 .aviso {
   width: 100%;
   padding: var(--espacio-3) var(--espacio-4);
   border-radius: var(--radio-lg);
+  border: 1px solid var(--color-borde);
+  border-left: 4px solid var(--gris-300);
   box-shadow: var(--sombra-lg);
-  background-color: var(--gris-800);
-  color: var(--color-texto-invertido);
+  background-color: var(--color-superficie);
+  color: var(--color-texto);
   pointer-events: auto;
 }
 
-/* El color según el tipo de aviso. El del error es el más fuerte a propósito:
-   es el único que el usuario necesita ver antes que se vaya solo. */
-.aviso-ok      { background-color: var(--verde-600); }
-.aviso-error   { background-color: var(--rojo-500); }
-.aviso-alerta  { background-color: var(--ambar-600); }
-.aviso-info    { background-color: var(--gris-800); }
+.aviso-ok     { border-left-color: var(--verde-600); color: var(--verde-800); }
+.aviso-error  { border-left-color: var(--rojo-500);  color: var(--rojo-700); }
+.aviso-alerta { border-left-color: var(--ambar-600); color: var(--ambar-700); }
+.aviso-info   { border-left-color: var(--gris-400);  color: var(--gris-700); }
 
 .aviso-con-boton {
   display: flex;

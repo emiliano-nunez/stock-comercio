@@ -715,7 +715,7 @@ export class App {
     // va como texto bajo el nombre, porque el espacio de la foto lo ocupa la
 
     const avisoFotoPerdida = p.fotoPerdida
-      ? `<p class="aviso aviso-atencion fila-corta con-margen-abajo-chica">
+      ? `<p class="nota-atencion fila-corta con-margen-abajo-chica">
            <span class="no-crece">${icono('alerta')}</span>
            <span>Falta la foto</span>
          </p>`
@@ -968,7 +968,7 @@ export class App {
     // Un producto que nunca tuvo foto no avisa: se vería con el 📦 de siempre y
     // el usuario no distinguiría una cosa de la otra.
     const avisoFotoPerdida = p.fotoPerdida
-      ? `<p class="aviso aviso-atencion fila-corta">
+      ? `<p class="nota-atencion fila-corta">
            <span class="no-crece">${icono('alerta')}</span>
            <span class="cortado">Falta la foto: no se encuentra en el dispositivo</span>
          </p>`

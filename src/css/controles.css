@@ -245,18 +245,26 @@ svg {
   transform: scale(0.95);
 }
 
+/*
+ * El botón de la acción del aviso, el de "deshacer".
+ *
+ * Va sobre la caja blanca del aviso, así que necesita borde propio: antes era
+ * blanco al 15% con texto blanco, que sólo se leía sobre un fondo de color.
+ * El color lo hereda del aviso, que ya es el del tipo de mensaje.
+ */
 .btn-transparente {
   min-height: var(--toque-min);
   width: 100%;
   border-radius: var(--radio-lg);
-  background-color: rgb(255 255 255 / 15%);
-  color: var(--color-texto-invertido);
+  border: 1px solid currentColor;
+  background-color: transparent;
+  color: inherit;
   font-size: var(--texto-sm);
   font-weight: var(--grosor-fuerte);
 }
 
 .btn-transparente:hover {
-  background-color: rgb(255 255 255 / 25%);
+  background-color: var(--gris-100);
 }
 
 .btn-transparente:active:not(:disabled) {
