@@ -619,6 +619,26 @@
   -webkit-backdrop-filter: blur(4px);
 }
 
+/*
+ * El pie de la hoja del producto va en columna: primero el ajuste de stock y
+ * debajo la fila de botones.
+ *
+ * `.dialogo-pie` es una fila, y la clase `apilado` sólo agrega márgenes: no
+ * cambia la dirección. Los dos bloques quedaban uno al lado del otro y en un
+ * teléfono el segundo se salía del diálogo. Como `.dialogo-pie-fija` lo usan
+ * también el formulario y el pedido, esto va en una clase propia.
+ */
+.pie-acciones {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--espacio-2);
+}
+
+.pie-acciones > .fila {
+  width: 100%;
+}
+
 .pie-suave {
   background-color: var(--gris-50);
   border-top-left-radius: 0;

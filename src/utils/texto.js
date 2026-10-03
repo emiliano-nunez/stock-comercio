@@ -14,6 +14,19 @@ export function fechaEnDia(fecha) {
   return `${partes[3]}/${partes[2]}/${partes[1]}`;
 }
 
+/**
+ * La fecha y hora de la compilación, corta y legible.
+ *
+ * Viene en ISO y con zona UTC, así que se desarma a mano en vez de pasarla por
+ * `toLocaleString`, que la correría de día al oeste de UTC y mostraría un día
+ * anterior al que se compiló.
+ */
+export function fechaYHora(iso) {
+  const partes = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(iso || ''));
+  if (!partes) return '';
+  return `${partes[3]}/${partes[2]}/${partes[1]} ${partes[4]}:${partes[5]}`;
+}
+
 export function normalizarTexto(texto) {
   return (texto ?? '')
     .toString()

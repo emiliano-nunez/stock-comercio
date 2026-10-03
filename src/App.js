@@ -7,7 +7,7 @@ import { abrirCodigoDuplicado } from './components/CodigoDuplicado.js';
 import { abrirDetalleProducto } from './components/ProductoDetalle.js';
 import { toast } from './utils/toast.js';
 import { esc, escAttr, fmtPrecio } from './utils/html.js';
-import { normalizarTexto, fechaEnDia } from './utils/texto.js';
+import { normalizarTexto, fechaEnDia, fechaYHora } from './utils/texto.js';
 import { icono } from './utils/iconos.js';
 
 // Clave interna para ordenar los productos sin categoría al final.
@@ -453,7 +453,8 @@ export class App {
    * para que no haya un número escrito a mano que se pueda desactualizar.
    */
   renderPieVersionHTML() {
-    return `<p class="pie-version">${esc(__VERSION__)}</p>`;
+    const fecha = fechaYHora(__FECHA_BUILD__);
+    return `<p class="pie-version">${esc(__VERSION__)}${fecha ? ` · ${esc(fecha)}` : ''}</p>`;
   }
 
   /**

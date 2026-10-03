@@ -41,7 +41,7 @@
   --rojo-700: #b91c1c;
   --rojo-900: #7f1d1d;
 
-  --color-fondo:           var(--gris-500);
+  --color-fondo:           var(--gris-200);
   --color-superficie:      #ffffff;
   --color-texto:           var(--gris-900);
   --color-texto-suave:     var(--gris-500);
@@ -151,10 +151,10 @@
   --radio-xl:   1rem;
   --radio-full: 9999px;
 
-  --sombra-sm: 0 1px 2px rgb(0 0 0 / 6%);
-  --sombra-md: 0 2px 6px rgb(0 0 0 / 8%);
-  --sombra-lg: 0 8px 24px rgb(0 0 0 / 12%);
-  --sombra-xl: 0 12px 32px rgb(0 0 0 / 18%);
+  --sombra-sm: 0 1px 2px rgb(0 0 0 / 10%);
+  --sombra-md: 0 2px 6px rgb(0 0 0 / 15%);
+  --sombra-lg: 0 8px 24px rgb(0 0 0 / 18%);
+  --sombra-xl: 0 12px 32px rgb(0 0 0 / 24%);
 
   --capa-cabecera: 40;
   --capa-flotante: 50;

@@ -42,12 +42,23 @@ const base = `/${RUTA_PUBLICA.replace(/^\/+|\/+$/g, '')}/`.replace(/\/{2,}/g, '/
 const VERSION = readFileSync(new URL('./package.json', import.meta.url), 'utf8');
 const NUMERO_VERSION = `v${JSON.parse(VERSION).version}`;
 
+/*
+ * La fecha y hora de la compilación, acá y no en el código.
+ *
+ * El número de versión lo sube una persona y se desactualiza sin que se note:
+ * el pie decía una versión vieja y no había forma de saber cuánto hacía que no
+ * se recompilaba. Con la fecha al lado, cualquier compilación vieja se ve a
+ * simple vista.
+ */
+const FECHA_BUILD = new Date().toISOString();
+
 export default defineConfig({
   base,
   define: {
     // Va como texto ya entrecomillado porque así lo pinta el pie y no hace
     // falta para nada más. Si algún día hay que compararlo, se destraba acá.
     __VERSION__: JSON.stringify(NUMERO_VERSION),
+    __FECHA_BUILD__: JSON.stringify(FECHA_BUILD),
   },
   server: {
     hmr: {

@@ -161,7 +161,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
         ` : ''}
       </div>
 
-      <div class="dialogo-pie dialogo-pie-fija apilado">
+      <div class="dialogo-pie dialogo-pie-fija apilado pie-acciones">
           ${ajustarHTML}
           <div class="fila">
             <!--
