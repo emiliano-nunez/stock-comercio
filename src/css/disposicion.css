@@ -57,7 +57,41 @@
 
 .form-foto {
   flex-shrink: 0;
-  width: 7rem;
+  width: 8.5rem;
+}
+
+/*
+ * Proveedor y categorías van en dos columnas. Son los dos campos que dicen a qué
+ * grupo pertenece el producto y se llenan de la misma manera, así que van una al
+ * lado de la otra: primero el proveedor, que es el que más se escribe, y a su
+ * derecha las categorías.
+ *
+ * La columna izquierda es un poco más ancha porque el texto del proveedor es
+ * largo ("Empezá a escribir y elegí") y con el mismo ancho se cortaba antes.
+ */
+.form-par {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-4);
+}
+
+.form-par > * {
+  min-width: 0;
+}
+
+.form-par > *:first-child {
+  flex: 1.2;
+}
+
+.form-par > *:last-child {
+  flex: 1;
+}
+
+/* En 340px, donde no entran dos campos de lado, se apilan. */
+@media (max-width: 340px) {
+  .form-par {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 340px) {
@@ -374,15 +408,23 @@
     margin-block-end: var(--espacio-3);
   }
 
-  .cabecera-cuerpo > .fila-corta {
+  /*
+   * El orden de abajo hacia arriba es el que se lee: el nombre, el buscador, las
+   * tres pestañas, el botón de agregar pegado a ellas, y al pie historial y
+   * pedido, que son los dos que se usan de vez en cuando y no compiten con lo
+   * que se está mirando.
+   */
+  .cabecera-cuerpo > .pestanas {
     order: 3;
+  }
+
+  .cabecera-cuerpo > .fila-corta {
+    order: 5;
     flex-direction: column;
     align-items: stretch;
     gap: var(--espacio-1);
-  }
-
-  .cabecera-cuerpo > .pestanas {
-    order: 4;
+    /* Lo empuja al pie de la barra sin dejar un hueco vacío arriba. */
+    margin-block-start: auto;
   }
 
   /*
@@ -473,10 +515,17 @@
     padding-block-start: var(--espacio-4);
   }
 
-  /* El botón flotante estaba pegado al borde de la columna angosta; con la
-     barra lateral el contenido ya llega hasta el borde de la ventana. */
+  /* El botón de agregar deja de flotar y se acomoda pegado a las pestañas, que es
+     donde el usuario está mirando. Flotando tapaba productos de la grilla, que
+     es lo único que hay que mirar. */
   .boton-flotante {
-    right: var(--espacio-6);
+    position: static;
+    z-index: auto;
+    order: 4;
+    width: 100%;
+    height: var(--toque-min);
+    margin-block-start: var(--espacio-2);
+    border-radius: var(--radio-lg);
   }
 }
 
@@ -487,12 +536,26 @@
  * quedan unos 784px de contenido, que es lo que entra cómodo en dos tarjetas de
  * inventario o cuatro de catálogo.
  */
+/*
+ * Las columnas de la grilla, con la barra lateral ya descontada del ancho.
+ *
+ * El catálogo no usa un número fijo de columnas sino `auto-fill` con un ancho
+ * por columna. Con `repeat(6, 1fr)` cada tarjeta se estira para llenar la sexta
+ * parte de la fila, así que con pocos productos quedaban anchas y vacías al
+ * lado; con `auto-fill` el ancho es el que la tarjeta necesita y lo que sobra es
+ * espacio en blanco, que es lo que no molesta. Además entran más por fila sin
+ * tocar el ancho del texto.
+ *
+ * El inventario sí mantiene columnas fijas: su tarjeta tiene la fila de botones
+ * abajo y con `1fr` todas quedan igual de altas, que es lo que hace que la
+ * grilla se vea pareja.
+ */
 @media (min-width: 1400px) {
   .rejilla-inventario {
     grid-template-columns: repeat(3, 1fr);
   }
   .rejilla {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   }
 }
 
@@ -501,7 +564,7 @@
     grid-template-columns: repeat(4, 1fr);
   }
   .rejilla {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   }
 }
 

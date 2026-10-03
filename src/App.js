@@ -291,7 +291,7 @@ export class App {
       <div class="app">
         <header class="cabecera">
           <div class="cabecera-cuerpo">
-            <div class="fila fila-separada">
+            <div class="fila fila-separada cabecera-fila">
               <h1 class="titulo fila fila-centro fila-amplia">${icono('caja')}<span>DepoApp</span></h1>
               <div class="fila fila-corta">
                 <button id="btn-historial" class="btn-texto" aria-label="Historial y restaurar">
@@ -342,7 +342,6 @@ export class App {
                 `).join('')}
               </ul>
             </div>
-          </div>
 
           <div class="pestanas">
             <button
@@ -367,21 +366,28 @@ export class App {
               ${icono('carpeta')}<span>Categorías</span>
             </button>
           </div>
-        </header>
 
-        <main class="contenido" id="contenido-principal">
-          ${this.renderTarjetaActualizacionHTML()}
-          ${this.renderVistaHTML()}
-        </main>
+          <!--
+            El boton de agregar va DENTRO de la cabecera. En el telefono sigue
+            siendo el flotante de siempre, porque boton-flotante es fixed y no le
+            hace caso donde este. En el escritorio, en cambio, la barra lateral ya
+            tiene las otras cinco opciones, asi que el boton se acomoda al pie de
+            esa lista en vez de flotar sobre la grilla, donde tapaba productos.
+          -->
+          <button
+            id="btn-agregar-fab"
+            class="boton-flotante"
+            aria-label="Agregar producto"
+          >
+            ${icono('mas')}
+          </button>
+        </div>
+      </header>
 
-        <button
-          id="btn-agregar-fab"
-          class="boton-flotante"
-          aria-label="Agregar producto"
-        >
-          ${icono('mas')}
-        </button>
-      </div>
+      <main class="contenido" id="contenido-principal">
+        ${this.renderTarjetaActualizacionHTML()}
+        ${this.renderVistaHTML()}
+      </main>
     `;
     this.bindEvents();
   }

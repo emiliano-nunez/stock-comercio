@@ -435,6 +435,31 @@ export class ProductoForm {
             </div>
           </div>
 
+<!-- Proveedor y categorías, en dos columnas.
+               Son las dos etiquetas que dicen a qué grupo pertenece el producto y se
+               llenan de la misma manera, así que van juntas: el proveedor a la izquierda
+               y las categorías a su derecha. Antes iban apiladas y había que bajar para
+               llegar del uno al otro. -->
+          <div class="form-par">
+            <div>
+              <label for="proveedor" class="etiqueta">${icono('proveedor')} Proveedor</label>
+            <div class="posicionado">
+              <input
+                type="text"
+                id="proveedor"
+                name="proveedor"
+                class="campo"
+                placeholder="Empezá a escribir y elegí de la lista"
+                value="${escAttr(this.producto?.proveedor || '')}"
+                autocomplete="off"
+                role="combobox"
+                aria-expanded="false"
+                aria-autocomplete="list"
+                aria-controls="proveedor-lista"
+              >
+              <ul id="proveedor-lista" class="desplegable oculto" role="listbox" aria-label="Proveedores que ya usás" hidden></ul>
+            </div>
+          </div>
 <!-- Categorías -->
           <div>
             <div class="etiqueta">📂 Categorías</div>
@@ -495,27 +520,6 @@ export class ProductoForm {
               <input type="hidden" id="categoriaIds" name="categoriaIds" value="${escAttr(categoriasDe(this.producto).join(','))}">
             </div>
           </div>
-
-          <!-- Proveedor: va pegado a categorías porque son las dos etiquetas que definen
-             a qué grupo pertenece el producto, y se llenan de la misma manera. -->
-          <div>
-            <label for="proveedor" class="etiqueta">${icono('proveedor')} Proveedor</label>
-            <div class="posicionado">
-              <input
-                type="text"
-                id="proveedor"
-                name="proveedor"
-                class="campo"
-                placeholder="Empezá a escribir y elegí de la lista"
-                value="${escAttr(this.producto?.proveedor || '')}"
-                autocomplete="off"
-                role="combobox"
-                aria-expanded="false"
-                aria-autocomplete="list"
-                aria-controls="proveedor-lista"
-              >
-              <ul id="proveedor-lista" class="desplegable oculto" role="listbox" aria-label="Proveedores que ya usás" hidden></ul>
-            </div>
           </div>
 
           <!-- Fecha -->

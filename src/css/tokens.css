@@ -49,9 +49,19 @@
   --color-texto-invertido: #ffffff;
   --color-borde:           var(--gris-200);
   --color-borde-tenue:     var(--gris-100);
-  --color-marca:           var(--verde-600);
-  --color-marca-fuerte:    var(--verde-700);
-  --color-marca-tenue:     var(--verde-50);
+  /*
+ * El verde es lo que está BIEN y no se toca: es el color de "con stock" y de
+ * "todo anda bien", y por eso vive en la insignia, no en la marca.
+ *
+ * La marca es gris a propósito. Con verde, el precio —que es lo más pequeno de
+ * la tarjeta y lo primero que se mira— quedaba en 3,3:1 sobre blanco, por
+ * debajo de lo que se puede leer sin esfuerzo. El gris 600 da 7,5:1, así que
+ * el número se lee de un vistazo y la pantalla deja de parecer una lista de
+ * colores.
+ */
+  --color-marca:           var(--gris-600);
+  --color-marca-fuerte:    var(--gris-700);
+  --color-marca-tenue:     var(--gris-100);
   --color-peligro:         var(--rojo-500);
   --color-peligro-fuerte:  var(--rojo-600);
   --color-peligro-tenue:   var(--rojo-50);

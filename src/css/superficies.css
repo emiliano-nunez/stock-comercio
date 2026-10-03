@@ -50,6 +50,35 @@
  * escribe siempre, aunque sea "Sin precio", para que el renglón no quede
  * vacío y el bloque se vea parejo en todas las tarjetas.
  */
+/*
+ * El puntero de las tarjetas.
+ *
+ * La tarjeta entera abre la hoja del producto, pero el puntero va sólo sobre la
+ * miniatura y el título: son las dos cosas que se leen como "esto se puede tocar"
+ * porque parecen un objetivo. Ponerlo en toda la tarjeta hacía que el cursor
+ * saltara al pasar por cualquier lado, incluso por el precio, el mínimo y el
+ * código de barras, que son sólo datos y con el puntero encima parecían
+ *buttons que no hacen nada.
+ *
+ * Con `[data-action="detalle"]` se cubren las dos tarjetas clickables —la del
+ * inventario y la del catálogo— sin tener que agregar una clase a cada una.
+ */
+[data-action="detalle"] .miniatura,
+[data-action="detalle"] .marco-foto,
+[data-action="detalle"] h3,
+[data-action="detalle"] h4 {
+  cursor: pointer;
+}
+
+/*
+ * El bloque de datos y el texto suelto de la tarjeta se dejan como están: con el
+ * cursor de texto se puede seleccionar y copiar el código de barras, que es lo
+ * que alguien va a querer hacer con él.
+ */
+[data-action="detalle"] .datos-producto {
+  cursor: text;
+}
+
 .datos-producto {
   display: flex;
   flex-wrap: wrap;
@@ -276,9 +305,22 @@
   height: 1.5rem;
 }
 
-.punto-mini {
-  width: 0.625rem;
-  height: 0.625rem;
+/*
+ * El punto de color de la etiqueta de categoría, sobre la foto.
+ *
+ * Le faltaba `display: inline-block`. Un `span` vacío con `width` y `height` en
+ * `display: inline` —que es el default— ignora las dos medidas, así que el
+ * círculo no tomaba el tamaño que pedía el CSS y el texto quedaba descentrado
+ * al lado. Con `inline-block` la caja existe y se puede centrar.
+ *
+ * La medida va en `em` y no en píxeles para que sea siempre el alto de la letra
+ * que tiene al lado: si el texto crece, el punto crece con él y no hay que
+ * volver a tocar el número.
+ */
+.marca-foto .punto-mini {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
   border-radius: var(--radio-full);
   flex-shrink: 0;
 }
