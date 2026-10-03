@@ -1,6 +1,7 @@
 import { imagenUtils } from '../utils/imagen.js';
 import { db, dbUtils } from '../db.js';
 import { toast } from '../utils/toast.js';
+import { icono } from '../utils/iconos.js';
 
 export class CamaraModal {
   constructor(onCapture) {

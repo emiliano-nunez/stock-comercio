@@ -631,12 +631,25 @@ svg {
  * sólo cómo se ve, no de qué color es.
  * ================================================================= */
 
+/*
+ * La etiqueta es una fila, igual que `.titulo-icono` y `.etiqueta-seccion`.
+ *
+ * Con `display: block` el ícono y el texto se acomodaban solos y el ícono caía
+ * arriba de la palabra en vez de al lado. Con flex quedan en el mismo renglón, con
+ * el ícono primero y el hueco que corresponde.
+ */
 .etiqueta {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-1);
   margin-bottom: var(--espacio-1);
   color: var(--gris-700);
   font-size: var(--texto-sm);
   font-weight: var(--grosor-medio);
+}
+
+.etiqueta svg {
+  flex-shrink: 0;
 }
 
 .etiqueta-seccion {
