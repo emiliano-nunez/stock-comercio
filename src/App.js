@@ -942,19 +942,23 @@ export class App {
             ${imagenHTML}
           </div>
           <div class="crece ancho-cero columna apilado">
-            <div class="ancho-cero">
-              <h3 class="fuerte cortado">${esc(p.nombre)}</h3>
-              <div class="fila con-margen-arriba-chica envuelto">
-                ${precio.valor ? `<span class="detalle medio texto-marca">$${fmtPrecio(precio.valor)}/${esc(precio.unidad)}</span>` : ''}
-                ${p.costo ? `<span class="etiqueta-tenue">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</span>` : ''}
+            <div class="fila fila-arriba fila-corta">
+              <div class="ancho-cero crece">
+                <h3 class="fuerte cortado">${esc(p.nombre)}</h3>
+                <div class="fila con-margen-arriba-chica envuelto">
+                  ${precio.valor ? `<span class="detalle medio texto-marca">$${fmtPrecio(precio.valor)}/${esc(precio.unidad)}</span>` : ''}
+                  ${p.costo ? `<span class="etiqueta-tenue">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</span>` : ''}
+                  ${p.codigoBarras ? `<span class="micro tenue mono">${esc(p.codigoBarras)}</span>` : ''}
+                </div>
+              </div>
+              <div class="stock-lado columna apilado apilado-chico">
                 <span class="js-stock-badge insignia ${stockBadgeClass}">
                   ${stockBadgeText}: ${stock}
                 </span>
                 <span class="micro apagado">Mín: ${stockMinimo}</span>
-                ${p.codigoBarras ? `<span class="micro tenue mono">${esc(p.codigoBarras)}</span>` : ''}
               </div>
-              ${avisoFotoPerdida}
             </div>
+            ${avisoFotoPerdida}
             <!--
               Las acciones van en su propia fila y no arriba en la esquina: con
               iconos de 52px, varias en la fila del título se comen el ancho que

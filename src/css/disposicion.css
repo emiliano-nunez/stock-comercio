@@ -140,9 +140,9 @@
 }
 
 .pestana-activa {
-  color: var(--color-marca-fuerte);
-  background-color: var(--color-marca-tenue);
-  border-bottom-color: var(--color-marca);
+  color: var(--color-acento-texto);
+  background-color: var(--color-acento-tenue);
+  border-bottom-color: var(--color-acento);
 }
 
 /* =================================================================
@@ -223,6 +223,20 @@
 
 .al-final {
   justify-content: flex-end;
+}
+
+/*
+ * La columna del stock, al costado del nombre.
+ *
+ * Va alineada al principio y no al centro para que la insignia y el "Mín:" se
+ * puedan leer como un bloque, y con `nowrap` porque partir "Agotado" en dos
+ * renglones empuja el ancho de la columna y descuadra el nombre.
+ */
+.stock-lado {
+  flex-shrink: 0;
+  align-items: flex-end;
+  text-align: end;
+  white-space: nowrap;
 }
 
 /* =================================================================
