@@ -397,9 +397,20 @@
     display: contents;
   }
 
-  .cabecera-cuerpo > h1 {
+  /*
+   * OJO con el selector de estos dos.
+   *
+   * `display: contents` borra la CAJA de la fila, no su lugar en el árbol del
+   * DOM: para el selector de CSS, el título y el par historial/pedido siguen
+   * siendo hijos de `.cabecera-fila`. Por eso `order` tiene que pedirse con
+   * `.cabecera-fila > h1` y no con `.cabecera-cuerpo > h1`, que nunca	matcheó
+   * y por eso los dos botones quedaban sin ancho y ocultos.
+   */
+  .cabecera-fila > h1 {
     order: 1;
     margin-block-end: var(--espacio-3);
+    /* En la barra el nombre va a la izquierda; centrado se ve como un boton. */
+    justify-content: flex-start;
   }
 
   .cabecera-cuerpo > .posicionado {
@@ -418,7 +429,7 @@
     order: 3;
   }
 
-  .cabecera-cuerpo > .fila-corta {
+  .cabecera-fila > .fila-corta {
     order: 5;
     flex-direction: column;
     align-items: stretch;
@@ -433,7 +444,7 @@
    * esto son dos botones chicos pegados al título y no se los lee como parte de
    * la lista de opciones.
    */
-  .cabecera-cuerpo > .fila-corta .btn-texto {
+  .cabecera-fila > .fila-corta .btn-texto {
     width: 100%;
     min-height: var(--toque-min);
     padding-inline: var(--espacio-3);
@@ -447,7 +458,7 @@
     font-weight: var(--grosor-normal);
   }
 
-  .cabecera-cuerpo > .fila-corta .btn-texto svg {
+  .cabecera-fila > .fila-corta .btn-texto svg {
     flex-shrink: 0;
     width: 1.15rem;
     height: 1.15rem;
