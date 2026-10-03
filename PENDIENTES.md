@@ -153,6 +153,17 @@ miró en un aparato. Casi nada se puede comprobar desde el escritorio.
 - [ ] **El pedido por proveedor.** Que los grupos salgan bien, que copiar un
       proveedor copie sólo el suyo, y que "copiar los que no tienen proveedor"
       no mezcle los otros.
+- [ ] **La lista de proveedores en la pestaña de categorías.** Es una tabla
+      nueva (v7) que se arma sola con los proveedores que ya estaban en los
+      productos. Falta probar: agregar uno nuevo, renombrarlo y que se actualicen
+      los productos que lo tienen, sacarlo de la lista, y que un producto con el
+      mismo nombre escrito con otra tilde caiga en el mismo grupo.
+- [ ] **El escáner con un código nuevo.** Decía siempre "Este código ya
+      existe": el segundo parámetro del escáner es una lista de productos y se
+      comprobaba como si fuera uno. Los arrays vacíos son verdaderos, así que la
+      condición era siempre cierta.
+- [ ] **"Ver en el inventario" del aviso de código repetido.** Antes llevaba al
+      formulario de edición; ahora busca el código en el inventario.
 - [ ] **La cantidad a pedir del pedido.** Ahora es editable con botones y a
       mano, y el texto copiado sale con ese número. Confirmar que el `−` no baje
       de cero y que escribir un número raro (35, 100) quede bien.

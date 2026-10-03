@@ -8,15 +8,14 @@ import { esc, escAttr } from '../utils/html.js';
 import { normalizarTexto } from '../utils/texto.js';
 
 export class ProductoForm {
-  constructor(onSave, onClose, producto = null, onScanExistente = null, onBorrarProducto = null) {
+  constructor(onSave, onClose, producto = null, onBuscarCodigo = null, onBorrarProducto = null) {
     this.onSave = onSave;
     this.onClose = onClose;
     this.producto = producto;
-    // Se invoca al tocar "Ver producto" en el aviso de código duplicado que
-    // aparece al escanear desde el propio formulario. Antes no se declaraba en
-    // ningún sitio: el toast prometía navegar y sólo cerraba el formulario,
-    // perdiendo lo que el usuario hubiera escrito.
-    this.onScanExistente = onScanExistente;
+    // Se invoca al tocar "Ver en el inventario" en el aviso de que el código ya
+    // existe. Recibe el código, no el producto: lo que se hace es buscar, y si
+    // el índice no es único puede haber más de uno con ese código.
+    this.onBuscarCodigo = onBuscarCodigo;
     // Se invoca cuando el usuario borra un producto en conflicto desde el
     // diálogo de código repetido. Pasa por la app y no por dbUtils directo para
     // que el borrado deje punto de restauración, ofrezca deshacer y recargue la
@@ -1294,28 +1293,43 @@ export class ProductoForm {
   
   async abrirScanner() {
     try {
-      await abrirScanner(async (codigo, productoExistente) => {
+      // `coincidencias` es una LISTA de productos, no un producto. Antes se
+      // comprobaba `if (productoExistente)` sobre la lista, y un array vacío es
+      // verdadero en JavaScript: por eso escanear un código nuevo decía siempre
+      // que ya existía.
+      await abrirScanner(async (codigo, coincidencias) => {
         // El escáner se abre encima del formulario: si el usuario cerró el
         // formulario mientras escaneaba, this.modal ya es null y buscar el input
         // reventaría con TypeError dentro de un callback.
         const input = this.modal?.querySelector('#codigoBarras');
         if (input) input.value = codigo;
-        
-        if (productoExistente) {
-          toast.warning('Este código ya existe', {
-            action: 'Ver producto',
-            onAction: async () => {
-              // await en cerrar(): el padre abre el formulario del producto
-              // existente, y su onClose diferido 200 ms debe ejecutarse antes,
-              // si no dejaría su flag de "abierto" en false con el formulario
-              // nuevo ya en pantalla.
-              await this.cerrar();
-              this.onScanExistente?.(productoExistente);
-            }
-          });
-        } else {
+
+        if (!coincidencias.length) {
           toast.success('Código escaneado');
+          return;
         }
+
+        // No se abre el producto a editar. Escaneando lo que el usuario está
+        // armando, lo más probable es que esté revisando si ya lo tiene, no
+        // modificándolo. Abrir el formulario lo dejaría editando un producto
+        // que no pidió tocar, y de paso le pondría el foco con datos que no
+        // son suyos.
+        const cuantos = coincidencias.length;
+        toast.warning(
+          cuantos === 1
+            ? `Este código ya existe: ${coincidencias[0].nombre}`
+            : `Este código existe en ${cuantos} productos`,
+          {
+            action: 'Ver en el inventario',
+            onAction: async () => {
+              // await en cerrar(): el padre cambia de vista y su onClose
+              // diferido de 200 ms tiene que ejecutarse antes, si no dejaría el
+              // formulario nuevo ya montado sobre el viejo.
+              await this.cerrar();
+              this.onBuscarCodigo?.(codigo);
+            }
+          }
+        );
       });
     } catch (error) {
       toast.error('Error al escanear: ' + error.message);
@@ -1682,11 +1696,12 @@ export class ProductoForm {
  * @param {Function}  onSave          Se llama tras guardar correctamente.
  * @param {Function}  onClose         Se llama SIEMPRE al cerrar (✕, Escape, clic fuera).
  * @param {Object}   [producto]       Producto a editar, o semilla {codigoBarras}.
- * @param {Function} [onScanExistente] Se llama con el producto ya existente cuando
- *                                    se escanea desde el formulario un código que
- *                                    ya está en la BD. Sin este callback, el aviso
- *                                    "Este código ya existe" no puede llevar al
- *                                    producto: sólo cerraría el formulario.
+ * @param {Function} [onBuscarCodigo] Se llama con el código escaneado cuando
+ *                                    se escanea desde el formulario un código
+ *                                    que ya está en la BD. Sin este callback,
+ *                                    el aviso "Este código ya existe" no
+ *                                    puede mostrar dónde está: sólo cerraría
+ *                                    el formulario.
  * @param {Function} [onBorrarProducto] Se llama con el producto en conflicto que el
  *                                    usuario decide borrar desde el diálogo de código
  *                                    repetido. Si no se pasa, el formulario borra
@@ -1697,10 +1712,10 @@ export async function abrirFormularioProducto(
   onSave,
   onClose,
   producto = null,
-  onScanExistente = null,
+  onBuscarCodigo = null,
   onBorrarProducto = null
 ) {
-  const form = new ProductoForm(onSave, onClose, producto, onScanExistente, onBorrarProducto);
+  const form = new ProductoForm(onSave, onClose, producto, onBuscarCodigo, onBorrarProducto);
   await form.abrir();
   return form;
 }

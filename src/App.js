@@ -52,6 +52,13 @@ export class App {
     // una se suelta la otra, porque "Bebidas sin stock" ya es un grupo entero y
     // meterle una categoría encima lo dejaría vacío casi siempre.
     this.estadoVista = null;
+    // Proveedor abierto en el catálogo, o null. Es lo mismo que la categoría y
+    // el estado: una forma más de mirar el mismo catálogo, y se sueltan entre sí
+    // al abrir una.
+    this.proveedorVista = null;
+    // La lista de proveedores que usa el inventario. Viene de la base, no de los
+    // productos: un proveedor se puede agregar antes de tener un producto suyo.
+    this.proveedores = [];
     this.ultimoEliminado = null;
     this.timeoutDeshacer = null;
     this.categoriaEditando = null;
@@ -167,6 +174,7 @@ export class App {
     dbUtils.revocarImagenes(this.productos);
     this.productos = await dbUtils.getAllProductosConImagenes();
     this.categorias = await db.categorias.toArray();
+    this.proveedores = await dbUtils.listarProveedores();
     this.aplicarFiltroYOrden();
   }
   
@@ -467,6 +475,13 @@ export class App {
     if (this.estadoVista) {
       base = base.filter(p => estadoStock(p) === this.estadoVista);
     }
+    if (this.proveedorVista) {
+      // Por clave normalizada y no por el texto exacto: los productos pueden
+      // traer el nombre escrito con otra mayúscula y si se comparara literal el
+      // grupo saldría vacío sin avisar por qué.
+      const clave = normalizarTexto(this.proveedorVista);
+      base = base.filter(p => normalizarTexto(p.proveedor || '') === clave);
+    }
     return base;
   }
 
@@ -577,10 +592,10 @@ export class App {
       porEstado.get(estadoStock(p)).push(p);
     }
     
-    // Con un estado abierto el catálogo muestra un solo grupo, así que la
-    // cabecera repetiría el aviso de filtro de arriba, con el mismo nombre y el
-    // mismo número. Va la grilla sola.
-    if (this.estadoVista) {
+    // Con un estado o un proveedor abierto el catálogo muestra un solo grupo, así
+    // que la cabecera repetiría el aviso de filtro de arriba, con el mismo nombre
+    // y el mismo número. Va la grilla sola.
+    if (this.estadoVista || this.proveedorVista) {
       return this.renderFiltroVistaHTML()
         + `<div class="cuadricula">${visibles.map(p => this.renderCatalogoItemHTML(p)).join('')}</div>`
         + this.renderCargarMasHTML(visibles);
@@ -614,8 +629,8 @@ export class App {
   // Dice cuántos de cuántos se están viendo. El número solo no alcanza: con el
   // catálogo entero tampoco se sabría si lo que falta es el filtro o la búsqueda.
   renderFiltroVistaHTML() {
-    if (!this.categoriaVista && !this.estadoVista) return '';
-    
+    if (!this.categoriaVista && !this.estadoVista && !this.proveedorVista) return '';
+
     const grupos = [];
     if (this.categoriaVista) {
       const cat = this.categorias.find(c => c.id === this.categoriaVista);
@@ -624,6 +639,9 @@ export class App {
     if (this.estadoVista) {
       const est = App.ESTADOS_STOCK.find(e => e.clave === this.estadoVista);
       grupos.push({ color: est?.color, nombre: est?.etiqueta || 'Estado' });
+    }
+    if (this.proveedorVista) {
+      grupos.push({ color: 'var(--gris-400)', nombre: this.proveedorVista });
     }
     
     const nombres = grupos.map(g => `
@@ -802,6 +820,7 @@ export class App {
         ` : ''}
         
         ${this.renderEstadosStockHTML()}
+        ${this.renderProveedoresHTML()}
       </div>
     `;
   }
@@ -858,6 +877,83 @@ export class App {
   
   contarProductosCategoria(categoriaId) {
     return this.productos.filter(p => tieneCategoria(p, categoriaId)).length;
+  }
+
+  /**
+   * Los proveedores, en su propia tarjeta, abajo de las categorías.
+   *
+   * Es una lista propia y no algo derivado de los productos porque se puede
+   * agregar un proveedor antes de tener un producto suyo: si sólo saliera lo que
+   * ya está en el inventario, el primero que se creara no se vería en ningún
+   * lado hasta que le cargaras un producto.
+   *
+   * A diferencia de los grupos de estado de stock, acá sí hay botón de editar y
+   * de borrar: son nombres que el usuario escribió y puede querer corregirlos.
+   */
+  renderProveedoresHTML() {
+    const conteos = new Map();
+    for (const p of this.productos) {
+      const clave = normalizarTexto(p.proveedor || '');
+      if (!clave) continue;
+      conteos.set(clave, (conteos.get(clave) || 0) + 1);
+    }
+
+    return `
+      <div class="tarjeta">
+        <div class="apilado">
+          <div class="fila fila-separada con-margen-abajo">
+            <h3 class="etiqueta-seccion">🚚 Proveedores</h3>
+            <button id="btn-nuevo-proveedor" class="btn-principal btn-chico">
+              <span aria-hidden="true">➕</span><span>Nuevo</span>
+            </button>
+          </div>
+
+          ${this.proveedores.length === 0 ? `
+            <p class="detalle apagado">
+              Todavía no hay proveedores. Agregá uno y después asignáselo a los
+              productos que le comprás.
+            </p>
+          ` : this.proveedores.map(prov => {
+            const total = conteos.get(normalizarTexto(prov.nombre)) || 0;
+            return `
+              <div class="recuadro recuadro-suave fila fila-separada">
+                <button
+                  class="fila-tocable"
+                  data-proveedor="${escAttr(prov.id)}"
+                  aria-label="Ver en el inventario los ${total} productos de ${escAttr(prov.nombre)}"
+                >
+                  <span class="columna crece">
+                    <span class="medio">${esc(prov.nombre)}</span>
+                    <span class="micro apagado">
+                      ${total === 0
+                        ? 'Sin productos todavía'
+                        : `${total} ${total === 1 ? 'producto' : 'productos'} · Ver en el inventario ›`}
+                    </span>
+                  </span>
+                </button>
+                <div class="fila no-crece">
+                  <button class="btn-fantasma btn-icono texto-marca editar-proveedor"
+                    data-id="${escAttr(prov.id)}" aria-label="Renombrar ${escAttr(prov.nombre)}">✏️</button>
+                  <button class="btn-fantasma btn-icono texto-peligro eliminar-proveedor"
+                    data-id="${escAttr(prov.id)}" aria-label="Sacar ${escAttr(prov.nombre)} de la lista">🗑️</button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  /** Ver los productos de un proveedor. */
+  abrirProveedor(proveedor) {
+    this.categoriaVista = null;
+    this.estadoVista = null;
+    this.proveedorVista = proveedor.nombre;
+    this.vistaActual = 'catalogo';
+    this._limiteRender = App.LIMITE_RENDER;
+    this.render();
+    document.getElementById('contenido-principal')?.scrollIntoView({ block: 'start' });
   }
   
   renderProductoHTML(p) {
@@ -1013,6 +1109,7 @@ export class App {
         // entero y no el último grupo que se miró.
         this.categoriaVista = null;
         this.estadoVista = null;
+        this.proveedorVista = null;
         this._limiteRender = App.LIMITE_RENDER;
         this.render();
       });
@@ -1025,6 +1122,18 @@ export class App {
     document.getElementById('btn-actualizar-ahora')?.addEventListener('click', () => this.aplicarActualizacion());
     document.getElementById('btn-nueva-categoria')?.addEventListener('click', () => this.abrirModalCategoria());
     document.getElementById('btn-nueva-categoria-vacia')?.addEventListener('click', () => this.abrirModalCategoria());
+    document.getElementById('btn-nuevo-proveedor')?.addEventListener('click', () => this.abrirModalProveedor());
+
+    document.querySelectorAll('.fila-tocable[data-proveedor]').forEach(btn => {
+      const prov = this.proveedores.find(p => p.id === btn.dataset.proveedor);
+      if (prov) btn.addEventListener('click', () => this.abrirProveedor(prov));
+    });
+    document.querySelectorAll('.editar-proveedor').forEach(btn => {
+      btn.addEventListener('click', () => this.abrirModalProveedor(btn.dataset.id));
+    });
+    document.querySelectorAll('.eliminar-proveedor').forEach(btn => {
+      btn.addEventListener('click', () => this.eliminarProveedor(btn.dataset.id));
+    });
     
     document.querySelectorAll('.editar-categoria').forEach(btn => {
       btn.addEventListener('click', () => this.abrirModalCategoria(btn.dataset.id));
@@ -1194,12 +1303,30 @@ export class App {
     }
   }
   
-  // Se escaneó desde el formulario un código que ya existe y el usuario tocó
-  // "Ver producto". Se cierra el formulario actual y se abre el existente.
-  // editarProducto() tiene su propia guarda contra formularios apilados, así
-  // que basta con delegar.
-  _alVerProductoExistente(productoExistente) {
-    this.editarProducto(productoExistente.id);
+  /**
+   * Se escaneó desde el formulario un código que ya existe y el usuario tocó
+   * "Ver en el inventario".
+   *
+   * Busca, no edita. Escaneando mientras se está armando un producto, lo más
+   * probable es que el usuario quiera ver si ya lo tiene, no modificarlo: abrir
+   * el formulario lo dejaría editando un producto que no pidió tocar y con datos
+   * que no son suyos en pantalla.
+   *
+   * La búsqueda queda puesta con el código, así aparecen todos los que lo
+   * comparten. Si el índice no es único, mostrar sólo uno haría creer que es el
+   * único.
+   */
+  _alBuscarCodigo(codigo) {
+    this.busqueda = codigo;
+    this.vistaActual = 'inventario';
+    this.categoriaVista = null;
+    this.estadoVista = null;
+    this.proveedorVista = null;
+    this._limiteRender = App.LIMITE_RENDER;
+    this.aplicarFiltroYOrden();
+    this.render();
+    const campo = document.getElementById('buscador');
+    if (campo) campo.value = codigo;
   }
   
   nuevoProducto(categoriaId = null) {
@@ -1212,7 +1339,7 @@ export class App {
       // elegida. Agregar desde una categoría vacía es agregar dentro de ella, y no
       // dejar el producto en "Sin categoría" al otro lado de la app.
       categoriaId ? { categoriaIds: [categoriaId] } : null,
-      (p) => this._alVerProductoExistente(p),
+      (codigo) => this._alBuscarCodigo(codigo),
       (p) => this.eliminarProducto(p.id)
     );
   }
@@ -1226,7 +1353,7 @@ export class App {
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
       () => { this._productoFormAbierto = false; },
       producto,
-      (p) => this._alVerProductoExistente(p),
+      (codigo) => this._alBuscarCodigo(codigo),
       (p) => this.eliminarProducto(p.id)
     );
   }
@@ -1276,7 +1403,7 @@ export class App {
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
       () => { this._productoFormAbierto = false; },
       datos,
-      (p) => this._alVerProductoExistente(p),
+      (codigo) => this._alBuscarCodigo(codigo),
       (p) => this.eliminarProducto(p.id)
     );
   }
@@ -1373,7 +1500,7 @@ export class App {
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
       () => { this._productoFormAbierto = false; },
       { codigoBarras: codigo },
-      (p) => this._alVerProductoExistente(p),
+      (codigo) => this._alBuscarCodigo(codigo),
       (p) => this.eliminarProducto(p.id)
     );
   }
@@ -1520,6 +1647,128 @@ export class App {
       await this.cargarTodo();
     } catch (error) {
       toast.error('Error eliminando categoría');
+    }
+  }
+
+  /**
+   * Alta o renombre de un proveedor.
+   *
+   * El nombre se normaliza al guardar, no al escribir: el usuario escribe como
+   * escribe y la app lo prolija. Lo que evita los duplicados es comparar con el
+   * nombre ya guardado en forma normalizada, tanto al agregar como al renombrar.
+   */
+  async abrirModalProveedor(proveedorId = null) {
+    if (this._proveedorModalAbierto) return;
+    this._proveedorModalAbierto = true;
+
+    const prov = proveedorId ? this.proveedores.find(p => p.id === proveedorId) : null;
+    const esEdicion = !!prov;
+
+    const modal = document.createElement('div');
+    modal.className = 'velo';
+    modal.innerHTML = `
+      <div class="dialogo">
+        <div class="dialogo-cabecera">
+          <h2 class="titulo">${esEdicion ? '✏️ Renombrar' : '➕ Nuevo'} Proveedor</h2>
+          <button id="cerrar-prov-modal" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
+        </div>
+        <form id="form-proveedor" class="dialogo-cuerpo apilado-3">
+          <div>
+            <label for="prov-nombre" class="etiqueta">Nombre</label>
+            <input
+              type="text"
+              id="prov-nombre"
+              class="campo"
+              placeholder="Ej: Distribuidora del Sur"
+              value="${escAttr(prov?.nombre || '')}"
+              required
+              autocomplete="off"
+              autofocus
+            >
+            <p class="micro apagado con-margen-arriba-chica">
+              ${esEdicion
+                ? 'Si lo cambiás, se actualiza en todos los productos que lo tienen.'
+                : 'Se prolija solo. Si ya existe uno con ese nombre, no se agrega otro.'}
+            </p>
+          </div>
+          <div class="fila fila-amplia separador-arriba relleno-superior-2">
+            <button type="button" id="btn-prov-cancelar" class="btn-secundario btn-crece">${esEdicion ? 'Cancelar' : 'Volver'}</button>
+            <button type="submit" class="btn-principal btn-crece">${esEdicion ? '💾 Guardar' : '✅ Agregar'}</button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const cerrar = () => {
+      this._proveedorModalAbierto = false;
+      modal.remove();
+    };
+
+    modal.querySelector('#cerrar-prov-modal').addEventListener('click', cerrar);
+    modal.querySelector('#btn-prov-cancelar').addEventListener('click', cerrar);
+    modal.addEventListener('click', (e) => { if (e.target === modal) cerrar(); });
+
+    modal.querySelector('#form-proveedor').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = modal.querySelector('#prov-nombre').value;
+
+      if (!nombre.trim()) {
+        toast.error('El nombre es obligatorio');
+        return;
+      }
+
+      try {
+        if (esEdicion) {
+          await dbUtils.renombrarProveedor(prov.id, nombre);
+          toast.success(`Ahora se llama "${nombre.trim()}"`);
+        } else {
+          const r = await dbUtils.agregarProveedor(nombre);
+          // Agregar uno que ya estaba no es un error: el objetivo era que
+          // quedara en la lista, y ya quedó.
+          toast.success(r.yaExistia
+            ? `"${r.nombre}" ya estaba en la lista`
+            : `Proveedor "${r.nombre}" agregado`);
+        }
+        cerrar();
+        await this.cargarTodo();
+      } catch (error) {
+        toast.error(error.message || 'No se pudo guardar el proveedor');
+      }
+    });
+  }
+
+  /**
+   * Sacar un proveedor de la lista.
+   *
+   * No borra productos: sólo les saca el proveedor. Borrar el proveedor es sacarlo
+   * de la lista, no borrar todo lo que se le compró.
+   */
+  async eliminarProveedor(proveedorId) {
+    const prov = this.proveedores.find(p => p.id === proveedorId);
+    if (!prov) return;
+
+    const total = this.productos.filter(
+      p => normalizarTexto(p.proveedor || '') === normalizarTexto(prov.nombre)
+    ).length;
+
+    const mensaje = total === 0
+      ? `¿Sacar "${prov.nombre}" de la lista?`
+      : `¿Sacar "${prov.nombre}" de la lista? ${total} producto(s) quedan sin proveedor.`;
+
+    const confirmado = await this.mostrarConfirmacion(mensaje, 'Sacar proveedor', '⚠️');
+    if (!confirmado) return;
+
+    try {
+      await dbUtils.eliminarProveedor(proveedorId);
+      if (this.proveedorVista && normalizarTexto(this.proveedorVista) === normalizarTexto(prov.nombre)) {
+        this.proveedorVista = null;
+      }
+      toast.success(`"${prov.nombre}" salió de la lista`);
+      await this.cargarTodo();
+    } catch (error) {
+      toast.error('No se pudo sacar el proveedor');
     }
   }
   

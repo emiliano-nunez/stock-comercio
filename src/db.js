@@ -114,6 +114,52 @@ db.version(6)
         producto.categoriaIds = producto.categoriaId ? [producto.categoriaId] : [];
       }
       delete producto.categoriaId;
+/*
+ * v7: los proveedores pasan a ser una lista propia.
+ *
+ * Hasta acá el proveedor era sólo texto dentro del producto. Eso alcanzan para
+ * agrupar un pedido, pero no para administering la lista: no había forma de
+ * agregar un proveedor antes de tener un producto suyo, ni de renombrar uno sin
+ * editar producto por producto.
+ *
+ * La tabla guarda el catálogo de nombres. El producto sigue guardando el
+ * nombre en texto y no un id, a propósito: el formulario, el pedido, la búsqueda
+ * y el backup ya leen ese campo, y cambiarlo a referencias obligaría a tocar
+ * todos esos lugares para algo que no se pidió.
+ *
+ * La lista se arma sola con lo que ya está en los productos, así que un
+ * inventario que existía antes de esta versión no pierde ningún proveedor.
+ *
+ * El id se arma acá y no con `dbUtils.generarId()` porque esa constante se
+ * declara más abajo en este mismo archivo. La migración corre cuando se abre la
+ * base, que es después de que el módulo terminó de evaluarse, así que
+ * funcionando funciona; pero depender del orden de las declaraciones para que
+ * algo ande es lo que después rompe sin que nadie toque nada.
+  */
+db.version(7)
+  .stores({
+    productos: 'id, codigoBarras, tipoVenta, costo, fechaCompra',
+    categorias: 'id, nombre, color',
+    proveedores: 'id, nombre',
+    imagenes: 'id',
+    historial: 'id, fecha'
+  })
+  .upgrade(async tx => {
+    const productos = await tx.table('productos').toCollection().toArray();
+    const vistos = new Map();
+    for (const p of productos) {
+      const nombre = (p.proveedor || '').trim();
+      if (!nombre) continue;
+      const clave = normalizarTexto(nombre);
+      // Queda el primero: es la forma en que alguien lo escribió, y es la que
+      // el usuario tiene anotada.
+      if (!vistos.has(clave)) vistos.set(clave, nombre);
+    }
+    if (!vistos.size) return;
+    await tx.table('proveedores').bulkPut(
+      [...vistos.values()].map(nombre => ({ id: dbUtils.generarId('prov'), nombre }))
+    );
+  });
 
       // Los dos campos nuevos nacen vacíos, no en null: se comparan y se
       // concatenan como texto en la interfaz, y "" se puede pintar sin que cada
@@ -526,7 +572,107 @@ export const dbUtils = {
     
     return snapshot;
   },
-  
+
+  /*
+   * La lista de proveedores, ordenada por nombre.
+   */
+  async listarProveedores() {
+    const lista = await db.proveedores.toArray();
+    return lista.sort((a, b) => normalizarTexto(a.nombre).localeCompare(normalizarTexto(b.nombre), 'es'));
+  },
+
+  /*
+   * Agregar un proveedor a la lista.
+   *
+   * Si el nombre ya está, en cualquiera de las dos formas en que se puede
+   * escribir (con o sin tilde, con mayúsculas distintas), no se agrega un
+   * duplicado: se devuelve el que ya estaba. Es lo que evita que el usuario
+   * termine con "Lácteos del Sur" y "lácteos del sur" en dos filas, que en el
+   * pedido saldrían como dos proveedores y son el mismo.
+   *
+   * El nombre se normaliza antes de guardar: mayúscula la primera letra, sin
+   * espacios de sobra.
+   */
+  async agregarProveedor(nombre) {
+    const limpio = normalizarProveedor(nombre);
+    if (!limpio) throw new Error('El nombre del proveedor está vacío');
+
+    const clave = normalizarTexto(limpio);
+    const existentes = await db.proveedores.toArray();
+    const yaExiste = existentes.find(p => normalizarTexto(p.nombre) === clave);
+    if (yaExiste) return { ...yaExiste, yaExistia: true };
+
+    const nuevo = { id: dbUtils.generarId('prov'), nombre: limpio };
+    await db.proveedores.add(nuevo);
+    return { ...nuevo, yaExistia: false };
+  },
+
+  /*
+   * Renombrar un proveedor.
+   *
+   * El nombre vive dentro de cada producto, así que renombrar en la lista tiene
+   * que reescribir también los productos que lo usan. Si no, la lista y los
+   * productos quedan diciendo dos cosas distintas y el pedido los manda
+   * separados.
+   *
+   * La comparación del nombre viejo es la normalizada, no la exacta, porque los
+   * productos pueden traerlo escrito de cualquier forma y hay que agarrarlos
+   * todos.
+   */
+  async renombrarProveedor(id, nombreNuevo) {
+    const limpio = normalizarProveedor(nombreNuevo);
+    if (!limpio) throw new Error('El nombre del proveedor está vacío');
+
+    return db.transaction('rw', [db.proveedores, db.productos], async () => {
+      const actual = await db.proveedores.get(id);
+      if (!actual) throw new Error('El proveedor no existe');
+
+      const claveVieja = normalizarTexto(actual.nombre);
+      const claveNueva = normalizarTexto(limpio);
+
+      // Renombrar a un nombre que ya existe juntaría dos proveedores distintos
+      // en el pedido. Se avisa en vez de hacerlo: juntarlos es decisión del
+      // usuario, y podría ser que sean dos proveedores de verdad.
+      if (claveNueva !== claveVieja) {
+        const choque = await db.proveedores.toCollection()
+          .filter(p => p.id !== id && normalizarTexto(p.nombre) === claveNueva)
+          .first();
+        if (choque) throw new Error(`Ya existe un proveedor llamado "${limpio}"`);
+      }
+
+      await db.proveedores.update(id, { nombre: limpio });
+      await db.productos.toCollection().modify(producto => {
+        if (normalizarTexto(producto.proveedor || '') === claveVieja) {
+          producto.proveedor = limpio;
+        }
+      });
+      return limpio;
+    });
+  },
+
+  /*
+   * Sacar un proveedor de la lista.
+   *
+   * No borra productos: sólo les saca el proveedor. Borrar el proveedor es
+   * sacarlo de la lista, no borrar todo lo que le compramos.
+   */
+  async eliminarProveedor(id) {
+    return db.transaction('rw', [db.proveedores, db.productos], async () => {
+      const actual = await db.proveedores.get(id);
+      if (!actual) return 0;
+      const clave = normalizarTexto(actual.nombre);
+      let afectados = 0;
+      await db.productos.toCollection().modify(producto => {
+        if (normalizarTexto(producto.proveedor || '') === clave) {
+          producto.proveedor = '';
+          afectados++;
+        }
+      });
+      await db.proveedores.delete(id);
+      return afectados;
+    });
+  },
+
   // Restaurar desde punto de restauración
   //
   // { conFotos } resuelve lo que el usuario elige en el diálogo de confirmación:

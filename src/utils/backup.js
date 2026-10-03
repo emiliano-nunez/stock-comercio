@@ -1,4 +1,5 @@
 import { db, dbUtils, categoriasDe, normalizarProveedor } from '../db.js';
+import { normalizarTexto } from './texto.js';
 
 /**
  * Poner un producto en la forma que la app usa hoy, sin perderle nada.
@@ -38,9 +39,13 @@ function normalizarProducto(p) {
  * Exportar backup completo a JSON (con imágenes en base64)
  */
 export async function exportarBackup() {
-  const [productos, categorias, historial, imagenes] = await Promise.all([
+  const [productos, categorias, proveedores, historial, imagenes] = await Promise.all([
     db.productos.toArray(),
     db.categorias.toArray(),
+    // La lista de proveedores también es del usuario. Si no viaja en el backup,
+    // importarlo en otro aparato deja la lista vacía: los productos seguirían
+    // teniendo su proveedor en el texto, pero no se verían en la pestaña.
+    db.proveedores.toArray(),
     db.historial.toArray(),
     db.imagenes.toArray()
   ]);
@@ -61,6 +66,7 @@ export async function exportarBackup() {
     fecha: new Date().toISOString(),
     productos,
     categorias,
+    proveedores,
     historial,
     imagenes: imagenesBase64
   };
@@ -113,24 +119,51 @@ export async function importarBackup(jsonStr) {
   // se toca nada. Antes eran dos transacciones, así que un fallo en la
   // importación dejaba la base vacía y sin copia de los datos.
   // bulkPut (no bulkAdd) para tolerar ids repetidos en el backup.
-  await db.transaction('rw', [db.productos, db.categorias, db.historial, db.imagenes], async () => {
+  await db.transaction('rw', [db.productos, db.categorias, db.proveedores, db.historial, db.imagenes], async () => {
     await db.imagenes.clear();
     await db.categorias.clear();
+    await db.proveedores.clear();
     await db.productos.clear();
     await db.historial.clear();
 
-    // Orden referencial: imagenes -> categorias -> productos -> historial
+    // Orden referencial: imagenes -> categorias -> proveedores -> productos -> historial
     if (imagenesBlobs.length) {
       await db.imagenes.bulkPut(imagenesBlobs);
     }
     if (backup.categorias.length) {
       await db.categorias.bulkPut(backup.categorias);
     }
+    // Un backup viejo no trae proveedores. En ese caso se arma la lista con lo
+    // que hay en los productos, que es como estaba antes de que la tabla
+    // existiera: el nombre vive en el producto, así que no se pierde nada.
+    if (backup.proveedores?.length) {
+      await db.proveedores.bulkPut(backup.proveedores);
+    }
     if (backup.productos.length) {
       // Normalizados al importar: un backup viejo trae `categoriaId` y no trae
       // `proveedor` ni `notas`. Ver normalizarProducto().
       await db.productos.bulkPut(backup.productos.map(normalizarProducto));
     }
+
+    // Backup viejo: no trae la lista de proveedores, así que se arma con los
+    // nombres que traen los productos. Sin esto, importar un backup anterior a
+    // la tabla dejaría la pestaña de proveedores vacía aunque los productos
+    // tuvieran su proveedor escrito.
+    if (!backup.proveedores?.length) {
+      const vistos = new Map();
+      for (const p of backup.productos) {
+        const nombre = (p.proveedor || '').trim();
+        if (!nombre) continue;
+        const clave = normalizarTexto(nombre);
+        if (!vistos.has(clave)) vistos.set(clave, nombre);
+      }
+      if (vistos.size) {
+        await db.proveedores.bulkPut(
+          [...vistos.values()].map(nombre => ({ id: dbUtils.generarId('prov'), nombre }))
+        );
+      }
+    }
+
     if (backup.historial?.length) {
       await db.historial.bulkPut(backup.historial);
     }
@@ -146,6 +179,7 @@ export async function importarBackup(jsonStr) {
   return {
     productos: backup.productos?.length || 0,
     categorias: backup.categorias?.length || 0,
+    proveedores: backup.proveedores?.length || 0,
     historial: backup.historial?.length || 0,
     imagenes: imagenesBlobs.length,
     // Para que la UI pueda avisar de que esto sí se puede deshacer
