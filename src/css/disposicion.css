@@ -451,17 +451,22 @@
  * con un elemento distinto: el de la tarjeta con uno de la tarjeta, el de la hoja
  * con uno de la hoja.
  */
-.duplicar-detalle {
+/*
+ * En el teléfono el botón NO está en la tarjeta: está en la hoja del producto.
+ * Por eso la regla base esconde el de la tarjeta y no esconde ninguno en la hoja.
+ */
+.duplicar-tarjeta {
   display: none;
 }
 
+/* En el escritorio vuelve a la tarjeta, y el de la hoja se esconde. */
 @media (min-width: 768px) {
   .duplicar-tarjeta {
-    display: none;
+    display: flex;
   }
 
   .duplicar-detalle {
-    display: flex;
+    display: none;
   }
 }
 
