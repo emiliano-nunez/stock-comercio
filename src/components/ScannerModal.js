@@ -40,7 +40,7 @@ export class ScannerModal {
       <div class="dialogo dialogo-sin-desplazar">
         <!-- Header -->
         <div class="dialogo-cabecera">
-          <h2 class="titulo">${icono('escanear')}<span>Escanear Código</span></h2>
+          <h2 class="titulo titulo-icono">${icono('escanear')}<span>Escanear Código</span></h2>
           <button id="cerrar-scanner" class="btn-fantasma btn-icono" aria-label="Cerrar escáner">
             ✕
           </button>

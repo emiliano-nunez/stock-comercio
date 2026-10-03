@@ -33,7 +33,7 @@ export class CamaraModal {
       <div class="dialogo dialogo-sin-desplazar">
         <!-- Header -->
         <div class="dialogo-cabecera">
-          <h2 class="titulo">${icono('camara')}<span>Sacar Foto</span></h2>
+          <h2 class="titulo titulo-icono">${icono('camara')}<span>Sacar Foto</span></h2>
           <button id="cerrar-camara" class="btn-fantasma btn-icono" aria-label="Cerrar cámara">
             ✕
           </button>

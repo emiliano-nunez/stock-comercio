@@ -26,6 +26,17 @@
 }
 
 /*
+ * La tarjeta del inventario va con menos relleno que la base, porque en la
+ * pantalla se ven varias a la vez y cada centímetro de alto que sobra es una
+ * tarjeta menos. El nombre, el bloque de datos y los botones no se tocan: el
+ * bloque de datos tiene el alto reservado y los botones no bajan del mínimo
+ * táctil.
+ */
+.tarjeta-alta {
+  padding: var(--espacio-3);
+}
+
+/*
  * El bloque de datos de la tarjeta de inventario: precio, costo, estado y código.
  *
  * El alto está reservado a propósito. Antes esta fila era sólo una `fila
@@ -44,14 +55,14 @@
   flex-wrap: wrap;
   align-content: flex-start;
   gap: var(--espacio-1) var(--espacio-2);
-  min-height: 3rem;
+  min-height: 2.25rem;
   margin-block-start: var(--espacio-1);
 }
 
 .miniatura {
   flex-shrink: 0;
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3rem;
+  height: 3rem;
   background-color: var(--gris-100);
   border-radius: var(--radio-lg);
   overflow: hidden;

@@ -24,6 +24,28 @@
   color: var(--color-texto);
 }
 
+/*
+ * El título de diálogo que lleva icono.
+ *
+ * `.titulo` no es una fila: el texto se apoya en la línea de base, así que un
+ * svg embebido queda medio renglón más abajo que la palabra y pegado a ella. Con
+ * esto el ícono va al costado, centrado con la palabra y con hueco.
+ *
+ * Es una clase aparte y no un `:has(svg)` porque no todos los navegadores de
+ * teléfono lo soportan, y si no se aplica el ícono vuelve a quedar descolgado.
+ */
+.titulo-icono {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+.titulo-icono svg {
+  flex-shrink: 0;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
 .subtitulo {
   font-size: var(--texto-base);
   line-height: var(--texto-base-al);

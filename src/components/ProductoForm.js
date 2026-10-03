@@ -334,6 +334,24 @@ export class ProductoForm {
                   <p class="micro apagado con-margen-arriba-chica">${icono('alerta')} El escáner requiere HTTPS. Escribí el código a mano.</p>
                 ` : ''}
               </div>
+
+              <div>
+                <label for="costo" class="etiqueta">${icono('dinero')} Costo (${unidadBase})</label>
+                <div class="posicionado">
+                  <span class="buscador-lupa">$</span>
+                  <input
+                    type="number"
+                    id="costo"
+                    name="costo"
+                    class="campo campo-con-icono"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value="${costoInicial}"
+                    inputmode="decimal"
+                  >
+                </div>
+              </div>
             </div>
           </div>
 
@@ -477,25 +495,6 @@ export class ProductoForm {
                 ` : ''}
               </div>
               <input type="hidden" id="categoriaIds" name="categoriaIds" value="${escAttr(categoriasDe(this.producto).join(','))}">
-            </div>
-          </div>
-
-          <!-- Costo -->
-          <div>
-            <label for="costo" class="etiqueta">${icono('dinero')} Costo (${unidadBase})</label>
-            <div class="posicionado">
-              <span class="buscador-lupa">$</span>
-              <input
-                type="number"
-                id="costo"
-                name="costo"
-                class="campo campo-con-icono"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value="${costoInicial}"
-                inputmode="decimal"
-              >
             </div>
           </div>
 
@@ -917,7 +916,7 @@ export class ProductoForm {
     modal.innerHTML = `
       <div class="dialogo">
         <div class="dialogo-cabecera">
-          <h2 class="titulo">${icono('mas')}<span>Agregar precio para</span></h2>
+          <h2 class="titulo titulo-icono">${icono('mas')}<span>Agregar precio para</span></h2>
           <button class="btn-fantasma btn-icono" id="cerrar-selector-unidad" aria-label="Cerrar">✕</button>
         </div>
         <div class="dialogo-cuerpo apilado">

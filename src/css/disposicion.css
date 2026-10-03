@@ -69,6 +69,30 @@
   }
 }
 
+/*
+ * El encabezado de los bloques de la pestaña de categorías.
+ *
+ * Los tres bloques —gestión de categorías, estado del stock y proveedores— usan
+ * esta misma fila: el título a la izquierda y el botón de acción a la derecha.
+ * Antes el de categorías tenía el título fuera de la tarjeta y era un `titulo`
+ * grande, y los otros dos lo tenían adentro y eran un `etiqueta-seccion` chico,
+ * así que los tres se veían de distinta forma.
+ *
+ * El `margin-bottom` del título lo pone la fila y no el título, para que el
+ * botón no quede descentrado respecto de la palabra.
+ */
+.bloque-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-2);
+}
+
+.bloque-cabecera .etiqueta-seccion {
+  margin-bottom: 0;
+}
+
 .cabecera {
   position: sticky;
   top: 0;
@@ -150,6 +174,35 @@
   background-color: var(--gris-100);
 }
 
+/*
+ * El botón de ordenar, al lado del de escanear.
+ *
+ * `.buscador-boton` se posiciona contra el borde derecho del buscador, así que
+ * el segundo necesita su propio `right` para quedar al lado y no encima. La
+ * diferencia entre los dos es el ancho del campo, que también tiene que estar
+ * PREPARADO: por eso van los dos lados de la regla.
+ */
+.buscador-boton-orden {
+  right: var(--toque-min);
+}
+
+.buscador-campo {
+  padding-right: calc(var(--toque-min) * 2 + var(--espacio-2));
+}
+
+/*
+ * La lista de órdenes.
+ *
+ * Se abre desde el botón, que está en el borde derecho, así que la lista sale
+ * alineada a ese mismo borde y no al del buscador. Sin esto la lista queda
+ * corrida hacia la izquierda y el botón queda apuntando al aire.
+ */
+.desplegable-boton {
+  right: 0;
+  width: auto;
+  min-width: 12rem;
+}
+
 /* =================================================================
  * Las pestañas
  * ================================================================= */
@@ -222,6 +275,20 @@
 @media (min-width: 768px) {
   .rejilla-inventario {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/*
+ * En pantalla ancha, una tercera columna.
+ *
+ * La app mide 48rem y a los 768px entran dos tarjetas de paso. A partir de las
+ * 1200px de pantalla sobra el ancho de una tercera, y sin esto la grilla queda
+ * con un hueco vacío a la derecha mientras la tarjeta crece. Con tres columnas
+ * se ven hasta un 50% más productos sin achicar nada.
+ */
+@media (min-width: 1200px) {
+  .rejilla-inventario {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 

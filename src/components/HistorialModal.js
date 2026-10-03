@@ -136,7 +136,7 @@ export class HistorialModal {
     modal.innerHTML = `
       <div class="dialogo">
         <div class="dialogo-cabecera">
-          <h2 class="titulo">${icono('sincronizar')} Volver Atrás</h2>
+          <h2 class="titulo titulo-icono">${icono('sincronizar')} Volver Atrás</h2>
           <button id="cerrar-historial" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
         </div>
         ${cuerpo}

@@ -36,6 +36,26 @@ export class App {
     { clave: 'vacio', etiqueta: 'Sin stock', clase: 'insignia-sin', color: '#ef4444' }
   ];
 
+  /**
+   * Los órdenes, con el ícono de cada uno.
+   *
+   * Estaban en un `<select>` con emoji. Un svg embebido dentro de un `<option>`
+   * no lo dibuja ningún navegador, así que no había forma de poner un ícono de
+   * verdad ahí; como el control se lee al revés —el ícono es lo que se ve y el
+   * texto casi no se lee— se hizo una lista con el mismo patrón que el selector
+   * de tipo de venta.
+   */
+  static ORDENES = [
+    { campo: 'nombre', dir: 'asc', etiqueta: 'Nombre A-Z', icono: 'etiqueta' },
+    { campo: 'nombre', dir: 'desc', etiqueta: 'Nombre Z-A', icono: 'etiqueta' },
+    { campo: 'stock', dir: 'asc', etiqueta: 'Stock menor', icono: 'medida' },
+    { campo: 'stock', dir: 'desc', etiqueta: 'Stock mayor', icono: 'medida' },
+    { campo: 'precio', dir: 'asc', etiqueta: 'Precio menor', icono: 'dinero' },
+    { campo: 'precio', dir: 'desc', etiqueta: 'Precio mayor', icono: 'dinero' },
+    { campo: 'categoria', dir: 'asc', etiqueta: 'Categoría A-Z', icono: 'carpeta' },
+    { campo: 'fecha', dir: 'desc', etiqueta: 'Recientes', icono: 'calendario' }
+  ];
+
   constructor() {
     this.productos = [];
     this.productosFiltrados = [];
@@ -296,19 +316,31 @@ export class App {
               <button id="btn-escanear-header" class="buscador-boton" aria-label="Escanear código de barras">
                 ${icono('camara')}
               </button>
-            </div>
+              <button
+                id="btn-ordenar"
+                class="buscador-boton buscador-boton-orden"
+                aria-label="Ordenar por"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+              >
+                ${icono('ordenar')}
+              </button>
 
-            <div class="con-margen-arriba">
-              <select id="ordenar-select" class="campo selector" aria-label="Ordenar por">
-                <option value="nombre_asc" ${this.ordenarPor === 'nombre' && this.ordenDireccion === 'asc' ? 'selected' : ''}>🔤 Nombre A-Z</option>
-                <option value="nombre_desc" ${this.ordenarPor === 'nombre' && this.ordenDireccion === 'desc' ? 'selected' : ''}>🔤 Nombre Z-A</option>
-                <option value="stock_asc" ${this.ordenarPor === 'stock' && this.ordenDireccion === 'asc' ? 'selected' : ''}>📦 Stock menor</option>
-                <option value="stock_desc" ${this.ordenarPor === 'stock' && this.ordenDireccion === 'desc' ? 'selected' : ''}>📦 Stock mayor</option>
-                <option value="precio_asc" ${this.ordenarPor === 'precio' && this.ordenDireccion === 'asc' ? 'selected' : ''}>💰 Precio menor</option>
-                <option value="precio_desc" ${this.ordenarPor === 'precio' && this.ordenDireccion === 'desc' ? 'selected' : ''}>💰 Precio mayor</option>
-                <option value="categoria_asc" ${this.ordenarPor === 'categoria' && this.ordenDireccion === 'asc' ? 'selected' : ''}>📂 Categoría A-Z</option>
-                <option value="fecha_desc" ${this.ordenarPor === 'fecha' && this.ordenDireccion === 'desc' ? 'selected' : ''}>📅 Recientes</option>
-              </select>
+              <ul id="ordenar-options" class="desplegable desplegable-boton oculto" role="listbox">
+                ${App.ORDENES.map(o => `
+                  <li
+                    class="fila-tocable ${this.ordenarPor === o.campo && this.ordenDireccion === o.dir ? 'opcion-elegida' : ''}"
+                    role="option"
+                    aria-selected="${this.ordenarPor === o.campo && this.ordenDireccion === o.dir}"
+                    data-orden="${o.campo}_${o.dir}"
+                  >
+                    <span class="fila fila-amplia">
+                      <span class="no-crece">${icono(o.icono)}</span>
+                      <span>${esc(o.etiqueta)}</span>
+                    </span>
+                  </li>
+                `).join('')}
+              </ul>
             </div>
           </div>
 
@@ -720,15 +752,14 @@ export class App {
   renderCategoriasHTML() {
     return `
       <div class="apilado-4">
-        <div class="fila fila-separada">
-          <h2 class="titulo">${icono('carpeta')}<span>Gestión de Categorías</span></h2>
-          <button id="btn-nueva-categoria" class="btn-principal btn-chico">
-            ${icono('mas')}<span>Nueva categoría</span>
-          </button>
-        </div>
-
         <div class="tarjeta">
           <div class="apilado">
+            <div class="bloque-cabecera">
+              <h3 class="etiqueta-seccion">${icono('carpeta')}<span>Gestión de Categorías</span></h3>
+              <button id="btn-nueva-categoria" class="btn-principal no-crece">
+                ${icono('mas')}<span>Nueva categoría</span>
+              </button>
+            </div>
             ${this.categorias.map(cat => `
               <div class="recuadro recuadro-suave fila fila-separada">
                 <button
@@ -795,7 +826,9 @@ export class App {
     return `
       <div class="tarjeta">
         <div class="apilado">
-          <h3 class="etiqueta-seccion con-margen-abajo">${icono('medida')}<span>Estado del stock</span></h3>
+          <div class="bloque-cabecera">
+            <h3 class="etiqueta-seccion">${icono('medida')}<span>Estado del stock</span></h3>
+          </div>
           ${App.ESTADOS_STOCK.map(e => {
             const total = conteos.get(e.clave) || 0;
             return `
@@ -847,9 +880,9 @@ export class App {
     return `
       <div class="tarjeta">
         <div class="apilado">
-          <div class="fila fila-separada con-margen-abajo">
+          <div class="bloque-cabecera">
             <h3 class="etiqueta-seccion">${icono('proveedor')}<span>Proveedores</span></h3>
-            <button id="btn-nuevo-proveedor" class="btn-principal btn-chico">
+            <button id="btn-nuevo-proveedor" class="btn-principal no-crece">
               ${icono('mas')}<span>Nuevo proveedor</span>
             </button>
           </div>
@@ -1020,13 +1053,30 @@ export class App {
       });
     }
 
-    const ordenarSelect = document.getElementById('ordenar-select');
-    if (ordenarSelect) {
-      ordenarSelect.addEventListener('change', (e) => {
-        const [campo, dir] = e.target.value.split('_');
+    const btnOrdenar = document.getElementById('btn-ordenar');
+    const listaOrden = document.getElementById('ordenar-options');
+    if (btnOrdenar && listaOrden) {
+      const cerrarOrden = () => {
+        listaOrden.classList.add('oculto');
+        btnOrdenar.setAttribute('aria-expanded', 'false');
+      };
+      btnOrdenar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const abierto = btnOrdenar.getAttribute('aria-expanded') === 'true';
+        listaOrden.classList.toggle('oculto', abierto);
+        btnOrdenar.setAttribute('aria-expanded', String(!abierto));
+      });
+      listaOrden.addEventListener('click', (e) => {
+        const elegida = e.target.closest('[data-orden]');
+        if (!elegida) return;
+        const [campo, dir] = elegida.dataset.orden.split('_');
         this.ordenarPor = campo;
         this.ordenDireccion = dir;
+        cerrarOrden();
         this.aplicarFiltroYOrden();
+      });
+      document.addEventListener('click', (e) => {
+        if (!listaOrden.contains(e.target) && e.target !== btnOrdenar) cerrarOrden();
       });
     }
 
