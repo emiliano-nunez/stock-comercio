@@ -713,27 +713,21 @@
   }
 
   /*
-   * Las dos grillas se comportan igual: mismo `minmax`, mismo token.
+   * El inventario va de dos columnas mientras la barra lateral está puesta, que
+   * es la misma condición que decide si la barra entra: entra cuando ya entran
+   * dos columnas, así que nunca hay una sola tarjeta al lado de la barra.
    *
-   * El selector del catálogo es `.cuadricula`. `.rejilla` estuvo escrita toda la
-   * vida como si la usara el catálogo y no la usa: la del catálogo es
-   * `.cuadricula`, que tiene dos columnas fijas para siempre. Por eso los cambios
-   * de acá no le hacían nada al catálogo.
+   * El catálogo sí se acomoda solo, con `auto-fill`: sus tarjetas son texto y no
+   * llevan la fila de botones, así que pueden ser más angostas.
    *
-   * El `1fr` del máximo no es caprichoso. Con `auto-fill`, si el máximo es un
-   * número fijo, el número de columnas se cuenta con el MÁXIMO y no con el
-   * mínimo: `minmax(13rem, 21.25rem)` a 768px daba una sola columna de 340px con
-   * 120px de blanco al lado, porque 350 no entra dos veces en los 460px de
-   * contenido. Con el máximo en `1fr` la cuenta se hace con el mínimo de 13rem y
-   * entran las columnas que quepan; el alto de cada una nunca pasa de unos 317px
-   * porque sobra menos de una columna y el resto se reparte.
-   *
-   * Los selectores llevan `.contenido` adelante porque `.cuadricula` está definida
-   * en superficies.css, que se importa después de este archivo: a igual
-   * especificidad su `repeat(2, minmax(0, 1fr))` le ganaría por posición y dejaría
-   * esta regla muerta.
+   * `.cuadricula` necesita el `.contenido` adelante porque está definida en
+   * superficies.css, que se importa después de este archivo y a igual
+   * especificidad le ganaría por posición.
    */
-  .contenido .rejilla-inventario,
+  .contenido .rejilla-inventario {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .contenido .cuadricula {
     grid-template-columns: repeat(auto-fill, minmax(var(--ancho-tarjeta-min), 1fr));
   }
