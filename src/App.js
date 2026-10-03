@@ -1011,7 +1011,7 @@ export class App {
               sin esto los botones de cada columna quedan a distinta altura y la
               grilla se ve despareja.
             -->
-            <div class="fila fila-corta envuelto con-margen-arriba-auto separador-arriba relleno-superior-1">
+            <div class="fila fila-corta con-margen-arriba-auto separador-arriba relleno-superior-1">
               <!--
                 Este botón no se ve en el teléfono: en la hoja del producto está el
                 mismo, y acá sólo sobra. La regla que lo esconde se llama
