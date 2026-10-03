@@ -452,23 +452,10 @@
  * con uno de la hoja.
  */
 /*
- * En el teléfono el botón NO está en la tarjeta: está en la hoja del producto.
- * Por eso la regla base esconde el de la tarjeta y no esconde ninguno en la hoja.
+ * El botón de duplicar de la tarjeta vive en la hoja del producto en el
+ * teléfono. La regla que lo esconde está en controles.css, junto a la del botón
+ * que le pone el display.
  */
-.duplicar-tarjeta {
-  display: none;
-}
-
-/* En el escritorio vuelve a la tarjeta, y el de la hoja se esconde. */
-@media (min-width: 768px) {
-  .duplicar-tarjeta {
-    display: flex;
-  }
-
-  .duplicar-detalle {
-    display: none;
-  }
-}
 
 /*
  * La grilla del inventario va de dos columnas desde el teléfono.
