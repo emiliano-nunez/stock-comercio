@@ -2,7 +2,6 @@
  * Disposición: el armazón de la app.
  *
  * Cómo se acomodan las cosas, sin importar cómo se vean. El archivo define la
- * columna angosta y centrada, la cabecera que se queda pegada arriba, las
  * pestañas, la rejilla y el botón flotante.
  *
  * Todos los contenedores de acá heredan el color y el tamaño de letra del
@@ -104,7 +103,6 @@
 
 /*
  * El botón del escáner mide lo mismo que el campo, porque se toca con el dedo y
- * la regla de los 52 px no se negocia. Antes de tener esta regla el botón no
  * tenía tamaño propio y quedaba de 22 por 24, que es lo que mide el emoji solo.
  */
 .buscador-boton {
@@ -272,7 +270,6 @@
  * Crecimiento
  *
  * Tres casos que se repiten en casi todas las pantallas: uno que se estira, uno
- * que se queda quieto y uno que puede encogerse por debajo de su contenido.
  * ================================================================= */
 
 .crece {
@@ -547,3 +544,4 @@
   width: var(--toque-min);
   height: var(--toque-min);
 }
+

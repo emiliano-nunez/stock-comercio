@@ -52,7 +52,6 @@ export class ToastManager {
     // que más necesita ser fácil de acertar.
     toast.className = `aviso anim-subir ${colores[type] || colores.info} ${action ? 'aviso-con-boton' : 'aviso-sin-boton'}`;
     // El mensaje suele traer el nombre de un producto (dato del usuario), así
-    // que se escapa antes de inyectarlo como HTML.
     toast.innerHTML = action
       ? `
         <div class="fila fila-amplia">

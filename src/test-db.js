@@ -28,7 +28,6 @@ const fail = (msg, err) => console.error(`❌ ${msg}`, err ?? '');
 async function testDatabase() {
   console.log('🧪 Iniciando tests de base de datos...');
 
-  // Ids fijados aquí para poder limpiar aunque un test falle antes de tiempo.
   const categoriaId = `${PREFIJO}cat`;
   const productoId = `${PREFIJO}prod`;
 
@@ -47,7 +46,6 @@ async function testDatabase() {
     ok(`Categorías: ${cats.length} en total, la de prueba existe`);
 
     // Test 3: insertar producto.
-    // tipoVenta debe ser uno de TIPOS_VENTA: antes se usaba 'peso', que no
     // existe, y la categoría 'cat_verduras', que la app ya no crea sola.
     const testProducto = {
       id: productoId,
@@ -145,7 +143,6 @@ async function testDatabase() {
  *   5. Deshacer el borrado de un producto debe devolverlo CON foto.
  *   6. Restaurar el snapshot debe devolver los productos con sus fotos.
  *   7. Restaurar con { conFotos: false } debe devolverlos sin imagen.
- *   8. Restaurar deja un punto "Antes de restaurar", para que el propio
  *      "Volver Atrás" se pueda deshacer.
  *   9. Las fotos que sólo referencia el historial se miden, no se borran solas,
  *      y sí se borran cuando el usuario lo pide explícitamente.
@@ -160,9 +157,9 @@ async function testFotosConHistorial() {
   // llama a createObjectURL sobre ellos.
   const blob = new Blob([contenido], { type: 'image/webp' });
 
-  // Los snapshots que existían ANTES de este test. Sirven para dos cosas: para
-  // no medir fotos ajenas al test, y para no borrar los puntos de restauración
-  // del usuario al final. Este test puede correr contra la base real.
+  // Se guarda el historial previo para no medir fotos ajenas al test, y para no
+  // borrar los puntos de restauración del usuario al final. Este test puede
+  // correr contra la base real.
   const historialPrevio = new Set((await db.historial.toArray()).map(h => h.id));
 
   try {
@@ -246,16 +243,13 @@ async function testFotosConHistorial() {
 
     // Y ahora sí: las dos imágenes están en snapshots y en ningún producto (el
     // último restore fue con { conFotos: false }, así que quedó sin imagen).
-    // OJO: los snapshots NO se borran antes de medir. Si se borraran, las fotos
     // pasarían de "del historial" a "sueltas" y no se estaría midiendo el
     // conjunto que el botón 🗄️ realmente toca.
     //
-    // restaurarDesdeSnapshot() crea un punto "Antes de restaurar" cada vez, así
     // que hay más snapshots que el del test. Un borrado por prefijo
     // ("startsWith('restauracion_')") se llevaría también los puntos de
     // restauración que tiene el usuario, que es justo lo que este test existe
     // para no hacer: por eso los snapshots del test se limpian en el finally,
-    // contra el ids que había antes de empezar.
     const creadosPorElTest = (await db.historial.toArray())
       .map(h => h.id)
       .filter(id => !historialPrevio.has(id));
@@ -308,7 +302,6 @@ async function testFotosConHistorial() {
  * Ejemplos para probar a mano, uno por cada tipo de venta.
  *
  * NO se crean en la app: CATEGORIAS_DEFAULT está vacío a propósito, porque un
- * comercio que abre la app por primera vez tiene que encontrarse su inventario
  * vacío y no el ejemplo de otro. Estos ejemplos viven acá, se crean, se revisan
  * en pantalla y se borran al terminar.
  *
@@ -405,3 +398,4 @@ async function testEjemplosTipoVenta() {
 }
 
 export { testDatabase };
+

@@ -90,8 +90,9 @@ export async function importarBackup(jsonStr) {
     throw new Error('Formato de backup inválido');
   }
 
-  // Las conversiones base64 -> Blob se hacen ANTES de abrir la transacción:
-  // no son operaciones de Dexie y no deben stretchar el contexto transaccional.
+  // Los blobs se reconstruyen FUERA de la transacción: base64ToBlob() y
+  // createImageBitmap() no son operaciones de Dexie y no deben estirar el
+  // contexto transaccional.
   const imagenesBlobs = await Promise.all(
     (backup.imagenes || []).map(async (img) => ({
       id: img.id,
@@ -116,8 +117,7 @@ export async function importarBackup(jsonStr) {
   }
 
   // Limpiar + importar en UNA sola transacción: o entra todo el backup, o no
-  // se toca nada. Antes eran dos transacciones, así que un fallo en la
-  // importación dejaba la base vacía y sin copia de los datos.
+  // se toca nada.
   // bulkPut (no bulkAdd) para tolerar ids repetidos en el backup.
   await db.transaction('rw', [db.productos, db.categorias, db.proveedores, db.historial, db.imagenes], async () => {
     await db.imagenes.clear();
@@ -134,7 +134,6 @@ export async function importarBackup(jsonStr) {
       await db.categorias.bulkPut(backup.categorias);
     }
     // Un backup viejo no trae proveedores. En ese caso se arma la lista con lo
-    // que hay en los productos, que es como estaba antes de que la tabla
     // existiera: el nombre vive en el producto, así que no se pierde nada.
     if (backup.proveedores?.length) {
       await db.proveedores.bulkPut(backup.proveedores);
@@ -170,7 +169,6 @@ export async function importarBackup(jsonStr) {
 
     // El punto previo se reinserta DENTRO de la transacción y al final, para
     // que sea el estado más reciente: "Volver Atrás" lo muestra primero y
-    // restaurarlo devuelve el inventario que había antes de importar.
     if (puntoPrevio) {
       await db.historial.put(puntoPrevio);
     }
@@ -230,6 +228,5 @@ function base64ToBlob(base64, tipo = 'image/webp') {
     bytes[i] = binaryString.charCodeAt(i);
   }
   // Se respeta el MIME del backup; si no viene, se asume webp (la app
-  // comprime siempre a webp). Antes se fijaba image/webp a todo.
   return new Blob([bytes], { type: tipo || 'image/webp' });
 }

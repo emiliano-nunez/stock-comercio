@@ -45,7 +45,6 @@ if (import.meta.hot) {
     isDisconnected = true;
   });
   
-  // Interceptar el reconnect interno de Vite
   const originalOn = import.meta.hot.on.bind(import.meta.hot);
   import.meta.hot.on = (event, handler) => {
     if (event === 'vite:ws:reconnect') {
@@ -53,7 +52,6 @@ if (import.meta.hot) {
         reconnectAttempts++;
         if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
           console.info('[HMR] Servidor no disponible tras', MAX_RECONNECT_ATTEMPTS, 'intentos. Deteniendo reconexión.');
-          import.meta.hot.close(); // Cierra la conexión WebSocket y para el polling
           return;
         }
         console.debug('[HMR] Reintento', reconnectAttempts, '/', MAX_RECONNECT_ATTEMPTS);
@@ -63,7 +61,6 @@ if (import.meta.hot) {
     return originalOn(event, handler);
   };
   
-  // También escuchar error de módulo no encontrado (servidor caído)
   import.meta.hot.on('vite:error', (err) => {
     if (isDisconnected && reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
       import.meta.hot.close();

@@ -16,28 +16,18 @@ function fechaEnDia(fecha) {
 }
 
 /*
- * La hoja que está abierta ahora, a nivel del módulo y no de la función.
- *
- * Sin esto, abrir una hoja no descarta la anterior: quedan dos velos apilados y
- * el velo viejo se queda escuchando el Escape, así que una sola tecla de salida
- * cierra las dos y después la segunda no hace nada. Con el dedo no se llega
- * (el velo tapa el contenido), pero sí con el teclado: las tarjetas son
- * alcanzables con el Tab y el Enter de una tarjeta con el foco puesto abre la
- * hoja sin importar que haya otra abierta.
+ * La hoja abierta ahora, a nivel del módulo. Sin esto quedarían dos velos
+ * apilados y el de abajo seguiría escuchando el Escape.
  */
 let abierta = null;
 
 /**
- * La hoja del producto: todo lo que hay que mirar de un producto sin abrir el
- * formulario.
+ * La hoja del producto: todo lo que hay que mirar sin abrir el formulario.
  *
- * Es una planilla a propósito, y no otra tarjeta: el formulario tiene 18 campos,
- * y para leer un stock o un precio hay que llegar hasta el de abajo. Acá los
- * datos salen en una grilla de dos columnas, un dato por renglón, que se lee de
- * arriba abajo como un ticket.
- *
- * No tiene guardado ni edición: es una ventana de lectura. Editar es una acción
- * aparte y explícita, al pie.
+ * Es una planilla a propósito, y no otra tarjeta: el formulario tiene 18 campos y
+ * para leer un stock hay que llegar hasta el de abajo. Acá los datos salen en una
+ * grilla de dos columnas, un dato por renglón, que se lee como un ticket. No tiene
+ * guardado: es una ventana de lectura, editar es una acción aparte al pie.
  *
  * @param {object}   opciones
  * @param {object}   opciones.producto    el producto tal como lo carga la app
@@ -51,15 +41,12 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   const p = producto;
   if (!p) return { cerrar() {} };
 
-  // Sólo puede haber una hoja. Si ya había una abierta, se cierra antes de
-  // montar la nueva; si no, quedan dos velos superpuestos y el que quedó abajo
-  // se sigue escuchando el Escape.
   abierta?.cerrar();
 
   const tipo = TIPOS_VENTA.find(t => t.value === p.tipoVenta) || TIPOS_VENTA[0];
   const unidadStock = getUnidadBase(p.tipoVenta);
-  // Cuánto mueve cada toque el ajuste. Se muestra junto al número para que un
-  // stock que sube de a uno no parezca un error de tipeo.
+  // El paso se muestra junto al número para que un stock que sube de a uno no
+  // parezca un error de tipeo.
   const step = tipo.step;
   const principal = getUnidadPrincipal(p);
   const precio = getPrecioPrincipal(p);
@@ -90,12 +77,14 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   fila('Mínimo', `${stockMinimo} <span class="tenue">${esc(unidadStock)}</span>`);
   fila('Estado', `<span class="insignia ${claseEstado}">${textoEstado}</span>`, 'js-detalle-estado');
 
-  // El precio sale en la unidad corta (unidad, kg, 500g) y no en el nombre largo
-  // de la opción ("Por Kilo (kg)"), porque es lo mismo que se usa en la tarjeta y
-  // en el pedido, y así el número se lee siempre igual en los tres lugares.
-  //
-  // Si el producto no tiene precio para la unidad principal y se cae al de otra,
-  // se avisa: un "$4.500/500g" con el precio del kilo al lado no sirve de nada.
+  /*
+   * El precio sale en la unidad corta (unidad, kg, 500g) y no en el nombre largo
+   * de la opción ("Por Kilo (kg)"), porque es lo mismo que se usa en la tarjeta y
+   * en el pedido, y así el número se lee siempre igual en los tres lugares.
+   *
+   * Si el producto no tiene precio para la unidad principal y se cae al de otra,
+   * se avisa: un "$4.500/500g" con el precio del kilo al lado no sirve de nada.
+   */
   if (precio.valor) {
     fila(
       'Precio',
@@ -104,10 +93,8 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   }
 
   /*
-   * Los precios de las demás unidades van en renglones propios, como una lista de
-   * precios, y no apretados en el mismo renglón del principal. El renglón se
-   * rotula con la unidad y no con el nombre de la opción, por el mismo motivo
-   * que arriba: "Precio kg", "Precio 500g", dos palabras menos por renglón.
+   * Los precios de las demás unidades van en renglones propios, rotulados con la
+   * unidad y no con el nombre de la opción: "Precio kg", "Precio 500g".
    */
   const otros = (Array.isArray(p.precios) ? p.precios : []).filter(pr => pr.unidad !== precio.unidad && pr.valor > 0);
   for (const otro of otros) {
@@ -140,18 +127,14 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   const notas = (p.notas || '').trim();
 
   /*
-   * El ajuste de stock vive acá y no en la tarjeta.
+   * El ajuste de stock vive acá y no en la tarjeta: en la tarjeta ocupaba dos
+   * filas de cada producto y sólo hace falta mientras se está vendiendo o
+   * cargando un pedido.
    *
-   * En la tarjeta ocupaba dos filas de cada producto y sólo hace falta mientras
-   * se está vendiendo o cargando un pedido. Acá es el lugar natural: el usuario
-   * abrió la hoja justo para mirar el stock, y si lo va a cambiar es porque
-   * lo está leyendo.
-   *
-   * El rótulo va en su propia línea arriba de los botones, y no al lado. En una
-   * fila sola los tres controles con su mínimo táctil de 52px más el rótulo y la
-   * unidad no entran en un teléfono, y lo que sobra es el texto: se ve cortado
-   * sin aviso. Arriba, el rótulo se lee entero o pasa a dos líneas, pero nunca
-   * se corta.
+   * El rótulo va en su propia línea arriba de los botones. En una fila sola los
+   * tres controles con su mínimo táctil de 52px más el rótulo no entran en un
+   * teléfono, y lo que sobra es el texto: se ve cortado sin aviso. Arriba se lee
+   * entero o pasa a dos líneas, pero nunca se corta.
    */
   const ajustarHTML = `
     <div class="apilado-chico con-margen-abajo-chica">
@@ -215,9 +198,9 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   const cerrar = () => {
     document.removeEventListener('keydown', alTeclado);
     modal.remove();
-    // Sólo se limpia la referencia si sigue siendo esta hoja. Si al cerrarla
+    // Sólo se limpia la referencia si sigue siendo esta hoja: si al cerrarla
     // desde adentro ya había otra montada encima, el puntero tiene que quedar en
-    // la nueva, no en una que ya no existe.
+    // la nueva.
     if (abierta === hoja) abierta = null;
   };
   const alTeclado = (e) => {
@@ -226,16 +209,14 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   document.addEventListener('keydown', alTeclado);
 
   /*
-   * Los botones de más y menos.
-   *
    * El ajuste lo hace la app, que es la que sabe guardar y refrescar el
    * inventario. Acá sólo se le pide y se pinta lo que devuelve: si el guardado
    * falla, ajustarStock devuelve null y el número no se mueve, así que la hoja
    * nunca muestra un stock que no está guardado.
    *
-   * La insignia de estado de la planilla se refresca en el mismo paso, porque el
-   * renglón de stock y el de estado son el mismo dato dicho de dos formas y
-   * verlos distintos en la misma pantalla invite a desconfiar de los dos.
+   * La insignia de estado se refresca en el mismo paso: el renglón de stock y el
+   * de estado son el mismo dato dicho de dos formas, y verlos distintos en la
+   * misma pantalla invita a desconfiar de los dos.
    */
   const pintarStock = (nuevo) => {
     const numero = modal.querySelector('#detalle-stock');
@@ -274,3 +255,4 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   abierta = hoja;
   return hoja;
 }
+

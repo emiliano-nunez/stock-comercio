@@ -128,7 +128,6 @@
 }
 
 /*
- * Botón cuadrado de la cabecera. El padding se queda: sin él el área de toque
  * sería el ícono solo, que es más chico que el mínimo táctil.
  */
 .btn-icono {
@@ -675,3 +674,4 @@
 .campo-grupo-apretado {
   margin-bottom: var(--espacio-2);
 }
+

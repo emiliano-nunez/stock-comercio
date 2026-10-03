@@ -124,11 +124,13 @@ miró en un aparato. Casi nada se puede comprobar desde el escritorio.
 - [ ] **El lector de códigos.** Se arregló: la zona de escaneo estaba en 0,8
       píxeles y la cámara se veía pero no se leía nada. Falta escanear un EAN de
       verdad y confirmar que lo detecta.
-- [ ] **La tarjeta de actualización.** Se cambió de `autoUpdate` a `prompt`: la
-      versión nueva ahora espera a que el usuario toque "Actualizar ahora" en vez
-      de activarse sola. Falta provocar una versión nueva y ver que aparece la
-      tarjeta, que el botón la aplica y que la app queda en la versión nueva.
-- [ ] **El pie con la versión.** Debe decir `v1.0.4` abajo del inventario, en
+- [ ] **La tarjeta de actualización.** Va con `autoUpdate`: la versión nueva se
+      activa sola en segundo plano y la tarjeta avisa arriba, con un botón que
+      recarga. Se probó `prompt` y no servía: la tarjeta vive dentro del bundle,
+      así que el usuario con la versión vieja, que es a quien hay que avisarle,
+      no tiene el código que avisa y nunca la ve. Falta provocar una versión
+      nueva y ver que aparece la tarjeta y que el botón trae la versión nueva.
+- [ ] **El pie con la versión.** Debe decir `v1.0.8` abajo del inventario, en
       las dos versiones: la del host y la publicada. Es para distinguir cuál de
       las dos se está probando.
 - [ ] **El buscador de proveedores.** Escribir dos letras y ver si la lista sale,
@@ -230,11 +232,9 @@ app se vea fea: eso lo decide una persona mirando su teléfono.
 - [ ] Los dos accesos directos de la pantalla de inicio abren el escáner y el
       formulario.
 - [ ] La app funciona sin conexión, con la app ya abierta y con la app cerrada.
-- [ ] El service worker ahora usa `prompt`: la versión nueva NO se activa sola, espera
-      a que el usuario toque "Actualizar ahora". Eso es a propósito, y también
-      significa que si se abre la app y no se toca ese botón, se sigue viendo la
-      versión anterior. Para probar cambios hay que tocarlo o recargar a mano
-      dos veces.
+- [ ] El service worker usa `autoUpdate`: la versión nueva se activa sola en
+      segundo plano y la tarjeta de arriba es la que avisa. Para ver un cambio
+      hay que tocar el botón de la tarjeta o recargar a mano dos veces.
 
 ### Lo que costó encontrar
 

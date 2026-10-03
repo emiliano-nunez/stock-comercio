@@ -117,7 +117,6 @@ export class HistorialModal {
       `;
     
     // Botones de limpieza de fotos. Deliberadamente con el número adelante: el
-    // usuario tiene que ver cuánto se va a llevar antes de decidir, porque desde
     // que la app dejó de borrarlas sola esto es la única forma de recuperar el
     // espacio. Y con confirmación aparte, porque una foto puede ser justo la que
     // el usuario anda buscando.
@@ -217,7 +216,6 @@ export class HistorialModal {
     // imagen, y por eso lleva su propia confirmación con el detalle de qué se
     // va a perder: si el usuario saca la foto de un producto, esa foto queda
     // "suelta" y aparece acá. Borrarla es correcto en el 99% de los casos (foto
-    // reemplazada, foto de un producto que ya no existe), pero el 1% restante
     // es el usuario que la quiere de vuelta y no la encuentra.
     modal.querySelector('#btn-limpiar-fotos')?.addEventListener('click', async () => {
       const s = this.fotosSueltas || { cantidad: 0, megas: 0 };
@@ -355,7 +353,6 @@ formatearFecha(fechaISO) {
       'eliminacion': 'Antes de una eliminación',
       // Motivo que genera importarBackup() para que el import se pueda deshacer
       'Antes de importar backup': 'Antes de importar un backup',
-      // Motivo que genera restaurarDesdeSnapshot() ANTES de pisar el
       // inventario, para que restaurar un punto viejo sea reversible. Sin esto
       // el usuario no tenía forma de volver atrás de un "Volver Atrás".
       'Antes de restaurar': 'Antes de restaurar (tu estado actual)'
@@ -452,7 +449,6 @@ formatearFecha(fechaISO) {
     // Cuántas fotos van a volver de verdad. Casi todas, porque desde que la
     // foto no se borra al eliminar un producto ni al cambiarla, el blob sigue
     // ahí y el imagenId del snapshot sigue resolviendo. Pero los productos
-    // borrados o de los que se cambió la foto ANTES de ese cambio pueden
     // tener el blob perdido, y conviene decirlo en vez de restaurar en
     // silencio productos que van a aparecer sin foto.
     let resumen = { total, conFoto: 0, disponibles: 0 };
@@ -545,7 +541,6 @@ formatearFecha(fechaISO) {
     });
   }
   
-  // El archivo se lee y valida ANTES de preguntar, para poder mostrar en el
   // diálogo cuántos productos y categorías trae y no dejar al usuario
   // esperando un confirm con datos a ciegas.
   async confirmarImportacion(nombreArchivo, json) {

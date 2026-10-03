@@ -27,7 +27,6 @@ export class ScannerModal {
       await this.iniciarEscaneo();
     } catch (error) {
       // El modal se deja abierto mostrando el error: iniciarEscaneo() ya lo
-      // escribe en #scanner-status con un mensaje accionable. Antes se cerraba
       // aquí, así que el usuario veía desaparecer el modal sin explicación.
       this.escanerFallido = true;
       console.error('No se pudo iniciar el escáner:', error);
@@ -329,7 +328,6 @@ export class ScannerModal {
    * mano: si cada uno armara su propio camino, el que escribe a mano se
    * saltaría la búsqueda de duplicados y el diálogo de código repetido.
    *
-   * La espera deja tiempo para que se vea el "código detectado" antes de que el
    * modal se vaya. El código escrito a mano no la necesita: no hay de qué
    * taparse la vista.
    */
@@ -354,7 +352,6 @@ export class ScannerModal {
     // producto encima del escáner que acaba de descartar.
     if (this._cerrado) return;
     
-    // await: el modal debe salir del DOM antes de que se abra el formulario.
     await this.cerrar();
     this.onScan(codigo, coincidencias);
   }
@@ -395,7 +392,6 @@ export class ScannerModal {
    * cuando el modal ya salió del DOM.
    *
    * La promesa la necesita onCodigoDetectado(): su callback corre 800 ms
-   * después del escaneo y debe esperar a que el modal desaparezca antes de abrir
    * el formulario del producto, para no montar uno sobre el otro.
    */
   cerrar() {

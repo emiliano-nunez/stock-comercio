@@ -1,14 +1,13 @@
 /*
  * Base: el reinicio y los valores que se heredan.
  *
- * Este archivo hace el trabajo que antes hacía el "preflight" de Tailwind, y le
- * agrega algo que Tailwind no hacía: los elementos con estilo por etiqueta, sin
- * clase. Un título toma su color del contenedor porque el color se hereda, y su
- * tamaño lo define el selector de la etiqueta. Con eso, el HTML no repite
- * "color de texto, negrita, tamaño" cuarenta veces: lo dice una vez acá y los
+ * Lo que aporta y no es un reinicio común: los elementos con estilo por
+ * etiqueta, sin clase. Un título toma su color del contenedor porque el color
+ * se hereda, y su tamaño lo define el selector de la etiqueta. Así el HTML no
+ * repite "color, negrita, tamaño" cuarenta veces: lo dice una vez acá y los
  * hijos lo reciben.
  *
- * Orden de lectura del archivo:
+ * Orden de lectura:
  *   1. Qué se hereda y qué no
  *   2. El reinicio
  *   3. Tipografía por etiqueta
@@ -19,8 +18,7 @@
 /* =================================================================
  * 1. Qué se hereda y qué no
  *
- * La herencia es lo que hace que el CSS sea corto, pero tiene un límite: el
- * tamaño y el color sí se heredan, y las propiedades de caja no. Por eso los
+ * El tamaño y el color se heredan; las propiedades de caja no. Por eso los
  * botones y los campos, que reciben color del contenedor pero traen su propio
  * tamaño y su propio fondo, se corrigen más abajo.
  * ================================================================= */
@@ -56,8 +54,6 @@ body {
    * todo el ancho, nunca se ve.
    */
   background-color: var(--gris-200);
-
-  /* Nada se sale de la pantalla en horizontal. */
   overflow-x: hidden;
   max-width: 100vw;
 }
@@ -183,9 +179,6 @@ fieldset {
   scrollbar-width: none;
 }
 
-/* Sólo para lectores de pantalla: el texto existe, no se ve. Vive en
-   disposicion.css y no acá. */
-
 /* Quita el margen de toque doble de los controles, sin dejarlo sin efecto. */
 .sin-toque-doble {
   touch-action: manipulation;
@@ -193,11 +186,9 @@ fieldset {
   user-select: none;
 }
 
-/* =================================================================
- * Animaciones
- *
- * No hay nada acá a propósito. Las animaciones de entrada y de salida viven en
- * superficies.css, junto a los diálogos y a los avisos que se mueven. Este
- * archivo es el reinicio: si también tuviera las suyas, la última en escribirse
+/*
+ * Las animaciones viven en superficies.css, junto a los diálogos y los avisos que
+ * se mueven. Si este archivo también tuviera las suyas, la última en escribirse
  * ganaría y el orden en que se cargan los dos dejaría de importar.
- * ================================================================= */
+ */
+

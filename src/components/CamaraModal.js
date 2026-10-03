@@ -181,7 +181,6 @@ export class CamaraModal {
       const blob = await imagenUtils.capturarDeVideo(this.videoElement);
       
       // Guardar en IndexedDB, con miniatura para el catálogo.
-      // La miniatura se calcula antes de avisar al formulario para que el
       // guardado siga siendo una sola operación desde el punto de vista del
       // usuario: cuando se le avisa, la foto ya está lista para usarse.
       const imagenId = dbUtils.generarId('img');

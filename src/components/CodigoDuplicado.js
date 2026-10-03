@@ -327,3 +327,4 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
     pintar();
   });
 }
+

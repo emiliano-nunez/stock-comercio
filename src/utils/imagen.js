@@ -31,19 +31,17 @@ export const imagenUtils = {
   
   // Tope de tamaño para la foto de cámara.
   //
-  // La galería sí pasaba por browser-image-compression con maxSizeMB: 0.1, pero
-  // la foto de cámara se encodeaba suelta con calidad 0.75 y SIN medir nada. Una
-  // escena con textura (etiqueta con texto, landa, superficie de góndola) se
-  // va fácil de 100 KB. Y el impacto no era teórico: cargarTodo() trae
-  // todos los blobs de imagen a memoria de una vez, así que el tamaño de cada
-  // foto se multiplica por la cantidad de productos. Mismo techo que la
-  // galería para que el usuario no reciba fotos de tamaños dispares según de
-  // dónde las sacó.
+  // La galería pasa por browser-image-compression con maxSizeMB: 0.1, pero la foto
+  // de cámara se encodeaba suelta con calidad 0.75 y sin medir nada. Una escena
+  // con textura (etiqueta con texto, landa, superficie de góndola) se va fácil de
+  // 100 KB. Y el impacto no es teórico: cargarTodo() trae todos los blobs de
+  // imagen a memoria de una vez, así que el tamaño de cada foto se multiplica por
+  // la cantidad de productos. Mismo techo que la galería para que el usuario no
+  // reciba fotos de tamaños dispares según de dónde las sacó.
   maxBytesCamara: 100 * 1024,
 
-  // Resolución mínima antes de rendirse. Más abajo la foto deja de servir:
-  // el usuario tiene que poder distinguir el producto en la tarjeta del
-  // catálogo y pasarlo bien al proveedor.
+  // Dimensión mínima en px: el usuario tiene que poder distinguir el producto en
+  // la tarjeta del catálogo y pasarlo bien al proveedor.
   minDimCamara: 320,
 
   // Codificar un frame del lienzo origen a un tamaño y calidad dados.
@@ -73,9 +71,8 @@ export const imagenUtils = {
     const { videoWidth, videoHeight } = videoElement;
 
     if (!videoWidth || !videoHeight) {
-      // Sin dimensiones no hay frame que capturar. Antes esto pasaba
-      // silenciosamente al drawImage y devolvía un lienzo de 0x0, o sea un
-      // error más adelante y menos claro ("no se pudo comprimir la imagen").
+      // Sin dimensiones no hay frame que capturar: el drawImage devolvería un lienzo
+      // de 0x0 y el error caería más adelante y menos claro.
       throw new Error('El vídeo aún no tiene dimensiones. Probá de nuevo.');
     }
 
@@ -109,12 +106,11 @@ export const imagenUtils = {
       intentos.push({ ancho, alto, calidad });
     }
 
-    // El recorte se hace con un factor de escala único para las dos
-    // dimensiones. Clampear cada lado por separado (Math.max(320, w) /
-    // Math.max(320, h)) deformaba la proporción: un frame de 800x200 salía
-    // 320x320, achatado en vez de recortado. Con un factor compartido la
-    // proporción se respeta siempre, y el lazo termina porque el factor
-    // decae geométricamente.
+    // El recorte se hace con un factor de escala único para las dos dimensiones.
+    // Clampear cada lado por separado (Math.max(320, w) / Math.max(320, h))
+    // deformaría la proporción: un frame de 800x200 saldría 320x320, achatado en
+    // vez de recortado. Con un factor compartido la proporción se respeta
+    // siempre, y el lazo termina porque el factor decae geométricamente.
     let escala = 1;
     while (Math.max(ancho, alto) * escala > this.minDimCamara) {
       escala *= 0.75;
@@ -155,14 +151,14 @@ export const imagenUtils = {
   // Generar la miniatura que usa el catálogo.
   //
   // El catálogo pinta cada foto en una caja de 64-80px, pero lo guardado es de
-  // hasta 800px: se estaban decodificando del orden de 150 veces más píxeles de
-  // los que se veían. Y como cargarTodo() trae TODOS los blobs a memoria de una
-  // vez (no se van descargando a medida que se scrollea), el ahorro es directo
-  // en RAM, que es lo más escaso en el equipo objetivo.
+  // hasta 800px: se decodifican del orden de 150 veces más píxeles de los que se
+  // ven. Y como cargarTodo() trae TODOS los blobs a memoria de una vez (no se van
+  // descargando a medida que se scrollea), el ahorro es directo en RAM, que es lo
+  // más escaso en el equipo objetivo.
   //
   // Se genera una sola vez, al guardar la foto. Las imágenes ya guardadas no
-  // tienen miniatura y siguen usando la completa: no hace falta migración, se
-  // van benefiting a medida que se re-guarden.
+  // tienen miniatura y siguen usando la completa: no hace falta migración, cada
+  // una la gana a medida que se vuelve a guardar.
   //
   // @returns {Promise<Blob|null>} null si no se pudo generar, y en ese caso el
   //   catálogo usa la imagen completa (ver getAllProductosConImagenes).

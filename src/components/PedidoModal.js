@@ -310,7 +310,6 @@ export class PedidoModal {
    *
    * Va agrupado y no como una lista corrida porque el texto se manda por chat: un
    * bloque de treinta productos sin saber a quién van es algo que el usuario
-   * tiene que ordenar a mano antes de escribirlo.
    */
   textoTodo() {
     return `${TITULO_PEDIDO}\n\n${this.grupos.map(g => this.textoGrupo(g)).join('\n\n')}`;
@@ -367,3 +366,4 @@ export async function abrirPedido(onClose) {
   await modal.abrir();
   return modal;
 }
+

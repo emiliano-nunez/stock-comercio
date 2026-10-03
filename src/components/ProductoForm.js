@@ -19,7 +19,6 @@ export class ProductoForm {
     // Se invoca cuando el usuario borra un producto en conflicto desde el
     // diálogo de código repetido. Pasa por la app y no por dbUtils directo para
     // que el borrado deje punto de restauración, ofrezca deshacer y recargue la
-    // vista: si el formulario borrara por su cuenta, la app se quedaría con la
     // lista vieja y el producto volvería a aparecer al cancelar el formulario.
     this.onBorrarProducto = onBorrarProducto;
     // Editar = el producto ya existe en la BD (tiene id). Puede pasarse un
@@ -33,7 +32,6 @@ export class ProductoForm {
     // borroso: al abrir se carga la imagen completa (cargarImagenCompleta).
     this.imagenUrl = producto?.imagenUrl || null;
     // Marca de propiedad del ObjectURL. Sin esto, quitarFoto() revocaba la URL
-    // que le había pasado el catálogo y le rompía la imagen en la tarjeta hasta
     // la siguiente recarga: el catálogo es dueño de sus URLs y las revoca
     // revocarImagenes() al recargar; el formulario sólo puede revocar las suyas.
     this._imagenUrlPropia = false;
@@ -62,9 +60,7 @@ export class ProductoForm {
     // porque App.js mantiene una sola instancia del formulario.
     this._imagenesNuevas.clear();
     this._guardado = false;
-    
-    // La imagen completa tiene que estar lista ANTES de crearModal(), que es
-    // quien pinta el preview.
+
     await this.cargarImagenCompleta();
     
     await this.cargarCategorias();
@@ -781,7 +777,6 @@ export class ProductoForm {
       
       // Marcar y desmarcar, sin cerrar.
       //
-      // La lista se queda abierta a propósito: si se cerrara al elegir, marcar
       // la segunda categoría exigiría volver a abrirla, y elegir tres sería
       // abrir, marcar, abrir, marcar, abrir, marcar. El botón "Listo" y el
       // click fuera son las dos salidas.
@@ -927,7 +922,6 @@ export class ProductoForm {
         const nuevaPrincipal = unidadPrincipalSelect.value;
         const tipoActual = TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0];
         
-        // Guardar valores actuales de precios antes de re-renderizar
         const preciosActuales = {};
         container.querySelectorAll('.precio-item input[name^="precio_"]').forEach(input => {
           const unidad = input.name.replace('precio_', '');
@@ -1419,7 +1413,6 @@ export class ProductoForm {
 
     // Código de barras repetido (si cambió)
     //
-    // Antes se rechazaba el guardado con un toast y no había más salida que
     // cambiar el código a mano. El índice de codigoBarras no es único a
     // propósito, así que la repetición es posible y el usuario tiene que poder
     // resolverla: distinguir con un sufijo, guardar sin código, o borrar el

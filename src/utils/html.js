@@ -1,16 +1,13 @@
 /**
- * Helpers para construir HTML con datos del usuario.
+ * Helpers para interpolar datos del usuario dentro de plantillas que terminan en
+ * innerHTML.
  *
- * Los nombres de productos y categorías se interpolan en plantillas que
- * terminan en innerHTML. Sin escapar, un nombre como `Café <b>10</b>` inyecta
- * etiquetas y `Aceite "AES"` rompe el atributo alt="...", dejando el botón de
- * editar asociado al producto equivocado.
+ * Sin escapar, un nombre como `Café <b>10</b>` inyecta etiquetas y
+ * `Aceite "AES"` cierra el atributo alt="...", dejando el botón de editar
+ * asociado al producto equivocado.
  */
 
-/**
- * Escapa texto para insertarlo en el contenido de un elemento.
- * Sustituye & < > por sus entidades HTML.
- */
+/** Escapa para el contenido de un elemento. Sustituye & < > por sus entidades. */
 export function esc(texto) {
   if (texto === null || texto === undefined) return '';
   return String(texto)
@@ -19,18 +16,12 @@ export function esc(texto) {
     .replace(/>/g, '&gt;');
 }
 
-/**
- * Escapa texto para insertarlo dentro de un atributo HTML con comillas dobles.
- * Aplica además esc(), y escapa " para que no cierre el atributo.
- */
+/** Como esc(), pero además escapa " para que no cierre un atributo. */
 export function escAttr(texto) {
   return esc(texto).replace(/"/g, '&quot;');
 }
 
-/**
- * Formatea un número como precio en pesos.
- * Devuelve string vacío para valores no numéricos, para no imprimir "NaN".
- */
+/** Un número como precio. Vacío en vez de "NaN" cuando no es número. */
 export function fmtPrecio(valor) {
   const n = Number(valor);
   if (!Number.isFinite(n)) return '';

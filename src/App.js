@@ -57,7 +57,6 @@ export class App {
     // al abrir una.
     this.proveedorVista = null;
     // La lista de proveedores que usa el inventario. Viene de la base, no de los
-    // productos: un proveedor se puede agregar antes de tener un producto suyo.
     this.proveedores = [];
     this.ultimoEliminado = null;
     this.timeoutDeshacer = null;
@@ -69,17 +68,10 @@ export class App {
     try {
       await inicializarCategorias();
       
-      // ANTES acá se borraban las fotos que ningún producto referenciaba, en
-      // cada arranque. Ya no: una foto es dato del usuario y la app no borra
-      // fotos sola. El riesgo de que se perdieran era real y silencioso: si el
-      // barrido no contaba el historial, se llevaba por delante justo las fotos
-      // que "Volver Atrás" necesitaba, y el usuario recuperaba el inventario
-      // sin imágenes y sin ningún aviso.
-      //
-      // Ahora sólo se MIDE, para poder avisarle cuánto ocupa lo que no se está
-      // usando y que él decida (ver medirImagenesSinUsar y el aviso del
-      // historial). El formulario igual borra las fotos que se tomaron y se
-      // canceló sin guardar: esas nunca fueron de ningún producto.
+      // La app no borra fotos sola: son dato del usuario. Acá sólo se MIDE lo que
+      // no se está usando, para poder avisarle cuánto ocupa y que él decida (ver
+      // medirImagenesSinUsar). El formulario igual borra las fotos que se
+      // tomaron y se canceló sin guardar: esas nunca fueron de ningún producto.
       try {
         const sueltas = await dbUtils.medirImagenesSinUsar();
         if (sueltas.cantidad > 0) {
@@ -169,7 +161,6 @@ export class App {
   }
   
   async cargarTodo() {
-    // Liberar los ObjectURL de la carga anterior antes de crear los nuevos,
     // si no los blobs se acumulan en memoria en cada recarga de la vista.
     dbUtils.revocarImagenes(this.productos);
     this.productos = await dbUtils.getAllProductosConImagenes();
@@ -444,9 +435,8 @@ export class App {
    * Productos que se pintan, según hasta dónde llegó el usuario con "Cargar
    * más".
    *
-   * Antes se mapeaban TODOS los productos a HTML de una vez. Con 200 productos
-   * son 200 tarjetas construidas de cero en cada búsqueda, cada cambio de
-   * orden y cada recarga de la vista, y el equipo objetivo tiene 2GB de RAM.
+   * Sin tope, cada búsqueda, cada cambio de orden y cada recarga de la vista
+   * construye 200 tarjetas de cero, y el equipo objetivo tiene 2GB de RAM.
    *
    * Ojo: esto NO es paginación. Los productos siguen todos cargados en memoria
    * y la búsqueda los sigue incluyendo a todos; sólo se limita hasta dónde se
@@ -458,7 +448,8 @@ export class App {
    * grupo "Sin stock" podía quedar con la cabecera en "(12)" y cero tarjetas
    * debajo, que es peor que no mostrarlo, porque el contador miente.
    */
-  /*
+
+  /**
    * Los productos que le tocan a la vista actual.
    *
    * Abrir una categoría es mirar el catálogo de esa categoría, no una búsqueda:
@@ -714,7 +705,6 @@ export class App {
     // para todas: muestra la primera y, si sobran, cuántas son. La lista
     // completa está en la hoja de detalle del producto y en el formulario.
     //
-    // Se filtran las que ya no existen (una categoría borrada deja el id
     // colgando en productos viejos) para que un producto no muestre un punto
     // sin nombre.
     const categorias = categoriasDe(p)
@@ -883,7 +873,6 @@ export class App {
    * Los proveedores, en su propia tarjeta, abajo de las categorías.
    *
    * Es una lista propia y no algo derivado de los productos porque se puede
-   * agregar un proveedor antes de tener un producto suyo: si sólo saliera lo que
    * ya está en el inventario, el primero que se creara no se vería en ningún
    * lado hasta que le cargaras un producto.
    *
@@ -966,7 +955,6 @@ export class App {
     // definidos (no se sabe cuántas unidades tiene una caja), y un stock
     // guardado en kg reinterpretado como 500g daría números que no existen.
     const unidad = tipo.unidadBase || 'unid';
-    // Unidad del PRECIO: la que eligió el usuario. Antes se mostraba siempre la
     // base, así que un producto con principal "500g" aparecía con el precio del
     // kilo al lado de la etiqueta equivocada.
     const precio = getPrecioPrincipal(p);
@@ -1459,7 +1447,6 @@ export class App {
     // El índice de codigoBarras no es único, así que un código puede
     // pertenecer a más de un producto. Con uno solo no hay nada que decidir y se
     // abre directo. Con dos o más, elegir por el usuario cuál es el correcto
-    // sería adivinar: antes se abría el primero con un aviso, y el usuario
     // podía estar editando el producto equivocado sin enterarse.
     await abrirScanner(async (codigo, coincidencias) => {
       if (coincidencias.length === 0) {
@@ -1494,7 +1481,6 @@ export class App {
     if (this._productoFormAbierto) return;
     this._productoFormAbierto = true;
     // Se pasa un producto "semilla" con el código escaneado para que el
-    // formulario lo pre-cargue. Antes se ignoraba el argumento y el usuario
     // tenía que volver a escribir el código a mano.
     abrirFormularioProducto(
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
@@ -1509,7 +1495,6 @@ export class App {
     if (this._historialAbierto) return;
     this._historialAbierto = true;
     // El 2º callback (onClose) es el que SIEMPRE se ejecuta, al cerrar con ✕,
-    // con Escape o con el import. Sin él el flag se quedaba en true para
     // siempre y el botón 🔄 dejaba de abrir el historial.
     abrirHistorial(
       () => { this.cargarTodo(); },
@@ -1619,8 +1604,6 @@ export class App {
     const count = this.contarProductosCategoria(categoriaId);
     const productosAfectados = this.productos.filter(p => tieneCategoria(p, categoriaId));
     // Cuántos de esos siguen en alguna categoría después de quitar ésta.
-    // El aviso decía "se quedarán sin categoría" para todos, y con productos en
-    // varias categorías eso es falso: la mayoría se queda con las suyas.
     const conOtra = productosAfectados.filter(p => categoriasDe(p).length > 1).length;
     const mensaje = count === 0
       ? `¿Eliminar "${cat.nombre}"?`
@@ -1641,7 +1624,6 @@ export class App {
         });
       }
       // Si se estaba mirando esa categoría en el catálogo, el filtro queda
-      // apuntando a un id que ya no existe y la vista se vacía sin explicación.
       if (this.categoriaVista === categoriaId) this.categoriaVista = null;
       toast.success('Categoría eliminada');
       await this.cargarTodo();
@@ -1725,8 +1707,6 @@ export class App {
           toast.success(`Ahora se llama "${nombre.trim()}"`);
         } else {
           const r = await dbUtils.agregarProveedor(nombre);
-          // Agregar uno que ya estaba no es un error: el objetivo era que
-          // quedara en la lista, y ya quedó.
           toast.success(r.yaExistia
             ? `"${r.nombre}" ya estaba en la lista`
             : `Proveedor "${r.nombre}" agregado`);
@@ -1776,15 +1756,11 @@ export class App {
    * Diálogo de confirmación con el estilo de la app. Resuelve true si el
    * usuario confirma, false si cancela por cualquier vía.
    *
-   * Todo pasa por un único `cerrar()`, que quita el modal, desconecta el
-   * listener de Escape y resuelve. Antes había tres salidas independientes y dos
-   * bugs:
-   *   1. El ✕ y el botón Cancelar usaban un onclick inline que sólo quitaba el
-   *      overlay del DOM: la promesa nunca se resolvía y el `await` de quien la
-   *      esperaba se quedaba colgado para siempre.
-   *   2. El listener de 'keydown' sólo se quitaba dentro de la rama de Escape,
-   *      así que confirmar o cancelar dejaba un listener vivo en document por
-   *      cada diálogo abierto (crece sin límite).
+   * Todo pasa por un único `cerrar()`, que quita el modal, desconecta el listener
+   * de Escape y resuelve. Ninguna otra salida puede existirl: si el ✕ o Cancelar
+   * resolveieran por su cuenta, la promesa quedaría esperando, y si el listener
+   * de Escape se quitara sólo en su propia rama, cada diálogo dejaría uno vivo en
+   * document.
    */
   mostrarConfirmacion(mensaje, titulo = 'Confirmar', icono = '❓') {
     return new Promise((resolve) => {
@@ -1858,9 +1834,9 @@ export class App {
       if (!atajo) return;
       if (atajo !== 'scan' && atajo !== 'add') return;
 
-      // Se borra antes de actuar, no después: si abrir el escáner o el
-      // formulario fallara, el hash ya está limpio y el usuario no queda con una
-      // dirección que al recargar le reabra un modal encima.
+      // El hash se borra después de atenderlo. Si el atajo se dejara puesto, recargar
+      // reabriría el modal, y si el formulario fallara el usuario quedaría con
+      // una dirección que al recargar le reabre un modal encima.
       history.replaceState(null, '', location.pathname + location.search);
 
       if (atajo === 'scan') this.escanearCodigo();
@@ -1901,7 +1877,6 @@ export class App {
    * El modo `prompt` dejaba esto más lindo pero ataba a la app en un bucle: la
    * tarjeta vive dentro del bundle, así que el usuario con la versión vieja, que
    * es a quien hay que avisarle, no tiene el código que avisa. Nunca la veía, y
-   * como nada se activaba solo, se quedaba en la versión vieja sin enterarse.
    * La versión al pie del inventario es la que dice en qué está cada uno.
    */
   vigilarActualizacion() {

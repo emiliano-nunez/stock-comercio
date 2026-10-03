@@ -119,24 +119,20 @@ db.version(6)
 /*
  * v7: los proveedores pasan a ser una lista propia.
  *
- * Hasta acá el proveedor era sólo texto dentro del producto. Eso alcanzan para
+ * Hasta acá el proveedor era sólo texto dentro del producto. Eso alcanza para
  * agrupar un pedido, pero no para administrar la lista: no había forma de
  * agregar un proveedor antes de tener un producto suyo, ni de renombrar uno sin
  * editar producto por producto.
  *
- * La tabla guarda el catálogo de nombres. El producto sigue guardando el
- * nombre en texto y no un id, a propósito: el formulario, el pedido, la búsqueda
- * y el backup ya leen ese campo, y cambiarlo a referencias obligaría a tocar
- * todos esos lugares para algo que no se pidió.
+ * La tabla guarda el catálogo de nombres. El producto sigue guardando el nombre
+ * en texto y no un id, a propósito: el formulario, el pedido, la búsqueda y el
+ * backup ya leen ese campo, y cambiarlo a referencias obligaría a tocar todos
+ * esos lugares para algo que no se pidió. La lista se arma sola con lo que ya
+ * está en los productos, así que un inventario anterior no pierde ningún
+ * proveedor.
  *
- * La lista se arma sola con lo que ya está en los productos, así que un
- * inventario que existía antes de esta versión no pierde ningún proveedor.
- *
- * El id se arma acá y no con `dbUtils.generarId()` porque esa constante se
- * declara más abajo en este mismo archivo. La migración corre cuando se abre la
- * base, que es después de que el módulo terminó de evaluarse, así que
- * funcionando funciona; pero depender del orden de las declaraciones para que
- * algo ande es lo que después rompe sin que nadie toque nada.
+ * El id se arma acá y no con generarId() porque esa constante se declara más
+ * abajo en este archivo.
  */
 db.version(7)
   .stores({
@@ -240,13 +236,14 @@ export function claveProveedor(nombre) {
 // El borrado con punto de restauración real está en dbUtils.eliminarProducto(),
 // que sí abre una transacción con las tres tablas implicadas.
 
-// Hook para crear punto de restauración automático en actualizaciones masivas
-// NOTA: el hook 'updating' anterior se eliminó. Usaba setTimeout, que se
-// ejecuta ya cerrado el commit, así que el snapshot guardaba el estado
-// POST-cambio y no servía para deshacer nada; además se disparaba en cada
-// +/- de stock copiando el inventario entero. El punto de recuperación previo
-// a un cambio de precio se crea ahora en ProductoForm.guardar(), que conoce el
-// estado anterior y se ejecuta una sola vez por guardado.
+/*
+ * No hay hook de actualización masiva. El que había usaba setTimeout, que se
+ * ejecuta ya cerrado el commit: el snapshot guardaba el estado POST-cambio y no
+ * servía para deshacer nada, y además se disparaba en cada +/- de stock copiando
+ * el inventario entero. El punto previo a un cambio de precio se crea en
+ * ProductoForm.guardar(), que conoce el estado anterior y corre una sola vez por
+ * guardado.
+ */
 
 // Utilidades de base de datos
 export const dbUtils = {
@@ -337,7 +334,7 @@ export const dbUtils = {
    * Fotos guardadas que no referencia ningún producto ni ningún punto de
    * restauración. NO borra nada: sólo mide.
    *
-   * La app ya no borra fotos sola (ver limpiarImagenesSinUsar), porque son
+   * La app no borra fotos sola (ver limpiarImagenesSinUsar), porque son
    * dato del usuario. Esta función existe para poder decirle cuánta hay y
    * cuánto ocupan, y que decida él.
    */
@@ -380,12 +377,6 @@ export const dbUtils = {
    * pisan. Todo pasa por acá y no por dos funciones que cada una recalcula su
    * propio criterio: si medir y limpiar calcularan distinto, el botón prometería
    * una cantidad y borraría otra.
-   *
-   * Antes existía un _idsDeImagenesEnUso() que devolvía la unión de productos
-   * e historial. Se fue al hacer este reparto y no quedó usada en ningún lado;
-   * se elimina en vez de dejarla, porque un nombre que dice "en uso" junto a un
-   * "de productos" que significa otra cosa es la forma más segura de que el
-   * próximo que lo lea termine borrando las fotos del historial.
    */
   async _repartoDeImagenes() {
     const productos = await db.productos.toArray();
@@ -422,7 +413,7 @@ export const dbUtils = {
    * que el usuario ya eliminó. No la muestra nadie en el catálogo, pero pesa.
    *
    * Crece sin que el usuario lo decida, y es justo la consecuencia de que la
-   * app ya no borre fotos sola (son dato del usuario). Por eso se mide y se le
+   * app no borre fotos sola (son dato del usuario). Por eso se mide y se le
    * ofrece liberarla, en vez de hacerlo por sorpresa.
    */
   async medirFotosDelHistorial() {
@@ -453,15 +444,13 @@ export const dbUtils = {
    * desaparecerían.
    *
    * Sin esto, el diálogo dice "se sustituirá el inventario por el estado del
-   * 12/03" y el usuario tiene que decidir a ciegas. Lo que más le cuesta
-   * imaginar es justo lo que pasa con los productos que él mismo borró: el
-   * punto de restauración se creó ANTES del borrado, así que restaurar trae de
-   * vuelta lo que él eliminó, y eso no se dice en ninguna parte.
+   * 12/03" y el usuario decide a ciegas. Lo que más le cuesta imaginar es justo
+   * lo que pasa con los productos que él mismo borró: el punto se creó ANTES del
+   * borrado, así que restaurar trae de vuelta lo que él eliminó.
    *
    * @returns {Promise<{ vuelven: object[], seVan: object[] }>} `vuelven` están en
-   *   el snapshot pero no en la base (o sea, fueron borrados después);
-   *   `seVan` están en la base pero no en el snapshot (fueron agregados
-   *   después).
+   *   el snapshot pero no en la base (fueron borrados después); `seVan` están en
+   *   la base pero no en el snapshot (fueron agregados después).
    */
   async compararConSnapshot(snapshotId) {
     const snapshot = await db.historial.get(snapshotId);
@@ -557,8 +546,6 @@ export const dbUtils = {
     await db.historial.add(snapshot);
     
     // Mantener solo las últimas 10 versiones.
-    // Antes sólo borraba una por llamada, así que el historial podía crecer
-    // bastante por encima del límite.
     const LIMITE = 10;
     const count = await db.historial.count();
     if (count > LIMITE) {
@@ -697,14 +684,9 @@ export const dbUtils = {
       ? snapshot.snapshotProductos
       : snapshot.snapshotProductos.map(({ imagenId, ...p }) => ({ ...p, imagenId: null }));
     
-    // Punto de seguridad: guardar el estado ACTUAL antes de sobrescribirlo.
-    //
-    // Sin esto, restaurar un punto viejo era una operación de un solo sentido
-    // salvo por suerte. El inventario actual sólo sobrevive si por casualidad
-    // alguno de los 10 puntos guardados lo contiene, y la última milleta no la
-    // genera nada: si el usuario agregó productos y no cambió ningún precio ni
-    // borró nada, no hubo ningún motivo que disparara un snapshot, y al
-    // restaurar desaparecían esos productos sin dejar rastro en ninguna parte.
+    // Punto de seguridad: guardar el estado ACTUAL antes de sobrescribirlo. Sin
+    // esto el inventario actual sólo sobrevive si por casualidad alguno de los 10
+    // puntos guardados lo contiene.
     //
     // Va ANTES de la transacción a propósito. Si guardar el respaldo falla, que
     // se cancele la restauración entera: cancelar es mejor que pisar el
@@ -724,16 +706,10 @@ export const dbUtils = {
   // Todo en una sola transacción (productos + historial) para que el snapshot
   // incluya el producto que se va a borrar y así "deshacer" funcione.
   //
-  // IMPORTANTE: la foto NO se borra. Antes sí, y eso rompía dos cosas:
-  //   1. El "deshacer" reinsertaba la fila del producto pero el blob ya no
-  //      estaba, así que el producto volvía sin imagen.
-  //   2. El punto de restauración del historial guardaba el imagenId del
-  //      producto eliminado, pero sin el blob. Restaurar ese punto devolvía el
-  //      inventario con los productos sin foto.
-  // Dejando el blob en su sitio, el deshacer es un simple reinsertado y el
-  // "Volver Atrás" del historial recupera también las imágenes. La foto se
-  // queda en la base aunque el producto no vuelva nunca: es dato del usuario y
-  // la app no borra fotos sola (ver limpiarImagenesSinUsar).
+  // La foto NO se borra: es dato del usuario. Si el blob se fuera, el
+  // "deshacer" devolvería el producto sin imagen y el punto del historial
+  // guardaría un imagenId sin blob, así que restaurar tampoco traería la foto.
+  // La app nunca borra fotos sola (ver limpiarImagenesSinUsar).
   async eliminarProducto(id, { conPuntoRestauracion = true } = {}) {
     const producto = await db.productos.get(id);
     if (!producto) throw new Error('Producto no encontrado');
@@ -766,11 +742,10 @@ export const dbUtils = {
   
   // Deshacer un borrado: reinserta el producto tal como estaba.
   //
-  // Antes tenía que reponer también el blob de la foto, porque eliminarProducto
-  // lo borraba. Ahora que la foto se queda en la base, alcanza con reinsertar
-  // la fila: el imagenId vuelve a resolver y el producto regresa con su
-  // imagen. Si el id ya estuviera ocupado (el usuario lo volvió a crear
-  // mientras tanto), se descarta en vez de pisar el producto nuevo.
+  // La foto se queda en la base, así que alcanza con reinsertar la fila:
+  // el imagenId vuelve a resolver y el producto regresa con su imagen. Si el id
+  // ya estuviera ocupado (el usuario lo volvió a crear mientras tanto), se
+  // descarta en vez de pisar el producto nuevo.
   async restaurarProductoEliminado(producto) {
     if (!producto?.id) throw new Error('Nada que restaurar');
     
