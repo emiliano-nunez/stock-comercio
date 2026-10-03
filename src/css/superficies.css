@@ -317,6 +317,17 @@
   flex-shrink: 0;
 }
 
+/*
+ * El punto de la etiqueta de sección va chico, de 8px: al lado de una palabra de
+ * 16px un círculo de 24px parecía un botón. En las listas de categorías y de
+ * estados el punto va en `.punto-chico` o en `.punto`, así que este cambio también
+ * las alinea con el título.
+ */
+.titulo-seccion > .punto {
+  width: var(--espacio-medio);
+  height: var(--espacio-medio);
+}
+
 .punto-chico {
   display: inline-block;
   width: 1.25rem;

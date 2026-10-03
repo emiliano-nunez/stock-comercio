@@ -105,6 +105,9 @@
   --espacio-0:  0;
   --espacio-1:  0.1875rem;
   --espacio-2:  0.375rem;
+  /* Entre las dos medidas de la escala, para el aire fino de una etiqueta con
+     su punto de color al lado. */
+  --espacio-medio: 0.5rem;
   --espacio-3:  0.625rem;
   --espacio-4:  0.8125rem;
   --espacio-5:  1rem;
@@ -153,6 +156,9 @@
 
   --sombra-sm: 0 1px 2px rgb(0 0 0 / 10%);
   --sombra-md: 0 2px 6px rgb(0 0 0 / 15%);
+  /* La de la etiqueta de sección, que va sobre el fondo de la app y necesita
+     apenas un relieve para despegarse sin parecer un botón. */
+  --sombra-etiqueta: 0 4px 12px rgb(0 0 0 / 5%);
   --sombra-lg: 0 8px 24px rgb(0 0 0 / 18%);
   --sombra-xl: 0 12px 32px rgb(0 0 0 / 24%);
 

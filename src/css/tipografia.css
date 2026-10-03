@@ -53,13 +53,33 @@
   color: var(--gris-700);
 }
 
+/*
+ * El título de cada grupo del catálogo.
+ *
+ * Va como una etiqueta: fondo blanco, esquinas redondeadas y un relieve apenas,
+ * y ocupa sólo lo que mide el texto en vez de cruzar la pantalla entera. El
+ * `fit-content` con `inline-flex` es lo que hace que el fondo abrace al punto y a
+ * la palabra en vez de estirarse.
+ *
+ * El subrayado que tenía antes se fue con el fondo: sobre un fondo de app ya no
+ * separaba nada y con la caja blanca estorba.
+ */
 .titulo-seccion {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-medio);
+
+  width: fit-content;
+  padding: var(--espacio-medio) var(--espacio-5);
+  background-color: var(--color-superficie);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-etiqueta);
+
   font-size: var(--texto-base);
   line-height: var(--texto-base-al);
   font-weight: var(--grosor-fuerte);
   color: var(--color-texto);
-  padding-bottom: var(--espacio-1);
-  border-bottom: 1px solid var(--color-borde);
+  margin: 0;
 }
 
 .titulo-peligro {
