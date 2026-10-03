@@ -9,30 +9,30 @@ export class ScannerModal {
     this.modal = null;
     this.isScanning = false;
     // Pasa a true en cuanto el usuario cierra el modal (a mano o por código).
-    // Lo consulta el callback diferido de onCodigoDetectado para no abrir el
+
     // formulario de producto sobre un escáner que el usuario ya descartó.
     this._cerrado = false;
   }
-  
+
   async abrir() {
     this._cerrado = false;
     this.escanerFallido = false;
     this.isScanning = false;
     this.modal = this.crearModal();
     document.body.appendChild(this.modal);
-    
+
     await new Promise(r => requestAnimationFrame(r));
-    
+
     try {
       await this.iniciarEscaneo();
     } catch (error) {
-      // El modal se deja abierto mostrando el error: iniciarEscaneo() ya lo
+
       // aquí, así que el usuario veía desaparecer el modal sin explicación.
       this.escanerFallido = true;
       console.error('No se pudo iniciar el escáner:', error);
     }
   }
-  
+
   crearModal() {
     const modal = document.createElement('div');
     modal.className = 'velo';
@@ -45,11 +45,11 @@ export class ScannerModal {
             ✕
           </button>
         </div>
-        
+
         <!-- Visor del escáner -->
         <div class="marco-video">
           <div id="scanner-container" class="visor-video"></div>
-          
+
           <!-- Marco de escaneo visual -->
           <div class="capa-centrada">
             <div class="marco-escaner">
@@ -59,25 +59,26 @@ export class ScannerModal {
             </div>
           </div>
         </div>
-        
+
         <!-- Estado -->
         <div id="scanner-status" class="dialogo-cuerpo centro-texto detalle apagado pie-suave">
           Iniciando cámara...
         </div>
       </div>
     `;
-    
+
     modal.querySelector('#cerrar-scanner').addEventListener('click', () => this.cerrar());
     modal.addEventListener('click', (e) => {
       if (e.target === modal) this.cerrar();
     });
-    
+
     return modal;
   }
-  
+
   async iniciarEscaneo() {
+
     const esContextoSeguro = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    
+
     if (!esContextoSeguro) {
       // No se reintenta: sin HTTPS no hay solución, hace falta escribir el código.
       this.mostrarError(
@@ -86,25 +87,27 @@ export class ScannerModal {
       );
       throw new Error('El escáner requiere HTTPS');
     }
-    
+
     this.scanner = new Html5Qrcode('scanner-container');
-    
+
     try {
+
       const cameras = await Html5Qrcode.getCameras();
       let cameraId = null;
-      
+
       const isMobile = /Android|iPhone|iPad|iPod|mobile/i.test(navigator.userAgent);
       if (isMobile) {
         const backCam = cameras.find(c => c.label.toLowerCase().includes('back') || c.label.toLowerCase().includes('rear') || c.label.toLowerCase().includes('environment'));
         cameraId = backCam?.id || cameras[0]?.id;
       } else {
+
         cameraId = cameras[0]?.id;
       }
-      
+
       if (!cameraId) {
         throw new Error('No se encontraron cámaras');
       }
-      
+
       const config = {
         fps: 15,
         /*
@@ -126,6 +129,7 @@ export class ScannerModal {
           width: Math.max(50, Math.round(ancho * 0.9)),
           height: Math.max(50, Math.min(alto * 0.5, Math.round(alto * 0.4))),
         }),
+        aspectRatio: undefined,
         formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
           Html5QrcodeSupportedFormats.EAN_8,
@@ -139,28 +143,30 @@ export class ScannerModal {
         ],
         disableFlip: false,
       };
-      
+
       await this.scanner.start(
         cameraId,
         config,
         (decodedText, decodedResult) => this.onCodigoDetectado(decodedText),
         (errorMessage) => {
+
         }
       );
-      
+
       await new Promise(r => setTimeout(r, 300));
       if (!this.scanner.isScanning) {
         throw new Error('La cámara se abrió pero el lector no pudo arrancar.');
       }
-      
+
       this.isScanning = true;
       const statusEl = this.modal.querySelector('#scanner-status');
       statusEl.textContent = 'Apunta la cámara al código de barras';
       statusEl.className = 'dialogo-cuerpo centro-texto detalle texto-marca pie-suave';
-      
+
     } catch (error) {
       console.error('Error iniciando escáner:', error);
       await this.soltarCamara();
+
       let mensaje = 'No se pudo acceder a la cámara.';
       if (error?.name === 'NotAllowedError') {
         mensaje = 'Permisos de cámara denegados. Actívalos en el candado de la barra de direcciones.';
@@ -175,7 +181,7 @@ export class ScannerModal {
       throw error;
     }
   }
-  
+
   async soltarCamara() {
     this.isScanning = false;
     if (!this.scanner) return;
@@ -185,7 +191,7 @@ export class ScannerModal {
       // clear() tira si el escáner nunca llegó a renderizar. No hay nada que soltar.
     }
   }
-  
+
   /**
    * Deja el escáner en un estado donde no puede escanear y explica qué pasó.
    *
@@ -197,12 +203,11 @@ export class ScannerModal {
   mostrarError(mensaje, { reintentable = true } = {}) {
     const statusEl = this.modal?.querySelector('#scanner-status');
     if (!statusEl) return;
-    
-    // El visor se apaga. Si queda encendido detrás del error, el video sigue
+
     // corriendo y el usuario cree que todavía está leyendo.
     this.modal.querySelector('.marco-video')?.classList.add('oculto');
     this.isScanning = false;
-    
+
     statusEl.className = 'dialogo-cuerpo centro-texto detalle apilado-3';
     statusEl.innerHTML = `
       <p class="texto-peligro">${esc(mensaje)}</p>
@@ -212,9 +217,9 @@ export class ScannerModal {
         ${reintentable ? '<button id="btn-reintentar-scanner" class="btn-secundario">🔄 Reintentar la cámara</button>' : ''}
       </div>
     `;
-    
+
     statusEl.querySelector('#btn-codigo-a-mano')?.addEventListener('click', () => this.mostrarCampoCodigo());
-    
+
     if (reintentable) {
       statusEl.querySelector('#btn-reintentar-scanner')?.addEventListener('click', async () => {
         statusEl.className = 'dialogo-cuerpo centro-texto detalle apagado';
@@ -223,11 +228,12 @@ export class ScannerModal {
         try {
           await this.iniciarEscaneo();
         } catch {
+
         }
       });
     }
   }
-  
+
   /**
    * El campo para escribir el código a mano.
    *
@@ -238,7 +244,7 @@ export class ScannerModal {
   mostrarCampoCodigo() {
     const statusEl = this.modal.querySelector('#scanner-status');
     this.isScanning = false;
-    
+
     statusEl.className = 'dialogo-cuerpo centro-texto detalle apilado-3';
     statusEl.innerHTML = `
       <p class="medio">Escribí el código de barras</p>
@@ -259,16 +265,15 @@ export class ScannerModal {
         <button type="submit" class="btn-principal">Buscar este código</button>
       </form>
     `;
-    
+
     const form = statusEl.querySelector('#form-codigo-manual');
     const campo = statusEl.querySelector('#campo-codigo-manual');
     const aviso = statusEl.querySelector('#aviso-codigo-manual');
-    
+
     // El foco abre el teclado al toque, sin que el usuario tenga que tocar el
-    // campo: en un teléfono es un toque menos y el teclado tapa la mitad de la
-    // pantalla.
+
     campo.focus();
-    
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const codigo = campo.value.trim();
@@ -281,25 +286,25 @@ export class ScannerModal {
       this.resolverCodigo(codigo);
     });
   }
-  
+
   async onCodigoDetectado(codigo) {
     if (!this.isScanning) return;
-    
+
     this.isScanning = false;
-    
+
     if (navigator.vibrate) {
       navigator.vibrate(200);
     }
-    
+
     this.reproducirBeep();
-    
+
     const statusEl = this.modal.querySelector('#scanner-status');
     statusEl.textContent = `✅ Código detectado: ${codigo}`;
     statusEl.className = 'dialogo-cuerpo centro-texto detalle texto-marca-fuerte';
-    
+
     await this.resolverCodigo(codigo, 800);
   }
-  
+
   /**
    * Cierra el escáner y le entrega el código a la app, exista o no en la base.
    *
@@ -311,71 +316,70 @@ export class ScannerModal {
    * taparse la vista.
    */
   async resolverCodigo(codigo, espera = 0) {
-    // Se piden TODOS los que coinciden, no sólo el primero: el índice de
+
     // codigoBarras no es único, y con .first() el usuario veía un producto
-    // arbitrario sin enterarse de que había otro con el mismo código.
+
     //
-    // Se pasa la lista entera y no "el primero + cuántos hay": el diálogo de
-    // código repetido tiene que poder nombrar los productos en conflicto para
+
     // que el usuario elija, y con un primero + un número no hay nada que elegir.
     const coincidencias = await dbUtils.buscarPorCodigoBarras(codigo);
-    
+
     await this.detenerEscaneo();
-    
+
     if (espera > 0) {
       await new Promise(r => setTimeout(r, espera));
     }
-    
+
     // Si en esos milisegundos el usuario cerró el escáner a mano (✕, Escape o
-    // clic fuera), se respeta su decisión: no se le abre el formulario del
-    // producto encima del escáner que acaba de descartar.
+
     if (this._cerrado) return;
-    
+
     await this.cerrar();
     this.onScan(codigo, coincidencias);
   }
-  
+
   async detenerEscaneo() {
     if (this.scanner && this.isScanning) {
       try {
         await this.scanner.stop();
       } catch (e) {
+
       }
       this.isScanning = false;
     }
   }
-  
+
   reproducirBeep() {
     try {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioCtx.destination);
-      
+
       oscillator.frequency.value = 800;
       oscillator.type = 'sine';
       gainNode.gain.value = 0.3;
-      
+
       oscillator.start();
       setTimeout(() => oscillator.stop(), 100);
     } catch (e) {
       // Ignorar si no hay soporte de audio
     }
   }
-  
+
   cerrar() {
     if (this._cerrado) return Promise.resolve();
     this._cerrado = true;
-    
+
     this.detenerEscaneo();
-    
+
     if (!this.modal) return Promise.resolve();
-    
+
     this.modal.classList.add('anim-bajar');
     this.modal.classList.remove('anim-subir');
-    
+
     return new Promise((resolve) => {
       setTimeout(() => {
         if (this.modal && this.modal.parentNode) {

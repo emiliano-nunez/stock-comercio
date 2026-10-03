@@ -81,7 +81,7 @@ export async function exportarBackup() {
  */
 export async function importarBackup(jsonStr) {
   const backup = JSON.parse(jsonStr);
-  
+
   if (!backup.version || !backup.productos || !backup.categorias) {
     throw new Error('Formato de backup inválido');
   }
@@ -94,22 +94,20 @@ export async function importarBackup(jsonStr) {
     }))
   );
 
-  // Estado actual, para poder deshacer el import. Se crea fuera de la
   // transacción porque la transacción siguiente borra la tabla historial y se
-  // llevaría por delante este punto. Si la base está vacía no hay nada que
-  // preservar y crearPuntoRestauracion() devolvería un snapshot inútil.
+
   let puntoPrevio = null;
   if (await db.productos.count() > 0) {
     try {
       puntoPrevio = await dbUtils.crearPuntoRestauracion('Antes de importar backup');
     } catch (error) {
+
       console.error('No se pudo crear el punto previo a la importación:', error);
     }
   }
 
   // Limpiar + importar en UNA sola transacción: o entra todo el backup, o no
-  // se toca nada.
-  // bulkPut (no bulkAdd) para tolerar ids repetidos en el backup.
+
   await db.transaction('rw', [db.productos, db.categorias, db.proveedores, db.historial, db.imagenes], async () => {
     await db.imagenes.clear();
     await db.categorias.clear();
@@ -123,19 +121,18 @@ export async function importarBackup(jsonStr) {
     if (backup.categorias.length) {
       await db.categorias.bulkPut(backup.categorias);
     }
+
     if (backup.proveedores?.length) {
       await db.proveedores.bulkPut(backup.proveedores);
     }
     if (backup.productos.length) {
       // Normalizados al importar: un backup viejo trae `categoriaId` y no trae
-      // `proveedor` ni `notas`. Ver normalizarProducto().
+
       await db.productos.bulkPut(backup.productos.map(normalizarProducto));
     }
 
-    // Backup viejo: no trae la lista de proveedores, así que se arma con los
     // nombres que traen los productos. Sin esto, importar un backup anterior a
-    // la tabla dejaría la pestaña de proveedores vacía aunque los productos
-    // tuvieran su proveedor escrito.
+
     if (!backup.proveedores?.length) {
       const vistos = new Map();
       for (const p of backup.productos) {
@@ -166,6 +163,7 @@ export async function importarBackup(jsonStr) {
     proveedores: backup.proveedores?.length || 0,
     historial: backup.historial?.length || 0,
     imagenes: imagenesBlobs.length,
+
     reversible: !!puntoPrevio
   };
 }
@@ -177,6 +175,7 @@ export function descargarBackup(jsonStr, nombre = `backup-stock-${new Date().toI
   a.href = url;
   a.download = nombre;
   a.click();
+
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
@@ -192,6 +191,7 @@ export function leerBackupArchivo(archivo) {
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });

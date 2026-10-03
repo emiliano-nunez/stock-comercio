@@ -6,14 +6,15 @@ export class ToastManager {
     this.toasts = new Map();
     this.init();
   }
-  
+
   init() {
     this.container = document.createElement('div');
     this.container.id = 'pila-avisos';
+
     this.container.className = 'pila-avisos';
     document.body.appendChild(this.container);
   }
-  
+
   show(message, options = {}) {
     const id = Date.now() + Math.random();
     const {
@@ -22,33 +23,27 @@ export class ToastManager {
       action = null,
       onAction = null
     } = options;
-    
+
     const colores = {
       success: 'aviso-ok',
       error: 'aviso-error',
       warning: 'aviso-alerta',
       info: 'aviso-info'
     };
-    
+
     const iconos = {
       success: '✅',
       error: '❌',
       warning: '⚠️',
       info: 'ℹ️'
     };
-    
+
     const toast = document.createElement('div');
-    // La posición, el ancho y el color salen de tres clases y no de una lista de
-    // utilidades: el ancho depende de si hay botón o no, y el color depende del
-    // tipo. Un aviso SIN botón cabe en una línea angosta; uno CON botón necesita
-    // el botón a 52px de alto, y con el ancho de una línea el mensaje quedaba en
-    // un tercio de espacio y se partía en tres renglones. Por eso los de botón
-    // se apilan en vertical y ocupan el ancho disponible.
+
     //
-    // El botón de acción usa el mismo mínimo táctil de 52px que el resto de la
+
     // app: es el control que el usuario toca cuando se equivocó, y con una
-    // altura de 28px quedaba como el más pequeño de toda la interfaz y justo el
-    // que más necesita ser fácil de acertar.
+
     toast.className = `aviso anim-subir ${colores[type] || colores.info} ${action ? 'aviso-con-boton' : 'aviso-sin-boton'}`;
     // El mensaje suele traer el nombre de un producto (dato del usuario), así
     toast.innerHTML = action
@@ -65,24 +60,24 @@ export class ToastManager {
           <span class="crece detalle">${esc(message)}</span>
         </div>
       `;
-    
+
     if (action && onAction) {
       toast.querySelector('button').addEventListener('click', () => {
         onAction();
         this.remove(id);
       });
     }
-    
+
     this.container.appendChild(toast);
     this.toasts.set(id, toast);
-    
+
     if (duration > 0) {
       setTimeout(() => this.remove(id), duration);
     }
-    
+
     return id;
   }
-  
+
   remove(id) {
     const toast = this.toasts.get(id);
     if (toast) {
@@ -94,23 +89,23 @@ export class ToastManager {
       }, 200);
     }
   }
-  
+
   success(message, options) {
     return this.show(message, { ...options, type: 'success' });
   }
-  
+
   error(message, options) {
     return this.show(message, { ...options, type: 'error', duration: 5000 });
   }
-  
+
   warning(message, options) {
     return this.show(message, { ...options, type: 'warning' });
   }
-  
+
   info(message, options) {
     return this.show(message, { ...options, type: 'info' });
   }
-  
+
   undo(message, onUndo, duration = 5000) {
     return this.show(message, {
       type: 'info',

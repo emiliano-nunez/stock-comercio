@@ -213,6 +213,7 @@
 
 .punto,
 .punto-medio {
+
   display: inline-block;
   width: 1.5rem;
   height: 1.5rem;
@@ -582,6 +583,7 @@
 .anim-bajar    { animation: bajar var(--transicion-media); }
 
 @media (prefers-reduced-motion: reduce) {
+
   .anim-aparecer,
   .anim-subir,
   .anim-bajar {
@@ -845,4 +847,3 @@
 .planilla tr:last-child td {
   border-bottom: none;
 }
-

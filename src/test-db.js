@@ -1,3 +1,4 @@
+
 import { db, dbUtils, TIPOS_VENTA, getUnidadBase, getPrecioPrincipal } from './db.js';
 
 const PREFIJO = 'test_';
@@ -12,6 +13,7 @@ async function testDatabase() {
   const productoId = `${PREFIJO}prod`;
 
   try {
+
     await db.open();
     ok('Base de datos abierta');
 
@@ -122,9 +124,8 @@ async function testFotosConHistorial() {
 
   const blob = new Blob([contenido], { type: 'image/webp' });
 
-  // Se guarda el historial previo para no medir fotos ajenas al test, y para no
   // borrar los puntos de restauración del usuario al final. Este test puede
-  // correr contra la base real.
+
   const historialPrevio = new Set((await db.historial.toArray()).map(h => h.id));
 
   try {
@@ -156,9 +157,8 @@ async function testFotosConHistorial() {
     }
     ok('Cambiar la foto conserva la anterior (el snapshot la necesita)');
 
-    // La app NO borra fotos sola. Antes había un GC que las barría al arrancar
     // y el riesgo era real: si no contaba el historial, se llevaba por delante
-    // justo la foto que "Volver Atrás" necesitaba, en silencio. Ahora lo que hay
+
     // es una medición, y la limpieza es una acción explícita del usuario.
     const sueltasAhora = await dbUtils.medirImagenesSinUsar();
     if (sueltasAhora.cantidad !== 0) {
@@ -200,13 +200,8 @@ async function testFotosConHistorial() {
     }
     ok('resumenFotos cuenta las fotos disponibles del snapshot');
 
-    // Y ahora sí: las dos imágenes están en snapshots y en ningún producto (el
-    // último restore fue con { conFotos: false }, así que quedó sin imagen).
-    // pasarían de "del historial" a "sueltas" y no se estaría midiendo el
-    // conjunto que el botón 🗄️ realmente toca.
     //
-    // que hay más snapshots que el del test. Un borrado por prefijo
-    // ("startsWith('restauracion_')") se llevaría también los puntos de
+
     // restauración que tiene el usuario, que es justo lo que este test existe
     // para no hacer: por eso los snapshots del test se limpian en el finally,
     const creadosPorElTest = (await db.historial.toArray())
@@ -271,7 +266,7 @@ async function testFotosConHistorial() {
  */
 async function testEjemplosTipoVenta() {
   const ids = [];
-  
+
   const ejemplos = [
     { nombre: 'Ej. Tomate (peso_kg)', tipoVenta: 'peso_kg', principal: '500g', stock: 4 },
     { nombre: 'Ej. Panela (peso_100g)', tipoVenta: 'peso_100g', principal: '100g', stock: 12 },
@@ -281,27 +276,27 @@ async function testEjemplosTipoVenta() {
     { nombre: 'Ej. Cable (metro)', tipoVenta: 'metro', principal: 'm', stock: 30 },
     { nombre: 'Ej. Leche (litro)', tipoVenta: 'litro', principal: 'L', stock: 10 }
   ];
-  
+
   try {
     for (const [i, ej] of ejemplos.entries()) {
       const tipo = TIPOS_VENTA.find(t => t.value === ej.tipoVenta);
       if (!tipo) throw new Error(`el ejemplo ${ej.nombre} usa un tipoVenta inexistente: ${ej.tipoVenta}`);
-      
+
       const precios = tipo.subUnidades.map((s, j) => ({
         unidad: s.value,
         valor: 1000 + j,
         label: s.label,
         icon: s.icon
       }));
-      
+
       const precioPrincipal = precios.find(p => p.unidad === ej.principal);
       if (!precioPrincipal) {
         throw new Error(`${ej.tipoVenta} no tiene la sub-unidad "${ej.principal}": el ejemplo está mal armado`);
       }
-      
+
       const id = `${PREFIJO}ej_${i}`;
       ids.push(id);
-      
+
       await db.productos.put({
         id,
         nombre: ej.nombre,
@@ -317,15 +312,15 @@ async function testEjemplosTipoVenta() {
         actualizadoEl: new Date().toISOString()
       });
     }
-    
+
     ok(`Ejemplos cargados: ${ids.length}, uno por cada tipo de venta`);
-    
+
     for (const [i, ej] of ejemplos.entries()) {
       const leido = await db.productos.get(ids[i]);
       const esperado = 1000 + TIPOS_VENTA
         .find(t => t.value === ej.tipoVenta)
         .subUnidades.findIndex(s => s.value === ej.principal);
-      
+
       const precio = getPrecioPrincipal(leido);
       if (precio.valor !== esperado) {
         throw new Error(`${ej.nombre}: getPrecioPrincipal devolvió ${precio.valor}, esperado ${esperado}`);
@@ -337,9 +332,9 @@ async function testEjemplosTipoVenta() {
         throw new Error(`${ej.nombre}: la unidad base del stock no coincide con el tipo`);
       }
     }
-    
+
     ok('Unidad principal y unidad base correctas en los 7 ejemplos');
-    
+
     console.log('');
     console.log('   👀 Mirá ahora la app: cada ejemplo tiene que mostrar el precio de su');
     console.log('      unidad principal (el que empieza con ⭐) y el stock en su unidad base.');
@@ -352,4 +347,3 @@ async function testEjemplosTipoVenta() {
 }
 
 export { testDatabase };
-

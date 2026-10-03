@@ -56,7 +56,7 @@ function agruparPorProveedor(productos) {
     const nombre = (p.proveedor || '').trim();
     const clave = nombre ? claveProveedor(nombre) : '';
     if (!grupos.has(clave)) {
-      // El nombre que se muestra es el primero que apareció, no la clave: la
+
       // clave no tiene mayúsculas ni tildes, y mostrarla sería mostrar algo que
       // el usuario nunca escribió.
       grupos.set(clave, { clave, nombre, productos: [] });
@@ -94,8 +94,7 @@ export class PedidoModal {
     this.productos = [];
     this.grupos = [];
     // Lo que el usuario pidió de cada producto. Se arma con el sugerido y se
-    // cambia a mano. Vive sólo en esta sesión: es un borrador del pedido de hoy,
-    // no un dato del producto, así que no se guarda en la base.
+
     this.cantidades = new Map();
   }
 
@@ -113,11 +112,11 @@ export class PedidoModal {
     };
     document.addEventListener('keydown', this.handleKeydown);
   }
-  
+
   crearModal() {
     const modal = document.createElement('div');
     modal.className = 'velo';
-    
+
     if (this.productos.length === 0) {
       modal.innerHTML = `
         <div class="dialogo">
@@ -143,16 +142,16 @@ export class PedidoModal {
             <h2 class="titulo">📋 Pedido de Faltantes</h2>
             <button id="cerrar-pedido" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
           </div>
-          
+
           <div class="dialogo-cuerpo dialogo-cuerpo-scroll">
             <p class="detalle con-margen-abajo">
               ${this.productos.length} producto(s) por debajo del stock mínimo.
               ${haySinProveedor ? 'Cada proveedor va en su propia lista.' : ''}
             </p>
-            
+
             ${this.grupos.map((grupo, indice) => this.renderGrupoHTML(grupo, indice)).join('')}
           </div>
-          
+
           <div class="dialogo-pie dialogo-pie-fija apilado">
             ${haySinProveedor ? `
               <button id="btn-copiar-sin-proveedor" class="btn-secundario btn-ancho">
@@ -166,18 +165,17 @@ export class PedidoModal {
         </div>
       `;
     }
-    
+
     modal.querySelector('#cerrar-pedido')?.addEventListener('click', () => this.cerrar());
     modal.querySelector('#cerrar-pedido-ok')?.addEventListener('click', () => this.cerrar());
     modal.querySelector('#btn-copiar')?.addEventListener('click', () => this.copiar(this.textoTodo(), 'Pedido copiado'));
     modal.querySelector('#btn-copiar-sin-proveedor')?.addEventListener('click', () => {
       this.copiar(this.textoGrupo(this.grupos.find(g => !g.clave)), 'Copiados los que no tienen proveedor');
     });
-    
-    // Un botón de copiar por grupo. Va por índice y no por la clave del
+
     // proveedor porque la clave lleva tildes y espacios normalizados: usarla
     // como atributo obligaría a escaparla, y es un dato que no hace falta
-    // volver a escribir en el HTML.
+
     modal.querySelectorAll('.btn-copiar-grupo').forEach(btn => {
       btn.addEventListener('click', () => {
         const grupo = this.grupos[Number(btn.dataset.grupo)];
@@ -185,9 +183,8 @@ export class PedidoModal {
       });
     });
 
-    // Los botones de la cantidad a pedir. Se atan por delegación sobre el
     // diálogo y no uno por botón porque la lista se vuelve a pintar cada vez
-    // que cambia un número.
+
     modal.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-pedido="cantidad"]');
       if (!btn) return;
@@ -201,14 +198,14 @@ export class PedidoModal {
         this.cantidades.set(campo.dataset.id, n);
       });
     });
-    
+
     modal.addEventListener('click', (e) => {
       if (e.target === modal) this.cerrar();
     });
-    
+
     return modal;
   }
-  
+
   /**
    * Un proveedor con su lista y su botón de copiar.
    *
@@ -229,13 +226,13 @@ export class PedidoModal {
             aria-label="Copiar el pedido de ${escAttr(grupo.nombre || 'los productos sin proveedor')}"
           >📋 Copiar</button>
         </div>
-        
+
         ${grupo.clave ? '' : `
           <p class="micro apagado con-margen-abajo">
             Estos ${grupo.productos.length} productos no tienen proveedor. Se pueden pedir juntos, pero no sabés a quién mandárselos.
           </p>
         `}
-        
+
         <div class="apilado">
           ${grupo.productos.map(p => this.renderFilaHTML(p)).join('')}
         </div>
@@ -316,7 +313,7 @@ export class PedidoModal {
   textoGrupo(grupo) {
     return textoGrupo(grupo, this.cantidades);
   }
-  
+
   async copiar(texto, mensaje) {
     try {
       await navigator.clipboard.writeText(texto);
@@ -326,21 +323,21 @@ export class PedidoModal {
       toast.error('No se pudo copiar');
     }
   }
-  
+
   cerrar() {
     if (this.handleKeydown) {
       document.removeEventListener('keydown', this.handleKeydown);
       this.handleKeydown = null;
     }
-    
+
     // Idempotente: evita que dos llamadas seguidas disparen onClose dos veces
     if (this._cerrando) return;
     this._cerrando = true;
-    
+
     if (this.modal) {
       this.modal.classList.add('anim-bajar');
       this.modal.classList.remove('anim-subir');
-      
+
       setTimeout(() => {
         if (this.modal && this.modal.parentNode) {
           this.modal.remove();
@@ -364,4 +361,3 @@ export async function abrirPedido(onClose) {
   await modal.abrir();
   return modal;
 }
-

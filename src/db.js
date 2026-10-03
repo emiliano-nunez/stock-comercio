@@ -100,7 +100,7 @@ db.version(6)
   })
   .upgrade(async tx => {
     await tx.table('productos').toCollection().modify(producto => {
-      // Se borra el campo viejo en la misma pasada, en vez de dejarlo puesto:
+
       // un producto que tuviera las dos formas sería el peor estado posible,
       // porque cada lugar que leyera una leería la otra.
       if (!Array.isArray(producto.categoriaIds)) {
@@ -146,7 +146,7 @@ db.version(7)
       const nombre = (p.proveedor || '').trim();
       if (!nombre) continue;
       const clave = normalizarTexto(nombre);
-      // Queda el primero: es la forma en que alguien lo escribió, y es la que
+
       // el usuario tiene anotada.
       if (!vistos.has(clave)) vistos.set(clave, nombre);
     }
@@ -221,9 +221,8 @@ export function claveProveedor(nombre) {
   return normalizarTexto(nombre);
 }
 
-
-
 export const dbUtils = {
+
   generarId: (prefijo = 'id') => `${prefijo}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 
   /**
@@ -242,18 +241,17 @@ export const dbUtils = {
    */
   leerNumero(valor, etiqueta, { min = null, max = null, requerido = false } = {}) {
     const crudo = (valor ?? '').toString().trim();
-    
+
     if (crudo === '') {
       if (requerido) return { error: `Falta el valor de "${etiqueta}"` };
       return { valor: 0 };
     }
-    
+
     // Se acepta coma como separador decimal porque en muchos teclados
-    // numéricos la coma es lo que se escribe, y rechazarla obligaría al
-    // usuario a cambiar de teclado. El punto también se acepta.
+
     const normalizado = crudo.replace(',', '.');
     const n = Number(normalizado);
-    
+
     if (!Number.isFinite(n)) {
       return { error: `"${crudo}" no es un número válido en "${etiqueta}"` };
     }
@@ -263,39 +261,36 @@ export const dbUtils = {
     if (max !== null && n > max) {
       return { error: `"${etiqueta}" no puede ser mayor que ${max}` };
     }
-    
+
     return { valor: n };
   },
 
   async getAllProductosConImagenes() {
     const productos = await db.productos.toArray();
     const imagenesMap = new Map();
-    
+
     const imagenesIds = [...new Set(productos.map(p => p.imagenId).filter(Boolean))];
     if (imagenesIds.length > 0) {
       const imagenes = await db.imagenes.where('id').anyOf(imagenesIds).toArray();
       imagenes.forEach(img => imagenesMap.set(img.id, img));
     }
-    
+
     return productos.map(p => {
       if (p.imagenId && imagenesMap.has(p.imagenId)) {
         const img = imagenesMap.get(p.imagenId);
+
         const fuente = img.thumb || img.blob;
         if (fuente) return { ...p, imagenUrl: URL.createObjectURL(fuente) };
       }
-      
-      // El producto APUNTA a una foto pero la foto no está en la base. O sea:
-      // alguien la borró por fuera de la app (limpieza del navegador, borrado
-      // manual del almacenamiento, restauración de un backup parcial, cierre
-      // abrupto a mitad de una escritura).
+
       //
-      // Se marca en el objeto en memoria y no se persiste: depende del estado
+
       // actual de la base, así que guardarlo en el producto sería mentir en
-      // cuanto la foto volviera a aparecer. La UI lo usa para avisarle al
+
       // usuario en vez de mostrarle el 📦 de siempre, que no distingue "nunca
-      // tuvo foto" de "se le perdió".
+
       if (p.imagenId) return { ...p, fotoPerdida: true };
-      
+
       return p;
     });
   },
@@ -367,9 +362,8 @@ export const dbUtils = {
     };
   },
 
-  // Medir lo que ocupa el conjunto 'delHistorial'. No borra nada: el mismo
   // criterio que usa la limpieza, para que el número del botón sea el número
-  // que se va a borrar.
+
   async _medirConjunto(conjunto) {
     const bytes = conjunto.reduce(
       (total, img) => total + (img.blob?.size || 0) + (img.thumb?.size || 0),
@@ -425,51 +419,47 @@ export const dbUtils = {
   async compararConSnapshot(snapshotId) {
     const snapshot = await db.historial.get(snapshotId);
     if (!snapshot) return { vuelven: [], seVan: [] };
-    
-    // Un snapshot sin lista de productos no es un estado: es un registro roto.
-    // Con `(|| [])` se seguiría adelante y, como el snapshot vacío no contiene
+
     // a nadie, TODOS los productos del usuario saldrían en `seVan`. El diálogo
     // los pintaría como "12 productos que van a desaparecer" y sería mentira:
-    // la restauración ni siquiera se puede aplicar (ver la comprobación de
-    // vacío en restaurarDesdeSnapshot).
+
     if (!Array.isArray(snapshot.snapshotProductos)) return { vuelven: [], seVan: [] };
-    
+
     const enSnapshot = new Map(snapshot.snapshotProductos.map(p => [p.id, p]));
     const actuales = await db.productos.toArray();
     const enBase = new Set(actuales.map(p => p.id));
-    
+
     return {
       vuelven: snapshot.snapshotProductos.filter(p => !enBase.has(p.id)),
       seVan: actuales.filter(p => !enSnapshot.has(p.id))
     };
   },
 
-  // Guardar una imagen con su miniatura de catálogo.
   //
   // Se centraliza para que la galería y la cámara hagan lo mismo: si una de las
-  // dos se olvidara de la miniatura, esa foto seguiría ocupando 800px de RAM
-  // para pintarse en 64px y no habría forma de notarlo.
+
   //
   // El campo se llama creadoEl y no fecha porque es el que backup.js ya
   // exporta e importa: renombrarlo acá ponía `creadoEl: undefined` en cada
-  // backup y rompía el viaje de ida y vuelta sin que se notara.
+
   async guardarImagen(id, blob, thumb = null) {
     await db.imagenes.add({ id, blob, thumb, creadoEl: new Date().toISOString() });
     return id;
   },
-  
-  // Liberar los ObjectURL de una lista de productos.
+
   // Hay que llamarlo ANTES de reemplazarla: createObjectURL() no se puede
-  // liberar solo, así que cada recarga de la vista dejaba los blobs anteriores
-  // retenidos en memoria.
+
   revocarImagenes(productos) {
     if (!Array.isArray(productos)) return;
     for (const p of productos) {
       if (p?.imagenUrl) {
+        try { URL.revokeObjectURL(p.imagenUrl); } catch {  }
       }
     }
   },
-  
+
+  //
+
   async resumenFotos(snapshotProductos = []) {
     const conFoto = snapshotProductos.filter(p => p.imagenId);
     const ids = [...new Set(conFoto.map(p => p.imagenId))];
@@ -480,16 +470,15 @@ export const dbUtils = {
     }
     return { total: snapshotProductos.length, conFoto: conFoto.length, disponibles };
   },
-  
-  // Todos los productos con un código de barras, no sólo el primero.
+
   //
-  // El índice de codigoBarras NO es único (ver la nota de la v5), así que en
+
   // principio puede haber más de uno: un backup importado, o dos productos
-  // cargados en equipos distintos. Antes el escáner y el formulario usaban
+
   // .first(), que elige uno al azar de entre los duplicados, así que el usuario
-  // podía ver un producto y creer que era el suyo.
+
   //
-  // Con esta función el que llama puede avisarle de que hay más de uno.
+
   async buscarPorCodigoBarras(codigo) {
     if (!codigo) return [];
     return db.productos.where('codigoBarras').equals(String(codigo)).toArray();
@@ -498,21 +487,22 @@ export const dbUtils = {
   async crearPuntoRestauracion(motivo = 'Manual') {
     const productos = await db.productos.toArray();
     const snapshot = {
+
       id: `restauracion_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       fecha: new Date().toISOString(),
       motivo,
       snapshotProductos: productos.map(p => ({ ...p }))
     };
-    
+
     await db.historial.add(snapshot);
-    
+
     const LIMITE = 10;
     const count = await db.historial.count();
     if (count > LIMITE) {
       const excedentes = await db.historial.orderBy('fecha').limit(count - LIMITE).toArray();
       await db.historial.bulkDelete(excedentes.map(h => h.id));
     }
-    
+
     return snapshot;
   },
 
@@ -604,26 +594,19 @@ export const dbUtils = {
     });
   },
 
-  // Restaurar desde punto de restauración
   //
   // { conFotos } resuelve lo que el usuario elige en el diálogo de confirmación:
-  //   true  (por defecto) devuelve cada producto con su foto.
-  //   false devuelve el inventario pero sin imágenes (imagenId a null).
+
   //
-  // Por qué los snapshots no guardan los blobs: metadatos no ocupan nada,
-  // mientras que los blobs multiplicados por los 10 snapshots llegarían
-  // fácilmente a cientos de MB (300 productos × 100KB × 10 = 300MB), inviable
-  // en un equipo con 2GB de RAM. En vez de eso, las imágenes NO se borran: ni al
-  // eliminar un producto, ni al cambiarle la foto, ni al vaciar el historial. Son
+
   // dato del usuario, y mientras el blob siga ahí el imagenId de cada snapshot
-  // sigue resolviendo y la foto reaparece sola al restaurar.
+
   async restaurarDesdeSnapshot(snapshotId, { conFotos = true } = {}) {
     const snapshot = await db.historial.get(snapshotId);
     if (!snapshot) throw new Error('Punto de restauración no encontrado');
-    
+
     // Red de seguridad: un snapshot sin productos nunca es un "estado" válido.
-    // Sin esta comprobación, restaurar uno de esos puntos vacíos que dejó el
-    // antiguo hook 'deleting' borraba el inventario entero.
+
     if (!Array.isArray(snapshot.snapshotProductos) || snapshot.snapshotProductos.length === 0) {
       throw new Error('Este punto de restauración está vacío y no se puede aplicar');
     }
@@ -631,38 +614,33 @@ export const dbUtils = {
     const productos = conFotos
       ? snapshot.snapshotProductos
       : snapshot.snapshotProductos.map(({ imagenId, ...p }) => ({ ...p, imagenId: null }));
-    
-    // Punto de seguridad: guardar el estado ACTUAL antes de sobrescribirlo. Sin
-    // esto el inventario actual sólo sobrevive si por casualidad alguno de los 10
-    // puntos guardados lo contiene.
+
     //
     // Va ANTES de la transacción a propósito. Si guardar el respaldo falla, que
-    // se cancele la restauración entera: cancelar es mejor que pisar el
-    // inventario sin red. El error sube al llamador, que avisa y no toca nada.
+
     await this.crearPuntoRestauracion('Antes de restaurar');
-    
+
     await db.transaction('rw', db.productos, async () => {
       await db.productos.clear();
       await db.productos.bulkPut(productos);
     });
-    
+
     return snapshot;
   },
-  
-  // Eliminar un producto creando antes un punto de restauración útil.
+
   // Todo en una sola transacción (productos + historial) para que el snapshot
-  // incluya el producto que se va a borrar y así "deshacer" funcione.
+
   //
   // La foto NO se borra: es dato del usuario. Si el blob se fuera, el
-  // "deshacer" devolvería el producto sin imagen y el punto del historial
-  // guardaría un imagenId sin blob, así que restaurar tampoco traería la foto.
+
   // La app nunca borra fotos sola (ver limpiarImagenesSinUsar).
   async eliminarProducto(id, { conPuntoRestauracion = true } = {}) {
     const producto = await db.productos.get(id);
     if (!producto) throw new Error('Producto no encontrado');
-    
+
     await db.transaction('rw', [db.productos, db.historial], async () => {
       if (conPuntoRestauracion) {
+
         const productos = await db.productos.toArray();
         await db.historial.add({
           id: `restauracion_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
@@ -670,91 +648,109 @@ export const dbUtils = {
           motivo: 'eliminacion',
           snapshotProductos: productos.map(p => ({ ...p }))
         });
-        
+
         const count = await db.historial.count();
         if (count > 10) {
           const masAntiguos = await db.historial.orderBy('fecha').limit(count - 10).toArray();
           await db.historial.bulkDelete(masAntiguos.map(h => h.id));
         }
       }
-      
+
       await db.productos.delete(id);
     });
-    
+
     return producto;
   },
-  
-  // Deshacer un borrado: reinserta el producto tal como estaba.
+
   //
-  // La foto se queda en la base, así que alcanza con reinsertar la fila:
-  // el imagenId vuelve a resolver y el producto regresa con su imagen. Si el id
+
   // ya estuviera ocupado (el usuario lo volvió a crear mientras tanto), se
-  // descarta en vez de pisar el producto nuevo.
+
   async restaurarProductoEliminado(producto) {
     if (!producto?.id) throw new Error('Nada que restaurar');
-    
+
     await db.transaction('rw', db.productos, async () => {
       const existente = await db.productos.get(producto.id);
       if (existente) {
         throw new Error('Ya existe un producto con ese código, no se restauró');
       }
-      
+
       const { imagenUrl, ...datos } = producto;
-      
+
       await db.productos.add(datos);
     });
-    
+
     return producto;
   },
-  
+
   async getHistorial() {
     return db.historial.orderBy('fecha').reverse().toArray();
   },
-  
+
   async buscarProductos(query) {
     const lowerQuery = query.toLowerCase().trim();
     if (!lowerQuery) return [];
-    
+
     return db.productos
-      .filter(p => 
+      .filter(p =>
         p.nombre.toLowerCase().includes(lowerQuery) ||
         (p.codigoBarras && p.codigoBarras.includes(lowerQuery))
       )
       .toArray();
   },
-  
+
   async getProductosStockBajo() {
     return db.productos
       .filter(p => p.stock <= p.stockMinimo)
       .toArray();
   },
-  
+
   async ajustarStock(id, delta) {
     const producto = await db.productos.get(id);
     if (!producto) throw new Error('Producto no encontrado');
-    
+
     const nuevoStock = Math.max(0, (producto.stock || 0) + delta);
-    await db.productos.update(id, { 
+    await db.productos.update(id, {
       stock: nuevoStock,
       actualizadoEl: new Date().toISOString()
     });
-    
+
     return { ...producto, stock: nuevoStock };
   }
 };
 
 export const COLORES_CATEGORIAS = [
+  '#EF4444',
+  '#F97316',
+  '#F59E0B',
+  '#EAB308',
+  '#84CC16',
+  '#22C55E',
+  '#10B981',
+  '#14B8A6',
+  '#06B6D4',
+  '#0EA5E9',
+  '#3B82F6',
+  '#6366F1',
+  '#8B5CF6',
+  '#A855F7',
+  '#D946EF',
+  '#EC4899',
+  '#F43F5E',
+  '#78716C',
+  '#64748B',
+  '#1F2937',
 ];
 
-// VACÍO a propósito: las categorías las crea el usuario, no la app.
+// Categorías por defecto - VACÍO (el usuario crea las suyas)
 export const CATEGORIAS_DEFAULT = [];
 
 export const TIPOS_VENTA = [
-  { 
-    value: 'unidad', 
-    label: 'Por Unidad', 
-    icon: '📦', 
-    step: 1, 
+  {
+    value: 'unidad',
+    label: 'Por Unidad',
+    icon: '📦',
+    step: 1,
     unidadBase: 'unidad',
     subUnidades: [
       { value: 'unidad', label: 'Por Unidad', icon: '📦' },
@@ -763,11 +759,11 @@ export const TIPOS_VENTA = [
       { value: 'pack', label: 'Por Pack', icon: '📦' }
     ]
   },
-  { 
-    value: 'peso_kg', 
-    label: 'Por Kilo (kg)', 
-    icon: '⚖️', 
-    step: 0.5, 
+  {
+    value: 'peso_kg',
+    label: 'Por Kilo (kg)',
+    icon: '⚖️',
+    step: 0.5,
     unidadBase: 'kg',
     subUnidades: [
       { value: 'kg', label: 'Por Kilo (kg)', icon: '⚖️' },
@@ -776,22 +772,22 @@ export const TIPOS_VENTA = [
       { value: '100g', label: 'Por 100g', icon: '⚖️' }
     ]
   },
-  { 
-    value: 'peso_100g', 
-    label: 'Por 100g', 
-    icon: '⚖️', 
-    step: 0.1, 
+  {
+    value: 'peso_100g',
+    label: 'Por 100g',
+    icon: '⚖️',
+    step: 0.1,
     unidadBase: '100g',
     subUnidades: [
       { value: '100g', label: 'Por 100g', icon: '⚖️' },
       { value: 'g', label: 'Por Gramo', icon: '⚖️' }
     ]
   },
-  { 
-    value: 'peso_500g', 
-    label: 'Por 500g', 
-    icon: '⚖️', 
-    step: 0.5, 
+  {
+    value: 'peso_500g',
+    label: 'Por 500g',
+    icon: '⚖️',
+    step: 0.5,
     unidadBase: '500g',
     subUnidades: [
       { value: '500g', label: 'Por 500g', icon: '⚖️' },
@@ -799,22 +795,22 @@ export const TIPOS_VENTA = [
       { value: '100g', label: 'Por 100g', icon: '⚖️' }
     ]
   },
-  { 
-    value: 'docena', 
-    label: 'Por Docena', 
-    icon: '📦', 
-    step: 1, 
+  {
+    value: 'docena',
+    label: 'Por Docena',
+    icon: '📦',
+    step: 1,
     unidadBase: 'docena',
     subUnidades: [
       { value: 'docena', label: 'Por Docena', icon: '📦' },
       { value: 'unidad', label: 'Por Unidad', icon: '📦' }
     ]
   },
-  { 
-    value: 'metro', 
-    label: 'Por Metro', 
-    icon: '📏', 
-    step: 0.5, 
+  {
+    value: 'metro',
+    label: 'Por Metro',
+    icon: '📏',
+    step: 0.5,
     unidadBase: 'm',
     subUnidades: [
       { value: 'm', label: 'Por Metro', icon: '📏' },
@@ -822,11 +818,11 @@ export const TIPOS_VENTA = [
       { value: 'rollo', label: 'Por Rollo', icon: '📦' }
     ]
   },
-  { 
-    value: 'litro', 
-    label: 'Por Litro', 
-    icon: '🥛', 
-    step: 0.5, 
+  {
+    value: 'litro',
+    label: 'Por Litro',
+    icon: '🥛',
+    step: 0.5,
     unidadBase: 'L',
     subUnidades: [
       { value: 'L', label: 'Por Litro', icon: '🥛' },
@@ -903,17 +899,17 @@ export function getUnidadPrincipal(producto) {
 export function getPrecioPrincipal(producto) {
   const principal = getUnidadPrincipal(producto);
   const precios = Array.isArray(producto?.precios) ? producto.precios : [];
-  
+
   const exacto = precios.find(p => p.unidad === principal.value);
   if (exacto) {
     return { valor: exacto.valor, unidad: principal.value, label: principal.label, esPrincipal: true };
   }
-  
+
   const primero = precios.find(p => p.valor > 0);
   if (primero) {
     return { valor: primero.valor, unidad: primero.unidad, label: primero.label || primero.unidad, esPrincipal: false };
   }
-  
+
   // Sin precios: se cae al campo precio de siempre, en la unidad base.
   return {
     valor: Number(producto?.precio) || 0,
@@ -923,7 +919,9 @@ export function getPrecioPrincipal(producto) {
   };
 }
 
-// No crea nada: sólo devuelve las que el usuario ya definió.
+// Inicializar categorías - NO crear por defecto, el usuario crea las suyas
 export async function inicializarCategorias() {
+  // No crear categorías por defecto - el usuario define las suyas
+
   return await db.categorias.toArray();
 }

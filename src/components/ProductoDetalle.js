@@ -46,7 +46,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   const tipo = TIPOS_VENTA.find(t => t.value === p.tipoVenta) || TIPOS_VENTA[0];
   const unidadStock = getUnidadBase(p.tipoVenta);
   // El paso se muestra junto al número para que un stock que sube de a uno no
-  // parezca un error de tipeo.
+
   const step = tipo.step;
   const principal = getUnidadPrincipal(p);
   const precio = getPrecioPrincipal(p);
@@ -188,6 +188,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   const cerrar = () => {
     document.removeEventListener('keydown', alTeclado);
     modal.remove();
+
     if (abierta === hoja) abierta = null;
   };
   const alTeclado = (e) => {
@@ -208,7 +209,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   const pintarStock = (nuevo) => {
     const numero = modal.querySelector('#detalle-stock');
     if (numero) numero.textContent = nuevo;
-    
+
     const celdaEstado = modal.querySelector('.js-detalle-estado');
     if (!celdaEstado) return;
     const bajo = nuevo === 0 ? 'vacio' : nuevo <= stockMinimo ? 'poco' : 'ok';
@@ -216,7 +217,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
     const texto = bajo === 'vacio' ? 'Agotado' : bajo === 'poco' ? 'Poco' : 'OK';
     celdaEstado.className = `planilla-valor js-detalle-estado`;
     celdaEstado.innerHTML = `<span class="insignia ${clases}">${texto}</span>`;
-    
+
     const celdaStock = modal.querySelector('.js-detalle-stock');
     if (celdaStock) celdaStock.innerHTML = `${nuevo} <span class="tenue">${esc(unidadStock)}</span>`;
   };
@@ -242,4 +243,3 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   abierta = hoja;
   return hoja;
 }
-

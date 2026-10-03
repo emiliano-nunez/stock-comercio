@@ -65,6 +65,7 @@ export async function primerCodigoLibre(base) {
  */
 export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBorrar }) {
   return new Promise((resolve) => {
+
     let conflictos = productos.map(p => ({ ...p }));
 
     const box = document.createElement('div');
@@ -80,6 +81,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
     function filaProducto(p, indice) {
       const stock = p.stock || 0;
       const minimo = p.stockMinimo || 0;
+
       const ETIQUETA = {
         ok: { clase: 'insignia-ok', texto: 'OK' },
         poco: { clase: 'insignia-poco', texto: 'Poco' },
@@ -87,7 +89,6 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       };
       const badge = ETIQUETA[estadoStock(p)];
 
-      // Sólo el escáner ofrece abrir. En el formulario, abrir otro producto
       // taparía lo que el usuario viene escribiendo sin avisar.
       const acciones = origen === 'escaner'
         ? `<button class="btn-secundario btn-crece" data-accion="abrir" data-indice="${indice}">Abrir</button>`
@@ -135,9 +136,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       const muchos = total > 1;
 
       // El pie cambia por origen porque las decisiones disponibles son otras:
-      // desde el escáner el código ya está en la base y la pregunta es qué
-      // producto es; desde el formulario el producto está a medio hacer y la
-      // pregunta es con qué código se guarda.
+
       const pie = origen === 'escaner'
         ? `
           <div class="dialogo-pie apilado">
@@ -208,9 +207,8 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
         </div>
       `;
 
-      // El sufijo disponible se calcula una vez por pintado y se muestra en el
       // botón, para que el usuario vea el código exacto que va a quedar antes
-      // de aceptarlo y no después.
+
       if (origen === 'formulario') prepararSufijo();
     }
 
@@ -220,9 +218,9 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       const texto = boton.querySelector('.js-texto-sufijo');
       const libre = await primerCodigoLibre(codigo);
       if (libre === codigo) {
-        // El código base ya no lo usa nadie: el diálogo quedó desactualizado
+
         // (el usuario borró el último conflicto desde acá). No tiene sentido
-        // ofrecer distinguirlo de sí mismo.
+
         boton.disabled = true;
         texto.textContent = 'Distinguir con sufijo';
         return;
@@ -248,7 +246,6 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       }
       conflictos = conflictos.filter(p => p.id !== producto.id);
 
-      // Vaciado el conflicto: el código ya no lo usa nadie más y la decisión
       // que le corresponde tomar es la de siempre, la del código tal cual.
       if (conflictos.length === 0) return cerrar({ accion: 'resuelto' });
       pintar();
@@ -312,4 +309,3 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
     pintar();
   });
 }
-

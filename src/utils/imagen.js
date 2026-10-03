@@ -1,11 +1,17 @@
 import imageCompression from 'browser-image-compression';
 
 export const imagenUtils = {
+
   opcionesCompresion: {
+    maxSizeMB: 0.1,
+    maxWidthOrHeight: 800,
+    useWebWorker: true,
+    fileType: 'image/webp',
+    quality: 0.75,
     initialQuality: 0.75,
     alwaysKeepResolution: false
   },
-  
+
   async comprimir(archivo) {
     try {
       const archivoComprimido = await imageCompression(archivo, this.opcionesCompresion);
@@ -15,28 +21,22 @@ export const imagenUtils = {
       throw new Error('No se pudo comprimir la imagen');
     }
   },
-  
+
   async fileAWebPBlob(archivo) {
     const comprimido = await this.comprimir(archivo);
     return comprimido;
   },
-  
-  // Tope de tamaño para la foto de cámara.
+
   //
-  // La galería pasa por browser-image-compression con maxSizeMB: 0.1, pero la foto
-  // de cámara se encodeaba suelta con calidad 0.75 y sin medir nada. Una escena
-  // con textura (etiqueta con texto, landa, superficie de góndola) se va fácil de
-  // 100 KB. Y el impacto no es teórico: cargarTodo() trae todos los blobs de
-  // imagen a memoria de una vez, así que el tamaño de cada foto se multiplica por
+
   // la cantidad de productos. Mismo techo que la galería para que el usuario no
-  // reciba fotos de tamaños dispares según de dónde las sacó.
+
   maxBytesCamara: 100 * 1024,
 
   // Dimensión mínima en px: el usuario tiene que poder distinguir el producto en
-  // la tarjeta del catálogo y pasarlo bien al proveedor.
+
   minDimCamara: 320,
 
-  // Codificar un frame del lienzo origen a un tamaño y calidad dados.
   // Va aparte porque el bucle de tamaño necesita reintentar varias veces.
   _encodeFrame(origen, ancho, alto, calidad) {
     const canvas = document.createElement('canvas');
@@ -62,6 +62,7 @@ export const imagenUtils = {
     const { videoWidth, videoHeight } = videoElement;
 
     if (!videoWidth || !videoHeight) {
+
       throw new Error('El vídeo aún no tiene dimensiones. Probá de nuevo.');
     }
 
@@ -83,18 +84,12 @@ export const imagenUtils = {
     const ctx = origen.getContext('2d');
     ctx.drawImage(videoElement, 0, 0, ancho, alto);
 
-    // Lista de intentos, de mejor a peor calidad. Primero se baja la calidad
-    // manteniendo la resolución (lo que menos se nota en una foto de producto),
     // y sólo después se recorta, porque perder resolución duele más.
     const intentos = [];
     for (const calidad of [0.75, 0.6, 0.5, 0.4]) {
       intentos.push({ ancho, alto, calidad });
     }
 
-    // El recorte se hace con un factor de escala único para las dos dimensiones.
-    // Clampear cada lado por separado (Math.max(320, w) / Math.max(320, h))
-    // deformaría la proporción: un frame de 800x200 saldría 320x320, achatado en
-    // vez de recortado. Con un factor compartido la proporción se respeta
     // siempre, y el lazo termina porque el factor decae geométricamente.
     let escala = 1;
     while (Math.max(ancho, alto) * escala > this.minDimCamara) {
@@ -124,25 +119,20 @@ export const imagenUtils = {
     );
     return ultimoBlob;
   },
-  
+
   crearObjectURL(blob) {
     return URL.createObjectURL(blob);
   },
 
-  // Generar la miniatura que usa el catálogo.
   //
-  // El catálogo pinta cada foto en una caja de 64-80px, pero lo guardado es de
-  // hasta 800px: se decodifican del orden de 150 veces más píxeles de los que se
-  // ven. Y como cargarTodo() trae TODOS los blobs a memoria de una vez (no se van
-  // descargando a medida que se scrollea), el ahorro es directo en RAM, que es lo
-  // más escaso en el equipo objetivo.
+
   //
-  // Se genera una sola vez, al guardar la foto. Las imágenes ya guardadas no
+
   // tienen miniatura y siguen usando la completa: no hace falta migración, cada
-  // una la gana a medida que se vuelve a guardar.
+
   //
   // @returns {Promise<Blob|null>} null si no se pudo generar, y en ese caso el
-  //   catálogo usa la imagen completa (ver getAllProductosConImagenes).
+
   async crearThumb(blob, maxDim = 200) {
     let bitmap;
     try {
@@ -173,35 +163,37 @@ export const imagenUtils = {
       console.warn('No se pudo generar la miniatura, se usará la imagen completa:', error);
       return null;
     } finally {
+
       bitmap.close?.();
     }
   },
-  
+
   revocarObjectURL(url) {
     URL.revokeObjectURL(url);
   },
-  
+
   validarArchivo(archivo) {
-    // Sólo formatos que browser-image-compression sabe decodificar en todos los
-    // navegadores. HEIC/HEIF se acceptaban aquí pero fallaban al comprimir
+
     // ( salvo Safari), así que el usuario elegía un archivo "válido" y le
-    // salía "No se pudo comprimir la imagen".
+
     const tiposValidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const maxSizeMB = 10;
+
     const extension = (archivo.name?.match(/\.([a-z0-9]+)$/i)?.[1] || '').toLowerCase();
     const esHeicPorExtension = ['heic', 'heif'].includes(extension);
-    
+
     if (esHeicPorExtension) {
       return { valido: false, error: 'Formato HEIC no soportado. Convierte la foto a JPG o PNG.' };
     }
-    
+
     if (!tiposValidos.includes(archivo.type)) {
       return { valido: false, error: 'Formato no soportado. Use JPG, PNG o WebP.' };
     }
-    
+
     if (archivo.size > maxSizeMB * 1024 * 1024) {
       return { valido: false, error: `Archivo muy grande. Máximo ${maxSizeMB}MB.` };
     }
-    
+
     return { valido: true };
   }
 };

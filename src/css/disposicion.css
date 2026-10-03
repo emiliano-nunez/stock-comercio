@@ -83,7 +83,6 @@
   margin-top: var(--espacio-2);
 }
 
-
 .buscador-lupa {
   position: absolute;
   left: var(--espacio-3);
@@ -398,12 +397,12 @@
   justify-content: center;
   font-size: var(--texto-lg);
   line-height: 1;
-  
+
   background-color: var(--color-marca);
   color: var(--color-texto-invertido);
   box-shadow: var(--sombra-lg);
 }
-  
+
 .boton-flotante:active {
   background-color: var(--color-marca-fuerte);
   transform: scale(0.95);
@@ -499,4 +498,3 @@
   width: var(--toque-min);
   height: var(--toque-min);
 }
-

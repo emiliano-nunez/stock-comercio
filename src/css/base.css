@@ -7,15 +7,27 @@
  * repite "color, negrita, tamaño" cuarenta veces: lo dice una vez acá y los
  * hijos lo reciben.
  *
+ * Orden de lectura:
+ *   1. Qué se hereda y qué no
+ *   2. El reinicio
+ *   3. Tipografía por etiqueta
+ *   4. Controles de formulario
+ *   5. Lo que sólo se ve en la app
+ */
+
+/* =================================================================
+ * 1. Qué se hereda y qué no
+ *
  * El tamaño y el color se heredan; las propiedades de caja no. Por eso los
  * botones y los campos, que reciben color del contenedor pero traen su propio
  * tamaño y su propio fondo, se corrigen más abajo.
- */
+ * ================================================================= */
 
 html {
   box-sizing: border-box;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+
   overflow-x: hidden;
   max-width: 100vw;
 }
@@ -46,7 +58,12 @@ body {
   max-width: 100vw;
 }
 
-/* ========= El reinicio ========= */
+/* =================================================================
+ * 2. El reinicio
+ *
+ * Lo mínimo: que ningún navegador traiga su propio espaciado ni sus propios
+ * bordes de formulario.
+ * ================================================================= */
 
 h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd {
   margin: 0;
@@ -92,7 +109,12 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ========= Tipografía por etiqueta ========= */
+/* =================================================================
+ * 3. Tipografía por etiqueta
+ *
+ * Aquí está la herencia. El color no se escribe en ningún título porque se
+ * hereda del contenedor; el tamaño y el grosor sí, porque cambian por jerarquía.
+ * ================================================================= */
 
 h1 {
   font-size: var(--texto-lg);
@@ -131,12 +153,20 @@ textarea::placeholder {
   color: var(--color-texto-tenue);
 }
 
+/* =================================================================
+ * 4. Controles de formulario
+ * ================================================================= */
+
 fieldset {
   border: none;
   margin: 0;
   padding: 0;
   min-width: 0;
 }
+
+/* =================================================================
+ * 5. Lo que sólo se ve en la app
+ * ================================================================= */
 
 .sin-barra::-webkit-scrollbar {
   display: none;
@@ -158,4 +188,3 @@ fieldset {
  * se mueven. Si este archivo también tuviera las suyas, la última en escribirse
  * ganaría y el orden en que se cargan los dos dejaría de importar.
  */
-

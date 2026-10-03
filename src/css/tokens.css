@@ -67,10 +67,16 @@
    * ----------------------------------------------------------------- */
   --fuente: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
+  --texto-xs:    0.75rem;
   --texto-xs-al: 1rem;
+  --texto-sm:    0.875rem;
   --texto-sm-al: 1.25rem;
+  --texto-base:  1.125rem;
   --texto-base-al: 1.5rem;
+  --texto-lg:    1.25rem;
   --texto-lg-al: 1.75rem;
+  --texto-xl:    1.5rem;
+
   --grosor-normal: 400;
   --grosor-medio:  500;
   --grosor-fuerte: 700;
@@ -134,4 +140,3 @@
   --transicion-media:  200ms ease-out;
   --transicion-lenta:  300ms ease-out;
 }
-

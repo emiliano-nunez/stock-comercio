@@ -16,12 +16,11 @@ import { normalizarTexto } from './utils/texto.js';
 const SIN_CATEGORIA_ORDEN = '\uFFFF';
 
 export class App {
+
   static LIMITE_RENDER = 60;
 
-  // Los tres grupos en que se ordena el catálogo, en el orden en que se
-  // muestran: lo que hay, lo que se está por acabar, y lo que ya se acabó.
   // El color de cada uno es el mismo que usa el badge de la tarjeta, para que
-  // el grupo y su contenido se vean del mismo color.
+
   /*
    * Los tres estados de stock, con el nombre de la clase y el color.
    *
@@ -44,27 +43,28 @@ export class App {
     this.ordenarPor = 'nombre';
     this.ordenDireccion = 'asc';
     this.vistaActual = 'inventario';
+
     this.categoriaVista = null;
-    // Estado de stock abierto en el catálogo, o null. Es una forma más de mirar
-    // el catálogo, igual que la categoría, y no se acumulan entre sí: al abrir
+
     // una se suelta la otra, porque "Bebidas sin stock" ya es un grupo entero y
     // meterle una categoría encima lo dejaría vacío casi siempre.
     this.estadoVista = null;
+
     this.proveedorVista = null;
+
     this.proveedores = [];
     this.ultimoEliminado = null;
     this.timeoutDeshacer = null;
     this.categoriaEditando = null;
     this._limiteRender = App.LIMITE_RENDER;
   }
-  
+
   async init() {
     try {
       await inicializarCategorias();
-      
+
       // La app no borra fotos sola: son dato del usuario. Acá sólo se MIDE lo que
-      // no se está usando, para poder avisarle cuánto ocupa y que él decida (ver
-      // medirImagenesSinUsar). El formulario igual borra las fotos que se
+
       // tomaron y se canceló sin guardar: esas nunca fueron de ningún producto.
       try {
         const sueltas = await dbUtils.medirImagenesSinUsar();
@@ -79,34 +79,34 @@ export class App {
         // Medir no es crítico: si falla, la app sigue igual.
         console.error('[App] No se pudieron medir las fotos sin uso:', error);
       }
-      
+
       await this.cargarTodo();
-      
+
       // Crear punto de restauración diario si no existe uno hoy
       await this.crearPuntoRestauracionDiario();
-      
+
       this.render();
       this.bindEvents();
       this.registrarServiceWorker();
       this.vigilarActualizacion();
       this.atenderAtajo();
-      
+
     } catch (error) {
-      // Sin esto, cualquier fallo de arranque deja la pantalla en blanco y sólo
+
       // se ve en la consola: el usuario cree que la app no abre.
       console.error('[App] Error en el arranque:', error);
       this.mostrarErrorArranque(error);
     }
   }
-  
+
   mostrarErrorArranque(error) {
     const cont = document.getElementById('app');
     if (!cont) return;
-    
+
     const detalle = import.meta.env.DEV
       ? `<pre class="bloque-datos">${esc(String(error?.stack || error))}</pre>`
       : '<p class="detalle apagado con-margen-arriba">Si el problema sigue, probá a recargar o a reinstalar la app.</p>';
-    
+
     cont.innerHTML = `
       <div class="vacio-pantalla">
         <div class="centro-texto">
@@ -122,11 +122,11 @@ export class App {
         </div>
       </div>
     `;
-    
+
     document.getElementById('btn-reintentar-carga')?.addEventListener('click', () => {
       window.location.reload();
     });
-    
+
     // Aunque la app no arranque, el usuario debe poder sacar sus datos.
     document.getElementById('btn-descargar-emergencia')?.addEventListener('click', async () => {
       const btn = document.getElementById('btn-descargar-emergencia');
@@ -143,7 +143,7 @@ export class App {
       }
     });
   }
-  
+
   async crearPuntoRestauracionDiario() {
     const historial = await dbUtils.getHistorial();
     const hoy = new Date().toISOString().split('T')[0];
@@ -152,7 +152,7 @@ export class App {
       await dbUtils.crearPuntoRestauracion('cierre');
     }
   }
-  
+
   async cargarTodo() {
     // si no los blobs se acumulan en memoria en cada recarga de la vista.
     dbUtils.revocarImagenes(this.productos);
@@ -161,7 +161,7 @@ export class App {
     this.proveedores = await dbUtils.listarProveedores();
     this.aplicarFiltroYOrden();
   }
-  
+
   aplicarFiltroYOrden() {
     let resultado = [...this.productos];
 
@@ -195,8 +195,7 @@ export class App {
       switch (this.ordenarPor) {
         case 'nombre':
           // Ordenar por texto normalizado y no por el crudo: si no, "Limon"
-          // queda antes que "Limón" por el acento y no por la letra, y el
-          // orden cambia según cómo se escribió cada nombre.
+
           valA = normalizarTexto(a.nombre);
           valB = normalizarTexto(b.nombre);
           break;
@@ -220,26 +219,22 @@ export class App {
           valA = normalizarTexto(a.nombre);
           valB = normalizarTexto(b.nombre);
       }
-      
+
       if (valA < valB) return this.ordenDireccion === 'asc' ? -1 : 1;
       if (valA > valB) return this.ordenDireccion === 'asc' ? 1 : -1;
       return 0;
     });
-    
+
     this.productosFiltrados = resultado;
     this.renderVista();
   }
-  
-  // Clave de ordenación: empuja los productos sin categoría al final.
-  // NO es una etiqueta para mostrar en la UI. El catálogo agrupa por estado de
-  // stock, así que la categoría sólo se muestra en el chip de cada tarjeta, y
-  // las categorías sueltas usan su propio nombre.
+
   //
-  // Con varias categorías por producto manda la que alfabéticamente viene
+
   // primera, y no la primera que eligió el usuario: si mandara esa, dos
   // productos con las mismas dos categorías en distinto orden quedarían
   // separados, y el resultado dependería del orden en que el usuario las fue
-  // marcando.
+
   getCategoriaOrden(producto) {
     const nombres = categoriasDe(producto)
       .map(id => this.categorias.find(c => c.id === id)?.nombre)
@@ -247,29 +242,29 @@ export class App {
     if (nombres.length === 0) return SIN_CATEGORIA_ORDEN;
     return nombres.sort((a, b) => a.localeCompare(b))[0];
   }
-  
+
   getStockClass(producto) {
     return App.ESTADOS_STOCK.find(e => e.clave === estadoStock(producto)).clase;
   }
-  
+
   getStockLabel(producto) {
     const stock = producto.stock || 0;
     const unidad = getUnidadBase(producto.tipoVenta);
     // El "Poco" sale de estadoStock() y no de comparar acá otra vez, para que el
-    // badge no pueda decir "Poco" mientras el grupo del catálogo dice "Con stock".
+
     const estado = estadoStock(producto);
     if (estado === 'vacio') return 'Agotado';
     if (estado === 'poco') return `Poco (${stock} ${unidad})`;
     return `${stock} ${unidad}`;
   }
-  
+
   getUnidadBase(tipoVenta) {
     return getUnidadBase(tipoVenta);
   }
-  
+
   render() {
     this._eventsBound = false;
-    
+
     const app = document.getElementById('app');
     app.innerHTML = `
       <div class="app">
@@ -286,13 +281,13 @@ export class App {
                 </button>
               </div>
             </div>
-            
+
             <div class="posicionado con-margen-arriba">
               <label for="buscador" class="solo-lector">Buscar productos</label>
-              <input 
-                type="search" 
-                id="buscador" 
-                class="campo buscador-campo" 
+              <input
+                type="search"
+                id="buscador"
+                class="campo buscador-campo"
                 placeholder="Buscar por nombre o código..."
                 value="${escAttr(this.busqueda)}"
               >
@@ -301,7 +296,7 @@ export class App {
                 📷
               </button>
             </div>
-            
+
             <div class="con-margen-arriba">
               <select id="ordenar-select" class="campo selector" aria-label="Ordenar por">
                 <option value="nombre_asc" ${this.ordenarPor === 'nombre' && this.ordenDireccion === 'asc' ? 'selected' : ''}>🔤 Nombre A-Z</option>
@@ -315,24 +310,24 @@ export class App {
               </select>
             </div>
           </div>
-          
+
           <div class="pestanas">
-            <button 
-              id="tab-inventario" 
+            <button
+              id="tab-inventario"
               class="pestana ${this.vistaActual === 'inventario' ? 'pestana-activa' : ''}"
               data-vista="inventario"
             >
               📦 Inventario
             </button>
-            <button 
-              id="tab-catalogo" 
+            <button
+              id="tab-catalogo"
               class="pestana ${this.vistaActual === 'catalogo' ? 'pestana-activa' : ''}"
               data-vista="catalogo"
             >
               📚 Catálogo
             </button>
-            <button 
-              id="tab-categorias" 
+            <button
+              id="tab-categorias"
               class="pestana ${this.vistaActual === 'categorias' ? 'pestana-activa' : ''}"
               data-vista="categorias"
             >
@@ -340,12 +335,12 @@ export class App {
             </button>
           </div>
         </header>
-        
+
         <main class="contenido" id="contenido-principal">
           ${this.renderTarjetaActualizacionHTML()}
           ${this.renderVistaHTML()}
         </main>
-        
+
         <button
           id="btn-agregar-fab"
           class="boton-flotante"
@@ -357,7 +352,7 @@ export class App {
     `;
     this.bindEvents();
   }
-  
+
   renderVistaHTML() {
     switch (this.vistaActual) {
       case 'catalogo':
@@ -368,7 +363,7 @@ export class App {
         return this.renderInventarioHTML();
     }
   }
-  
+
   renderInventarioHTML() {
     if (this.productosFiltrados.length === 0) {
       if (this.busqueda) {
@@ -381,7 +376,7 @@ export class App {
           </div>
         `;
       }
-      
+
       return `
         <div class="vacio">
           <span class="vacio-icono-grande">📦</span>
@@ -391,17 +386,12 @@ export class App {
         ${this.renderPieVersionHTML()}
       `;
     }
-    
+
     const visibles = this.productosVisibles();
-    // Grilla, con una columna en el teléfono y dos a partir de 768px de ancho de
-    // PANTALLA, que es cuando la columna de la app ya llegó a su tope de 48rem.
+
     //
     // El corte va en md y no en sm a propósito. La tarjeta de inventario lleva
-    // tres filas de controles (ajuste rápido, duplicar/editar/eliminar) y con la
-    // miniatura al costado necesita unos 254px de contenido: a 640px de pantalla
-    // dos columnas darían 305px de tarjeta, unos 190px de contenido, y el botón
-    // de eliminar se caería de la fila. Con md, la columna ya mide 768px y cada
-    // tarjeta 370px, que es lo que la tarjeta esperaba.
+
     return `
       <div class="rejilla-inventario">
         ${visibles.map(p => this.renderProductoHTML(p)).join('')}
@@ -460,7 +450,7 @@ export class App {
       base = base.filter(p => estadoStock(p) === this.estadoVista);
     }
     if (this.proveedorVista) {
-      // Por clave normalizada y no por el texto exacto: los productos pueden
+
       // traer el nombre escrito con otra mayúscula y si se comparara literal el
       // grupo saldría vacío sin avisar por qué.
       const clave = normalizarTexto(this.proveedorVista);
@@ -480,19 +470,15 @@ export class App {
       porEstado.get(estadoStock(p)).push(p);
     }
 
-    // El tope se reparte entre los grupos que tienen algo, no entre los tres
-    // estados. Dividir entre tres estados con el catálogo entero en stock
     // mostraría 20 de 200 y haría aparecer "Cargar más" cinco veces seguidas
-    // para nada.
+
     const grupos = [...porEstado.values()].filter(g => g.length > 0);
     if (grupos.length === 0) return [];
 
-    // Cada grupo se lleva la misma parte. El sobrante de un grupo chico no se
     // pasa a los demás a propósito: si se pasara, cada "Cargar más" traería una
     // cantidad distinta de cada grupo y el orden de lectura se volvería a romper.
     //
-    // El mínimo de 1 hace que un grupo con un solo producto no se vuelva
-    // invisible, aunque el tope fuera más chico que la cantidad de grupos. En la
+
     // app no pasa: _limiteRender siempre es múltiplo de 60 y hay 3 estados.
     const cupo = Math.max(1, Math.floor(this._limiteRender / grupos.length));
 
@@ -504,6 +490,7 @@ export class App {
   }
 
   renderCargarMasHTML(visibles) {
+
     const faltan = this.productosDeLaVista().length - visibles.length;
     if (faltan <= 0) return '';
 
@@ -516,16 +503,17 @@ export class App {
       </div>
     `;
   }
-  
+
   renderCatalogoHTML() {
-    // Con un grupo abierto y sin productos, el mensaje tiene que decir que lo
+
     // que está vacío es el grupo: si dijera "Catálogo vacío" el usuario pensaría
-    // que perdió el inventario.
+
     if ((this.categoriaVista || this.estadoVista) && this.productosDeLaVista().length === 0) {
       const cat = this.categoriaVista ? this.categorias.find(c => c.id === this.categoriaVista) : null;
       const nombre = cat
         ? cat.nombre
         : (App.ESTADOS_STOCK.find(e => e.clave === this.estadoVista)?.etiqueta || 'Este grupo');
+
       const hayProductos = this.productosFiltrados.length > 0;
       return `
         <div class="apilado-4">
@@ -556,21 +544,22 @@ export class App {
       `;
     }
 
+    //
+
     const visibles = this.productosVisibles();
     const porEstado = new Map(App.ESTADOS_STOCK.map(e => [e.clave, []]));
     for (const p of visibles) {
       porEstado.get(estadoStock(p)).push(p);
     }
-    
+
     if (this.estadoVista || this.proveedorVista) {
       return this.renderFiltroVistaHTML()
         + `<div class="cuadricula">${visibles.map(p => this.renderCatalogoItemHTML(p)).join('')}</div>`
         + this.renderCargarMasHTML(visibles);
     }
 
-    // Se agrupan sólo los productos que se van a pintar, no todos. Con el tope
     // de render, meter el resto haría que un grupo quedara con la cabecera en
-    // "(12)" y cero tarjetas debajo, y el contador miente.
+
     return this.renderFiltroVistaHTML() + App.ESTADOS_STOCK
       .filter(estado => porEstado.get(estado.clave).length > 0)
       .map(estado => {
@@ -589,12 +578,10 @@ export class App {
       }).join('') + this.renderCargarMasHTML(visibles);
   }
 
-  // El aviso de que se está mirando un solo grupo, con la salida. Sin él el
   // catálogo filtrado parece el catálogo entero y el usuario no encuentra por
-  // qué le faltan productos.
+
   //
-  // Dice cuántos de cuántos se están viendo. El número solo no alcanza: con el
-  // catálogo entero tampoco se sabría si lo que falta es el filtro o la búsqueda.
+
   renderFiltroVistaHTML() {
     if (!this.categoriaVista && !this.estadoVista && !this.proveedorVista) return '';
 
@@ -610,14 +597,14 @@ export class App {
     if (this.proveedorVista) {
       grupos.push({ color: 'var(--gris-400)', nombre: this.proveedorVista });
     }
-    
+
     const nombres = grupos.map(g => `
       <span class="fila fila-amplia no-crece">
         <span class="punto-chico" style="background-color: ${g.color}"></span>
         <span class="medio">${esc(g.nombre)}</span>
       </span>
     `).join('');
-    
+
     const total = this.productosDeLaVista().length;
     return `
       <div class="recuadro recuadro-marca fila fila-separada con-margen-abajo-amplia">
@@ -630,7 +617,6 @@ export class App {
     `;
   }
 
-  // Abrir un grupo en el catálogo. Categoría o estado de stock: son dos formas
   // de mirar el mismo catálogo, y abrir una suelta la otra para que el usuario
   // nunca quede en un grupo doble que no pidió.
   abrirCategoria(categoriaId) {
@@ -639,9 +625,10 @@ export class App {
     this.vistaActual = 'catalogo';
     this._limiteRender = App.LIMITE_RENDER;
     this.render();
+
     document.getElementById('contenido-principal')?.scrollIntoView({ block: 'start' });
   }
-  
+
   abrirEstado(estado) {
     this.categoriaVista = null;
     this.estadoVista = estado;
@@ -657,16 +644,12 @@ export class App {
     this._limiteRender = App.LIMITE_RENDER;
     this.render();
   }
-  
-  // La rama que aceptaba un string y sacaba un color por hash del nombre quedó
-  // sin uso cuando el catálogo dejó de agrupar por categoría: el único que
+
   // llama es el formulario de categoría, que siempre pasa el objeto.
   getCategoriaColor(categoria) {
     return categoria?.color || COLORES_CATEGORIAS[0];
   }
-  
-  // Elige un color al azar entre los que NO estén en uso.
-  // Si todos están en uso, elige uno al azar del total: 20 colores dan margen
+
   // de sobra, y si el usuario tiene más de 20 categorías ya sabrá elegir.
   colorAleatorioCategoria() {
     const usados = new Set(this.categorias.map(c => c.color).filter(Boolean));
@@ -674,14 +657,12 @@ export class App {
     const pool = libres.length > 0 ? libres : COLORES_CATEGORIAS;
     return pool[Math.floor(Math.random() * pool.length)];
   }
-  
+
   renderCatalogoItemHTML(p) {
-    // Con varias categorías por producto, el marco de la foto no tiene lugar
-    // para todas: muestra la primera y, si sobran, cuántas son. La lista
-    // completa está en la hoja de detalle del producto y en el formulario.
+
     //
     // colgando en productos viejos) para que un producto no muestre un punto
-    // sin nombre.
+
     const categorias = categoriasDe(p)
       .map(id => this.categorias.find(c => c.id === id))
       .filter(Boolean);
@@ -689,19 +670,19 @@ export class App {
     // Ver la nota de avisoFotoPerdida en renderProductoHTML: el 📦 de siempre
     // no distingue "nunca tuvo foto" de "se le perdió". En la grilla el aviso
     // va como texto bajo el nombre, porque el espacio de la foto lo ocupa la
-    // categoría y el precio.
+
     const avisoFotoPerdida = p.fotoPerdida
       ? `<p class="aviso aviso-atencion fila-corta con-margen-abajo-chica">
            <span class="no-crece">⚠️</span>
            <span>Falta la foto</span>
          </p>`
       : '';
-    const imagenHTML = p.imagenUrl 
+    const imagenHTML = p.imagenUrl
       ? `<img src="${escAttr(p.imagenUrl)}" loading="lazy" decoding="async" class="foto-llena" alt="${escAttr(p.nombre)}">`
       : `<span class="vacio-icono-pequeno">${p.fotoPerdida ? '🖼️' : '📦'}</span>`;
     const tipo = TIPOS_VENTA.find(t => t.value === p.tipoVenta) || TIPOS_VENTA[0];
     const unidad = tipo.unidadBase || 'unid';
-    
+
     return `
       <article class="tarjeta" data-id="${escAttr(p.id)}" data-action="detalle" role="button" tabindex="0"
         aria-label="Ver la hoja de ${escAttr(p.nombre)}">
@@ -734,7 +715,7 @@ export class App {
       </article>
     `;
   }
-  
+
   renderCategoriasHTML() {
     return `
       <div class="apilado-4">
@@ -744,7 +725,7 @@ export class App {
             ➕ Nueva categoría
           </button>
         </div>
-        
+
         <div class="tarjeta">
           <div class="apilado">
             ${this.categorias.map(cat => `
@@ -775,7 +756,7 @@ export class App {
             `).join('')}
           </div>
         </div>
-        
+
         ${this.categorias.length === 0 ? `
           <div class="vacio">
             <span class="vacio-icono">📂</span>
@@ -783,13 +764,13 @@ export class App {
             <button id="btn-nueva-categoria-vacia" class="btn-principal con-margen-arriba">➕ Crear primera categoría</button>
           </div>
         ` : ''}
-        
+
         ${this.renderEstadosStockHTML()}
         ${this.renderProveedoresHTML()}
       </div>
     `;
   }
-  
+
   /**
    * Los tres grupos de estado de stock, junto a las categorías.
    *
@@ -809,7 +790,7 @@ export class App {
       const clave = estadoStock(p);
       conteos.set(clave, (conteos.get(clave) || 0) + 1);
     }
-    
+
     return `
       <div class="tarjeta">
         <div class="apilado">
@@ -839,7 +820,7 @@ export class App {
       </div>
     `;
   }
-  
+
   contarProductosCategoria(categoriaId) {
     return this.productos.filter(p => tieneCategoria(p, categoriaId)).length;
   }
@@ -918,7 +899,7 @@ export class App {
     this.render();
     document.getElementById('contenido-principal')?.scrollIntoView({ block: 'start' });
   }
-  
+
   renderProductoHTML(p) {
     const stockClass = this.getStockClass(p);
     const stock = p.stock || 0;
@@ -927,16 +908,15 @@ export class App {
     // Unidad del STOCK: siempre la base del tipo de venta. No se convierte a la
     // unidad principal porque entre sub-unidades no hay factores de conversión
     // definidos (no se sabe cuántas unidades tiene una caja), y un stock
-    // guardado en kg reinterpretado como 500g daría números que no existen.
+
     const unidad = tipo.unidadBase || 'unid';
+
     const precio = getPrecioPrincipal(p);
     const stockMinimo = p.stockMinimo || 0;
-    const imagenHTML = p.imagenUrl 
+    const imagenHTML = p.imagenUrl
       ? `<img src="${escAttr(p.imagenUrl)}" loading="lazy" decoding="async" class="foto-llena" alt="${escAttr(p.nombre)}">`
       : `<span class="vacio-icono-pequeno">${p.fotoPerdida ? '🖼️' : '📦'}</span>`;
-    
-    // Aviso de foto perdida. Sale SÓLO cuando el producto apunta a una foto que
-    // no está en la base (p.fotoPerdida, que marca getAllProductosConImagenes).
+
     // Un producto que nunca tuvo foto no avisa: se vería con el 📦 de siempre y
     // el usuario no distinguiría una cosa de la otra.
     const avisoFotoPerdida = p.fotoPerdida
@@ -945,14 +925,14 @@ export class App {
            <span class="cortado">Falta la foto: no se encuentra en el dispositivo</span>
          </p>`
       : '';
-    
+
     const stockBadgeClass = stock === 0
       ? 'insignia-sin'
       : stock <= stockMinimo
         ? 'insignia-poco'
         : 'insignia-ok';
     const stockBadgeText = stock === 0 ? 'Agotado' : stock <= stockMinimo ? 'Poco' : 'OK';
-    
+
     return `
       <article class="tarjeta tarjeta-alta" data-id="${escAttr(p.id)}" data-action="detalle"
         role="button" tabindex="0" aria-label="Ver la hoja de ${escAttr(p.nombre)}">
@@ -1004,7 +984,7 @@ export class App {
       </article>
     `;
   }
-  
+
   renderVista() {
     this._eventsBound = false;
     const container = document.getElementById('contenido-principal');
@@ -1013,23 +993,22 @@ export class App {
     }
     this.bindEvents();
   }
-  
+
   bindEvents() {
     if (this._eventsBound) return;
     this._eventsBound = true;
-    
+
     const buscador = document.getElementById('buscador');
     if (buscador) {
       buscador.addEventListener('input', (e) => {
         this.busqueda = e.target.value;
         // Búsqueda nueva = punto de partida nuevo: si no, el usuario que ya
-        // había cargado 300 productos vería los 60 primeros de la otra
-        // búsqueda sin haberlo pedido.
+
         this._limiteRender = App.LIMITE_RENDER;
         this.aplicarFiltroYOrden();
       });
     }
-    
+
     const btnLimpiar = document.getElementById('btn-limpiar-busqueda');
     if (btnLimpiar) {
       btnLimpiar.addEventListener('click', () => {
@@ -1039,7 +1018,7 @@ export class App {
         this.aplicarFiltroYOrden();
       });
     }
-    
+
     const ordenarSelect = document.getElementById('ordenar-select');
     if (ordenarSelect) {
       ordenarSelect.addEventListener('change', (e) => {
@@ -1049,18 +1028,18 @@ export class App {
         this.aplicarFiltroYOrden();
       });
     }
-    
+
     document.getElementById('btn-cargar-mas')?.addEventListener('click', () => {
       this._limiteRender += App.LIMITE_RENDER;
       this.renderVista();
     });
-    
+
     document.querySelectorAll('.pestana').forEach(btn => {
       btn.addEventListener('click', () => {
         this.vistaActual = btn.dataset.vista;
-        // El grupo abierto es una forma de mirar el catálogo. Al salirse del
+
         // catálogo se suelta, para que volver a Inventario muestre el inventario
-        // entero y no el último grupo que se miró.
+
         this.categoriaVista = null;
         this.estadoVista = null;
         this.proveedorVista = null;
@@ -1068,7 +1047,7 @@ export class App {
         this.render();
       });
     });
-    
+
     document.getElementById('btn-escanear-header')?.addEventListener('click', () => this.escanearCodigo());
     document.getElementById('btn-historial')?.addEventListener('click', () => this.abrirHistorial());
     document.getElementById('btn-pedido')?.addEventListener('click', () => this.abrirPedido());
@@ -1088,7 +1067,7 @@ export class App {
     document.querySelectorAll('.eliminar-proveedor').forEach(btn => {
       btn.addEventListener('click', () => this.eliminarProveedor(btn.dataset.id));
     });
-    
+
     document.querySelectorAll('.editar-categoria').forEach(btn => {
       btn.addEventListener('click', () => this.abrirModalCategoria(btn.dataset.id));
     });
@@ -1103,7 +1082,7 @@ export class App {
     });
     document.getElementById('btn-ver-catalogo-completo')?.addEventListener('click', () => this.verCatalogoCompleto());
     document.getElementById('btn-agregar-en-categoria')?.addEventListener('click', () => this.nuevoProducto(this.categoriaVista));
-    
+
     /*
     * Los dos listeners de abajo van por delegación sobre `#contenido-principal`,
     * y por eso se atan UNA sola vez.
@@ -1153,9 +1132,8 @@ export class App {
       }
     }, { passive: true });
 
-    // Las tarjetas se pueden tocar y también enfocar. Sin esto, el atributo
     // role="button" sería una mentira para quien navega con el teclado: tendría
-    // el foco puesto en la tarjeta y el Enter no abriría nada.
+
     contenedor.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const btn = e.target.closest('[data-action]');
@@ -1164,7 +1142,7 @@ export class App {
       btn.click();
     });
   }
-  
+
   /**
    * La hoja del producto: tocar la tarjeta la abre, sin pasar por Editar.
    *
@@ -1183,31 +1161,29 @@ export class App {
       onAjustar: delta => this.ajustarStock(producto.id, delta)
     });
   }
-  
+
   async ajustarStock(id, delta) {
+
     if (this._ajustandoStock?.[id]) return;
     this._ajustandoStock = this._ajustandoStock || {};
     this._ajustandoStock[id] = true;
-    
+
     const producto = this.productos.find(p => p.id === id);
     if (!producto) { this._ajustandoStock[id] = false; return; }
-    
+
     const tipo = TIPOS_VENTA.find(t => t.value === producto.tipoVenta) || TIPOS_VENTA[0];
     const step = tipo.step;
     const cambioReal = delta * step;
-    
+
     try {
       await dbUtils.ajustarStock(id, cambioReal);
-      
+
       producto.stock = Math.max(0, (producto.stock || 0) + cambioReal);
       producto.actualizadoEl = new Date().toISOString();
-      
-      // Se actualiza SÓLO la tarjeta tocada en vez de renderizar el catálogo
-      // entero. Antes cada +1/-1 destruía y recreaba todos los nodos: con 200
-      // productos son 200 tarjetas × su contenido, en cada toque, y el scroll
+
       // saltaba de posición porque el contenido se reconstruía.
       this.actualizarTarjetaStock(producto);
-      
+
       if (producto.stock > 0 && producto.stock <= (producto.stockMinimo || 0)) {
         toast.warning(`⚠️ ${producto.nombre}: Stock bajo (${producto.stock} ${this.getUnidadBase(producto.tipoVenta)})`);
       } else if (producto.stock === 0) {
@@ -1221,7 +1197,7 @@ export class App {
       this._ajustandoStock[id] = false;
     }
   }
-  
+
   /**
    * Reflejar en el DOM el nuevo stock de un producto, sin volver a pintar todo.
    *
@@ -1237,10 +1213,10 @@ export class App {
   actualizarTarjetaStock(producto) {
     const card = document.querySelector(`article[data-id="${CSS.escape(producto.id)}"]`);
     if (!card) return;
-    
+
     const stock = producto.stock || 0;
     const stockMinimo = producto.stockMinimo || 0;
-    
+
     const badge = card.querySelector('.js-stock-badge');
     if (badge) {
       const clases = stock === 0
@@ -1252,7 +1228,7 @@ export class App {
       badge.textContent = `${stock === 0 ? 'Agotado' : stock <= stockMinimo ? 'Poco' : 'OK'}: ${stock}`;
     }
   }
-  
+
   /**
    * Se escaneó desde el formulario un código que ya existe y el usuario tocó
    * "Ver en el inventario".
@@ -1278,7 +1254,7 @@ export class App {
     const campo = document.getElementById('buscador');
     if (campo) campo.value = codigo;
   }
-  
+
   nuevoProducto(categoriaId = null) {
     if (this._productoFormAbierto) return;
     this._productoFormAbierto = true;
@@ -1286,14 +1262,13 @@ export class App {
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
       () => { this._productoFormAbierto = false; },
       // La categoría viaja como producto semilla para que el formulario la traiga
-      // elegida. Agregar desde una categoría vacía es agregar dentro de ella, y no
-      // dejar el producto en "Sin categoría" al otro lado de la app.
+
       categoriaId ? { categoriaIds: [categoriaId] } : null,
       (codigo) => this._alBuscarCodigo(codigo),
       (p) => this.eliminarProducto(p.id)
     );
   }
-  
+
   editarProducto(id) {
     if (this._productoFormAbierto) return;
     const producto = this.productos.find(p => p.id === id);
@@ -1307,37 +1282,25 @@ export class App {
       (p) => this.eliminarProducto(p.id)
     );
   }
-  
-  // Abrir el formulario con una copia del producto, listo para guardar como
-  // nuevo. Sirve para las variantes: mismo nombre base, mismo precio, misma
+
   // foto, y el usuario cambia lo que la distingue.
   //
   // No se escribe NADA en la base hasta que el usuario guarda. Podría ser más
-  // simple meter el duplicado directo y después abrirlo para editar, pero
-  // entonces cancelar el formulario deja un producto basura en el inventario, y
-  // un producto basura con foto es lo más caro de limpiar después. Con el
-  // formulario de por medio, si cancela no pasó nada.
+
   //
-  // Lo que se copia: todos los datos del producto (precios, stock, categoría,
-  // tipo de venta, unidad principal, costos, IVA, fecha, foto).
+
   //
   // Lo que NO se copia, a propósito:
-  //   - id: sin esto el formulario cree que está editando y en vez de crear uno
-  //     nuevo pisaría el original.
-  //   - codigoBarras: es la identidad del producto, no un dato. Copiarlo
-  //     devolvería dos artículos con el mismo código, que es justo lo que el
+
   //     escáner y el formulario avisan. Se deja en blanco para que el usuario
-  //     escriba el de la variante, y si la variante no tiene, lo deja vacío.
+
   //   - imagenUrl: es un ObjectURL que pertenece al catálogo. Pasarlo haría que
-  //     el formulario revocara en cerrar() la imagen de la tarjeta del
-  //     original. El formulario carga la suya sola desde imagenId.
-  //   - fotoPerdida: se deriva al leer de la base, no tiene sentido guardarlo.
-  //   - creadoEl / actualizadoEl: los pone el formulario al guardar.
+
   duplicarProducto(id) {
     if (this._productoFormAbierto) return;
     const original = this.productos.find(p => p.id === id);
     if (!original) return;
-    
+
     const {
       id: _id,
       codigoBarras: _codigoBarras,
@@ -1347,7 +1310,7 @@ export class App {
       actualizadoEl: _actualizadoEl,
       ...datos
     } = original;
-    
+
     this._productoFormAbierto = true;
     abrirFormularioProducto(
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
@@ -1357,28 +1320,28 @@ export class App {
       (p) => this.eliminarProducto(p.id)
     );
   }
-  
+
   async eliminarProducto(id) {
     const producto = this.productos.find(p => p.id === id);
     if (!producto) return;
-    
+
     try {
-      // dbUtils.eliminarProducto crea el punto de restauración y borra el
+
       // producto en la misma transacción (si se usara db.productos.delete() no
       // habría punto de restauración y no se podría volver atrás).
       //
       // La foto NO se borra: queda en db.imagenes para que el deshacer y el
-      // "Volver Atrás" del historial puedan devolver el producto con su
+
       // imagen. La app no borra fotos sola; si el usuario quiere liberar el
-      // espacio, lo hace desde el historial (🗄️ liberarFotosDelHistorial).
+
       //
       // Se guarda el producto devuelto (con su imagenId) para que el deshacer
-      // lo reinserte tal cual estaba.
+
       const eliminado = await dbUtils.eliminarProducto(id);
       this.ultimoEliminado = eliminado;
-      
+
       await this.cargarTodo();
-      
+
       this.mostrarDeshacer(`🗑️ ${producto.nombre} eliminado`, async () => {
         try {
           await dbUtils.restaurarProductoEliminado(this.ultimoEliminado);
@@ -1395,21 +1358,20 @@ export class App {
       toast.error('Error eliminando producto');
     }
   }
-  
+
   mostrarDeshacer(mensaje, onUndo) {
     if (this.timeoutDeshacer) clearTimeout(this.timeoutDeshacer);
     toast.undo(mensaje, onUndo, 5000);
     this.timeoutDeshacer = setTimeout(() => this.ultimoEliminado = null, 5000);
   }
-  
+
   async escanearCodigo() {
-    // abrirScanner ya no propaga el fallo de inicio: deja el modal abierto con
+
     // el mensaje de error, así que no hace falta catch aquí.
     //
-    // El índice de codigoBarras no es único, así que un código puede
-    // pertenecer a más de un producto. Con uno solo no hay nada que decidir y se
+
     // abre directo. Con dos o más, elegir por el usuario cuál es el correcto
-    // podía estar editando el producto equivocado sin enterarse.
+
     await abrirScanner(async (codigo, coincidencias) => {
       if (coincidencias.length === 0) {
         toast.success(`Código escaneado: ${codigo}`);
@@ -1432,18 +1394,18 @@ export class App {
 
       if (r.accion === 'abrir') this.editarProducto(r.producto.id);
       // 'crear' y 'resuelto' (el usuario borró todos los conflictos) terminan
-      // igual: el código ya no pertenece a nadie y toca dar de alta el producto.
+
       else if (r.accion === 'crear' || r.accion === 'resuelto') {
         this.nuevoProductoConCodigo(codigo);
       }
     });
   }
-  
+
   nuevoProductoConCodigo(codigo) {
     if (this._productoFormAbierto) return;
     this._productoFormAbierto = true;
     // Se pasa un producto "semilla" con el código escaneado para que el
-    // tenía que volver a escribir el código a mano.
+
     abrirFormularioProducto(
       () => { this.cargarTodo(); this._productoFormAbierto = false; },
       () => { this._productoFormAbierto = false; },
@@ -1452,18 +1414,18 @@ export class App {
       (p) => this.eliminarProducto(p.id)
     );
   }
-  
+
   abrirHistorial() {
     if (this._historialAbierto) return;
     this._historialAbierto = true;
-    // El 2º callback (onClose) es el que SIEMPRE se ejecuta, al cerrar con ✕,
+
     // siempre y el botón 🔄 dejaba de abrir el historial.
     abrirHistorial(
       () => { this.cargarTodo(); },
       () => { this._historialAbierto = false; }
     );
   }
-  
+
   abrirPedido() {
     if (this._pedidoAbierto) return;
     this._pedidoAbierto = true;
@@ -1471,14 +1433,14 @@ export class App {
       this._pedidoAbierto = false;
     });
   }
-  
+
   async abrirModalCategoria(categoriaId = null) {
     if (this._categoriaModalAbierto) return;
     this._categoriaModalAbierto = true;
-    
+
     const cat = categoriaId ? this.categorias.find(c => c.id === categoriaId) : null;
     const esEdicion = !!cat;
-    
+
     const modal = document.createElement('div');
     modal.className = 'velo';
     modal.innerHTML = `
@@ -1509,20 +1471,21 @@ export class App {
         </form>
       </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     const cerrar = () => {
       this._categoriaModalAbierto = false;
       modal.remove();
     };
-    
+
     modal.querySelector('#cerrar-cat-modal').addEventListener('click', cerrar);
     modal.querySelector('#btn-cat-cancelar').addEventListener('click', cerrar);
     modal.addEventListener('click', (e) => { if (e.target === modal) cerrar(); });
-    
+
     modal.querySelectorAll('.color-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+
         modal.querySelectorAll('.color-btn').forEach(b => {
           b.className = 'color-btn muestra-color';
           b.style.borderColor = b.dataset.color + '40';
@@ -1532,14 +1495,14 @@ export class App {
         modal.querySelector('#cat-color').value = btn.dataset.color;
       });
     });
-    
+
     modal.querySelector('#form-categoria').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nombre = modal.querySelector('#cat-nombre').value.trim();
       const color = modal.querySelector('#cat-color').value;
-      
+
       if (!nombre) return toast.error('El nombre es obligatorio');
-      
+
       try {
         if (esEdicion) {
           await db.categorias.update(cat.id, { nombre, color });
@@ -1555,13 +1518,14 @@ export class App {
       }
     });
   }
-  
+
   async eliminarCategoria(categoriaId) {
     const cat = this.categorias.find(c => c.id === categoriaId);
     if (!cat) return;
 
     const count = this.contarProductosCategoria(categoriaId);
     const productosAfectados = this.productos.filter(p => tieneCategoria(p, categoriaId));
+
     const conOtra = productosAfectados.filter(p => categoriasDe(p).length > 1).length;
     const mensaje = count === 0
       ? `¿Eliminar "${cat.nombre}"?`
@@ -1573,11 +1537,13 @@ export class App {
 
     try {
       await db.categorias.delete(categoriaId);
+
       for (const p of productosAfectados) {
         await db.productos.update(p.id, {
           categoriaIds: categoriasDe(p).filter(id => id !== categoriaId)
         });
       }
+
       if (this.categoriaVista === categoriaId) this.categoriaVista = null;
       toast.success('Categoría eliminada');
       await this.cargarTodo();
@@ -1699,7 +1665,7 @@ export class App {
       toast.error('No se pudo sacar el proveedor');
     }
   }
-  
+
   /**
    * Diálogo de confirmación con el estilo de la app. Resuelve true si el
    * usuario confirma, false si cancela por cualquier vía.
@@ -1732,9 +1698,9 @@ export class App {
           </div>
         </div>
       `;
-      
+
       let cerrado = false;
-      
+
       const cerrar = (valor) => {
         if (cerrado) return;
         cerrado = true;
@@ -1742,22 +1708,23 @@ export class App {
         document.removeEventListener('keydown', onEscape);
         resolve(valor);
       };
-      
+
       const onEscape = (e) => {
         if (e.key === 'Escape') cerrar(false);
       };
-      
+
       modal.addEventListener('click', (e) => {
+        if (e.target === modal) return cerrar(false);
         const accion = e.target.closest('[data-accion]')?.dataset.accion;
         if (accion === 'aceptar') cerrar(true);
         else if (accion === 'cancelar') cerrar(false);
       });
-      
+
       document.addEventListener('keydown', onEscape);
       document.body.appendChild(modal);
     });
   }
-  
+
   /**
    * Accesos directos de la PWA instalada: "#scan" y "#add".
    *
@@ -1781,9 +1748,8 @@ export class App {
       if (!atajo) return;
       if (atajo !== 'scan' && atajo !== 'add') return;
 
-      // El hash se borra después de atenderlo. Si el atajo se dejara puesto, recargar
       // reabriría el modal, y si el formulario fallara el usuario quedaría con
-      // una dirección que al recargar le reabre un modal encima.
+
       history.replaceState(null, '', location.pathname + location.search);
 
       if (atajo === 'scan') this.escanearCodigo();
@@ -1794,17 +1760,10 @@ export class App {
     ejecutar();
   }
 
-  // El service worker NO se registra aquí.
   //
-  // vite-plugin-pwa (injectRegister: 'auto', el valor por defecto) ya inyecta
-  // un <script src="/registerSW.js"> en index.html que hace exactamente esto al
-  // evento 'load'. Registrarlo además desde aquí era un duplicado con dos
-  // fallos:
-  //   1. init() es async (espera a IndexedDB), así que el listener de 'load'
-  //      podía registrarse DESPUÉS de que 'load' ya hubiera disparado -> el SW
+
   //      no se registraba nunca y la app perdía el modo offline.
-  //   2. En dev, /sw.js no existe (sólo se genera en build) y el registro
-  //      fallaba con un error de MIME type.
+
   registrarServiceWorker() {
     if (import.meta.env.DEV) {
       console.debug('[SW] Registro gestionado por vite-plugin-pwa (registerSW.js)');
@@ -1828,6 +1787,7 @@ export class App {
    */
   vigilarActualizacion() {
     if (!('serviceWorker' in navigator)) return;
+
     if (import.meta.env.DEV) return;
 
     navigator.serviceWorker.addEventListener('controllerchange', () => {
