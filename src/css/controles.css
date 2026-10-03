@@ -48,7 +48,7 @@
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--color-acento-texto);
+  outline: 2px solid var(--color-marca);
   outline-offset: 2px;
 }
 
@@ -222,7 +222,7 @@ svg {
 
 .btn-resta {
   background-color: var(--gris-100);
-  color: var(--gris-700);
+  color: var(--gris-800);
 }
 
 .btn-resta:hover:not(:disabled) {
@@ -285,8 +285,8 @@ svg {
 
 .campo:focus {
   outline: none;
-  border-color: var(--color-acento);
-  box-shadow: 0 0 0 3px var(--color-acento-tenue);
+  border-color: var(--color-marca);
+  box-shadow: 0 0 0 3px var(--verde-100);
 }
 
 .campo:disabled {
@@ -301,14 +301,6 @@ svg {
   background-repeat: no-repeat;
   background-position: right var(--espacio-3) center;
   background-size: 12px;
-}
-
-/* El gris de la flecha va escrito adentro del SVG, así que no puede tomar el
-   color del texto: hace falta una regla aparte para el oscuro. */
-@media (prefers-color-scheme: dark) {
-  .selector {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%23d1d5db' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
-  }
 }
 
 .area-texto {
@@ -449,10 +441,9 @@ svg {
 }
 
 .opcion-elegida {
-  background-color: var(--color-acento-tenue);
-  border-color: var(--color-acento-borde);
-  color: var(--color-acento-texto);
-  box-shadow: var(--sombra-resplandor);
+  background-color: var(--color-marca-tenue);
+  border-color: var(--verde-200);
+  color: var(--verde-800);
 }
 
 /* =================================================================
@@ -610,7 +601,7 @@ svg {
   transform: translateX(-50%);
   margin-bottom: var(--espacio-2);
   padding: var(--espacio-1) var(--espacio-2);
-  background-color: var(--color-solido);
+  background-color: var(--gris-900);
   color: var(--color-texto-invertido);
   font-size: var(--texto-xs);
   border-radius: var(--radio-sm);

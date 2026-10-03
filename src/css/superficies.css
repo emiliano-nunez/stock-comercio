@@ -88,7 +88,7 @@
 /* El marco del video de la cámara, negro para que se vea la imagen. */
 .marco-video {
   position: relative;
-  background-color: var(--color-solido);
+  background-color: var(--gris-900);
   padding: var(--espacio-2);
   border-radius: var(--radio-lg);
   overflow: hidden;
@@ -99,7 +99,7 @@
   aspect-ratio: 1 / 1;
   border-radius: var(--radio-md);
   overflow: hidden;
-  background-color: var(--color-solido);
+  background-color: var(--gris-900);
 }
 
 /*
@@ -604,7 +604,7 @@
   background-color: var(--gris-100);
   color: var(--gris-700);
   font-size: var(--texto-xs);
-  font-weight: var(--grosor-fuerte);
+  font-weight: var(--grosor-medio);
   white-space: nowrap;
 }
 
@@ -769,7 +769,7 @@
   padding: var(--espacio-3) var(--espacio-4);
   border-radius: var(--radio-lg);
   box-shadow: var(--sombra-lg);
-  background-color: var(--color-solido-tenue);
+  background-color: var(--gris-800);
   color: var(--color-texto-invertido);
   pointer-events: auto;
 }
@@ -779,7 +779,7 @@
 .aviso-ok      { background-color: var(--verde-600); }
 .aviso-error   { background-color: var(--rojo-500); }
 .aviso-alerta  { background-color: var(--ambar-600); }
-.aviso-info    { background-color: var(--color-solido-tenue); }
+.aviso-info    { background-color: var(--gris-800); }
 
 .aviso-con-boton {
   display: flex;

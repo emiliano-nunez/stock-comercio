@@ -41,14 +41,6 @@
   --rojo-700: #b91c1c;
   --rojo-900: #7f1d1d;
 
-  /* El violeta es acento, no marca: marca el estado elegido y el foco. La marca
-     sigue siendo verde. */
-  --violeta-50:  #f0edff;
-  --violeta-300: #b0a2ff;
-  --violeta-500: #8c7cff;
-  --violeta-600: #6f5ce8;
-  --violeta-700: #5a49c4;
-
   --color-fondo:           var(--gris-50);
   --color-superficie:      #ffffff;
   --color-texto:           var(--gris-900);
@@ -65,23 +57,6 @@
   --color-peligro-tenue:   var(--rojo-50);
   --color-aviso:           var(--ambar-600);
   --color-aviso-tenue:     var(--ambar-50);
-
-  /* El acento va en dos tonos porque #8c7cff da 3,3:1 sobre blanco: sirve para
-     bordes, rellenos y resplandor, pero no para leer texto. El texto del color
-     claro usa el tono más oscuro. */
-  --color-acento:        var(--violeta-500);
-  --color-acento-texto:  var(--violeta-600);
-  --color-acento-tenue:  var(--violeta-50);
-  --color-acento-borde:  var(--violeta-300);
-
-  /*
-   * El fondo de los avisos, del video y del tooltip sobre el número. Va
-   * aparte del gris porque es oscuro en los dos temas: el video tiene que ser
-   * negro siempre para que se vea la imagen, y un aviso sobre fondo oscuro
-   * tiene que seguir siendo claro para que se lea.
-   */
-  --color-solido:      var(--gris-900);
-  --color-solido-tenue: var(--gris-800);
 
   /* -----------------------------------------------------------------
    * Tipografía
@@ -146,15 +121,14 @@
    * ----------------------------------------------------------------- */
   --radio-sm:   0.25rem;
   --radio-md:   0.5rem;
-  --radio-lg:   0.875rem;
-  --radio-xl:   1.25rem;
+  --radio-lg:   0.75rem;
+  --radio-xl:   1rem;
   --radio-full: 9999px;
 
-  --sombra-sm: 0 1px 2px rgb(0 0 0 / 4%);
-  --sombra-md: 0 2px 8px rgb(0 0 0 / 4%);
-  --sombra-lg: 0 8px 24px rgb(0 0 0 / 4%);
-  --sombra-xl: 0 12px 32px rgb(0 0 0 / 8%);
-  --sombra-resplandor: 0 8px 20px rgb(140 124 255 / 25%);
+  --sombra-sm: 0 1px 2px rgb(0 0 0 / 6%);
+  --sombra-md: 0 2px 6px rgb(0 0 0 / 8%);
+  --sombra-lg: 0 8px 24px rgb(0 0 0 / 12%);
+  --sombra-xl: 0 12px 32px rgb(0 0 0 / 18%);
 
   --capa-cabecera: 40;
   --capa-flotante: 50;
@@ -165,87 +139,4 @@
   --transicion-rapida: 100ms ease-out;
   --transicion-media:  200ms ease-out;
   --transicion-lenta:  300ms ease-out;
-
-  /*
-   * El tema oscuro se declara acá y no repartido en cada hoja, y la forma de
-   * que funcione es invertir la paleta: los tonos bajos pasan a ser las
-   * superficies y los altos el texto. Casi todas las reglas de la app usan un
-   * tono crudo en vez de un token semántico, así que invertirlos las arregla
-   * todas de una y no hay que ir a buscarlas una por una.
-   *
-   * Las excepciones están tokenizadas arriba: `--color-solido` y
-   * `--color-solido-tenue` no se invierten porque son el fondo del video y de
-   * los avisos, que tienen que seguir siendo oscuros para que se lean.
-   */
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --gris-50:  #0b1220;
-    --gris-100: #111827;
-    --gris-200: #1f2937;
-    --gris-300: #374151;
-    --gris-400: #6b7280;
-    --gris-500: #9ca3af;
-    --gris-600: #d1d5db;
-    --gris-700: #e5e7eb;
-
-    --verde-50:  #052e16;
-    --verde-100: #064e2b;
-    --verde-200: #065f46;
-    --verde-500: #34d399;
-    --verde-600: #10b981;
-    --verde-700: #6ee7b7;
-    --verde-800: #a7f3d0;
-
-    --ambar-50:  #341a02;
-    --ambar-100: #451a03;
-    --ambar-200: #78350f;
-    --ambar-600: #f59e0b;
-    --ambar-700: #fcd34d;
-
-    --rojo-50:  #450a0a;
-    --rojo-100: #5c1010;
-    --rojo-200: #7f1d1d;
-    --rojo-500: #f87171;
-    --rojo-600: #ef4444;
-    --rojo-700: #fca5a5;
-    --rojo-900: #fee2e2;
-
-    --violeta-50:  #1e1b4b;
-    --violeta-300: #4d3fc4;
-    --violeta-500: #b0a2ff;
-    --violeta-600: #cdc4ff;
-    --violeta-700: #ddd8ff;
-
-    --color-fondo:       var(--gris-50);
-    --color-superficie:  var(--gris-100);
-    --color-texto:       var(--gris-700);
-    --color-texto-suave: var(--gris-500);
-    --color-texto-tenue: var(--gris-400);
-    --color-borde:       var(--gris-300);
-    --color-borde-tenue: var(--gris-200);
-
-    /* En oscuro el acento tiene que ser más claro, no más oscuro: sobre fondo
-       oscuro el que se lee es el tono alto de la rampa. */
-    --color-acento:       var(--violeta-500);
-    --color-acento-texto: var(--violeta-600);
-    --color-acento-tenue: var(--violeta-50);
-    --color-acento-borde: var(--violeta-500);
-
-    --color-marca:       var(--verde-600);
-    --color-marca-fuerte: var(--verde-700);
-
-    /*
-     * Una sombra al 4% de negro no se ve sobre un fondo que ya es negro: en
-     * oscuro lo que separa dos superficies es el borde, y la sombra sube
-     * bastante para que se note la tarjeta sobre el fondo.
-     */
-    --sombra-sm: 0 1px 2px rgb(0 0 0 / 40%);
-    --sombra-md: 0 2px 8px rgb(0 0 0 / 45%);
-    --sombra-lg: 0 8px 24px rgb(0 0 0 / 50%);
-    --sombra-xl: 0 12px 32px rgb(0 0 0 / 60%);
-    --sombra-resplandor: 0 8px 20px rgb(140 124 255 / 35%);
-  }
 }
