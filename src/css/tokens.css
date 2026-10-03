@@ -134,14 +134,14 @@
   /* -----------------------------------------------------------------
    * El ancho de las tarjetas
    *
-   * Es un mínimo y un máximo, no una medida. La tarjeta se ensancha hasta
-   * `ancho-tarjeta-max` mientras entre otra al lado, y a partir de ahí las
-   * columnas sobrantes se achican hasta el mínimo. Así la tarjeta usa el ancho
-   * que le sirve sin llegar nunca a estirarse a lo largo de una pantalla
-   * grande, que es lo que la deja con el precio perdido en el medio del blanco.
+   * Es el mínimo de la columna, no una medida. Con `auto-fill` y un `1fr` de
+   * máximo, este número es el que decide cuántas columnas entran, y la columna
+   * que queda nunca pasa de unos 317px porque sobra menos de una columna y el
+   * resto se reparte entre las que hay. Por eso no hace falta un máximo: la
+   * tarjeta no se estira a lo largo de una pantalla grande, que es lo que la
+   * dejaba con el precio solo en el medio del blanco.
    * ----------------------------------------------------------------- */
   --ancho-tarjeta-min: 13rem;
-  --ancho-tarjeta-max: 21.25rem;
 
   /* -----------------------------------------------------------------
    * Radios, sombras y capas

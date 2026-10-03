@@ -503,23 +503,17 @@
  *
  * La cuenta, con los valores de las variables:
  *
- *   barra lateral                 18rem   = 288px
- *   relleno del contenido         0.625rem x 2  =  20px
- *   separación entre columnas     0.625rem      =  10px
- *   ancho mínimo de una tarjeta   13rem         = 208px
+ *   barra lateral                 18rem        = 288px
+ *   relleno del contenido         0.625rem x 2 =  20px
+ *   separación entre columnas     0.625rem     =  10px
+ *   ancho mínimo de una tarjeta   13rem        = 208px
  *
- *   dos columnas = 208 x 2 + 10                    = 426px de contenido
- *   426 + 20 + 288                                = 734px de ventana
+ *   dos columnas = 208 x 2 + 10                  = 426px de contenido
+ *   426 + 20 + 288                              = 734px de ventana
  *
- * El corte va en 768px, que es el valor redondo más cercano por encima de los
- * 734px que da la cuenta. Por debajo de eso el header sigue siendo el de
- * teléfono, que aprovecha toda la ventana para las tarjetas.
- *
- * A 900px, que era el corte anterior, la barra entraba igual pero la ventana
- * quedaba partida en 288px de barra y dos columnas de más de 290px, con el
- * resto en blanco. Bajarlo a 768 cambia la cuenta de otra manera: la barra
- * aparece en ventanas más angostas, y como ahí sobra menos ancho, las columnas
- * quedan más angostas también y no queda una sola al lado de la barra.
+ * El corte va en 768px, el valor redondo más cercano por encima de los 734px que
+ * da la cuenta. A 768 entran dos columnas de 225px; por debajo de eso el header
+ * sigue siendo el de teléfono, que le da toda la ventana a la lista.
  */
 @media (min-width: 768px) {
   .app {
@@ -719,30 +713,29 @@
   }
 
   /*
-   * Las dos grillas se acotan desde que aparece la barra lateral, con el mismo
-   * `minmax` y los mismos tokens, así que inventario y catálogo se comportan
-   * igual y no hay que mirar dos reglas distintas.
+   * Las dos grillas se comportan igual: mismo `minmax`, mismo token.
    *
-   * El selector del catálogo es `.cuadricula`, no `.rejilla`. `.rejilla` estuvo
-   * escrita toda la vida como si la usara el catálogo, y no la usa: la del
-   * catálogo es `.cuadricula`, que tiene dos columnas fijas para siempre. Por eso
-   * los cambios de acá no le hacían nada al catálogo.
+   * El selector del catálogo es `.cuadricula`. `.rejilla` estuvo escrita toda la
+   * vida como si la usara el catálogo y no la usa: la del catálogo es
+   * `.cuadricula`, que tiene dos columnas fijas para siempre. Por eso los cambios
+   * de acá no le hacían nada al catálogo.
    *
-   * El mínimo decide cuántas columnas entran y el máximo impide que la tarjeta
-   * se estire: al llegar a 21.25rem deja de crecer aunque la fila tenga lugar de
-   * sobra, y lo que sobra queda en blanco en vez de estirar la tarjeta. Es
-   * `auto-fill` y no `auto-fit` porque con `auto-fit` las columnas vacías se
-   * colapsan y las que quedan se estiran para llenar la fila.
+   * El `1fr` del máximo no es caprichoso. Con `auto-fill`, si el máximo es un
+   * número fijo, el número de columnas se cuenta con el MÁXIMO y no con el
+   * mínimo: `minmax(13rem, 21.25rem)` a 768px daba una sola columna de 340px con
+   * 120px de blanco al lado, porque 350 no entra dos veces en los 460px de
+   * contenido. Con el máximo en `1fr` la cuenta se hace con el mínimo de 13rem y
+   * entran las columnas que quepan; el alto de cada una nunca pasa de unos 317px
+   * porque sobra menos de una columna y el resto se reparte.
    *
-   * Los selectores llevan `.contenido` adelante a propósito. `.cuadricula` está
-   * definida en superficies.css, que se importa DESPUÉS de este archivo, así que a
-   * igual especificidad su `repeat(2, minmax(0, 1fr))` le gana a esta regla por
-   * estar más abajo en el bundle y la deja muerta. Con `.contenido` delante la
-   * especificidad es mayor y el resultado no depende del orden de importación.
+   * Los selectores llevan `.contenido` adelante porque `.cuadricula` está definida
+   * en superficies.css, que se importa después de este archivo: a igual
+   * especificidad su `repeat(2, minmax(0, 1fr))` le ganaría por posición y dejaría
+   * esta regla muerta.
    */
   .contenido .rejilla-inventario,
   .contenido .cuadricula {
-    grid-template-columns: repeat(auto-fill, minmax(var(--ancho-tarjeta-min), var(--ancho-tarjeta-max)));
+    grid-template-columns: repeat(auto-fill, minmax(var(--ancho-tarjeta-min), 1fr));
   }
 
   }
