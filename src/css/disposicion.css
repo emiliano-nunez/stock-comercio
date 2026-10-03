@@ -160,14 +160,24 @@
   margin-bottom: 0;
 }
 
+/*
+ * La cabecera.
+ *
+ * Va con el verde del ícono de la app y una sombra de un píxel, sin borde de abajo.
+ * En el escritorio esta misma caja gira y pasa a ser la barra lateral, así que el
+ * verde llega también a la columna de la izquierda: es la misma pieza.
+ *
+ * Los valores salen de los tokens `--cabecera-*`, que están en tokens.css con el
+ * resto del estándar.
+ */
 .cabecera {
   position: sticky;
   top: 0;
   z-index: var(--capa-cabecera);
-  background-color: var(--color-superficie);
-  border-bottom: 1px solid var(--color-borde-tenue);
+  background-color: var(--cabecera-fondo);
+  box-shadow: var(--cabecera-sombra);
 
-  color: var(--color-texto);
+  color: var(--cabecera-texto);
 }
 
 /*
@@ -186,8 +196,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--espacio-1);
-  padding: var(--espacio-2) var(--espacio-3);
+  gap: var(--interfaz-espacio-2);
+  padding: var(--interfaz-espacio-2) var(--interfaz-espacio-4);
 }
 
 .cabecera-cuerpo > h1 {
@@ -232,7 +242,7 @@
 
 .buscador {
   position: relative;
-  margin-top: var(--espacio-2);
+  margin-top: var(--interfaz-espacio-2);
 }
 
 .buscador-lupa {
@@ -305,7 +315,7 @@
 
 .pestanas {
   display: flex;
-  border-top: 1px solid var(--color-borde-tenue);
+  border-top: 1px solid var(--interfaz-borde);
   overflow-x: hidden;
   /* Las pestañas ocupan su propio renglón, abajo del buscador. */
   order: 5;
@@ -321,7 +331,7 @@
   min-height: var(--toque-min);
   padding: var(--espacio-2) var(--espacio-1);
   border-bottom: 2px solid transparent;
-  color: var(--gris-600);
+  color: var(--cabecera-texto);
   font-size: var(--texto-sm);
   text-align: center;
   transition: color var(--transicion-rapida), background-color var(--transicion-rapida);
@@ -334,10 +344,16 @@
   height: 1.15rem;
 }
 
+/*
+ * La pestaña activa.
+ *
+ * Fondo blanco y una línea azul abajo. El fondo va blanco y no el gris pálido de
+ * antes porque la cabecera es verde y un bloque gris encima se ve como una mancha.
+ */
 .pestana-activa {
-  color: var(--color-marca-fuerte);
-  background-color: var(--color-marca-tenue);
-  border-bottom-color: var(--color-marca);
+  color: var(--interfaz-texto);
+  background-color: var(--color-superficie);
+  border-bottom-color: var(--interfaz-azul);
 }
 
 /* =================================================================
@@ -407,22 +423,22 @@
   flex: 0 0 auto;
   width: var(--toque-min);
   height: var(--toque-min);
-  margin-top: var(--espacio-2);
+  margin-top: var(--interfaz-espacio-2);
 
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--espacio-2);
 
-  border-radius: var(--radio-lg);
-  background-color: var(--color-marca);
+  border-radius: var(--interfaz-radio-2);
+  background-color: var(--interfaz-azul);
   color: var(--color-texto-invertido);
   font-size: var(--texto-lg);
   line-height: 1;
 }
 
 .boton-agregar:active {
-  background-color: var(--color-marca-fuerte);
+  background-color: var(--interfaz-azul-tenue-fuerte);
   transform: scale(0.95);
 }
 

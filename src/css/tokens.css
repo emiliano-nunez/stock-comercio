@@ -41,7 +41,7 @@
   --rojo-700: #b91c1c;
   --rojo-900: #7f1d1d;
 
-  --color-fondo:           var(--gris-200);
+  --color-fondo:           var(--interfaz-fondo);
   --color-superficie:      #ffffff;
   --color-texto:           var(--gris-900);
   --color-texto-suave:     var(--gris-500);
@@ -93,6 +93,7 @@
 
   --grosor-normal: 400;
   --grosor-medio:  500;
+  --grosor-media:  600;
   --grosor-fuerte: 700;
 
   /* -----------------------------------------------------------------
@@ -173,75 +174,141 @@
   --transicion-lenta:  300ms ease-out;
 
   /* =================================================================
-   * Estándar de la tarjeta de producto
+   * Estándar de la interfaz
    *
-   * Este bloque es la referencia. La tarjeta de producto --la del inventario y la
-   * del catálogo-- sigue esta escala de espaciado, estos tamaños de texto, estos
-   * radios y esta paleta. Los valores vienen del estándar de mercado que Circulation
-   * pasó para las tarjetas: fondo blanco, borde casi invisible, esquinas de 8px,
-   * un relieve apenas, el título en 14px sin negrita, el precio en 20px y los
-   * datos en 12px.
+   * Este bloque es la referencia. Todo lo que el estándar de diseño fija está acá
+   * y en ningún otro lado: la tarjeta de producto, la cabecera, el buscador, los
+   * formularios y los diálogos salen de estas variables.
    *
-   * Es una escala propia y no la general de la app a propósito. La general está
-   * corrida un paso (--espacio-3 son 10px) y sirve para el resto de las
-   * pantallas; la de la tarjeta va en la escala de 4/8/12/16 del estándar, y así
-   * una tarjeta se parece a cualquier otra sin tocar lo demás.
+   * Lo que usa más de un componente lleva `--interfaz-*` y está en el primer
+   * grupo. Lo que es de un solo componente lleva el nombre de ese componente:
+   * `--tarjeta-*`, `--cabecera-*`, `--buscador-*`, `--campo-*` o `--dialogo-*`.
    *
-   * Cuando haga falta un valor de la tarjeta que no esté acá, se agrega acá con
-   * su nombre, y no se escribe el número en el CSS.
+   * Cuando haga falta un valor que no esté acá, se agrega acá con su nombre. En
+   * el CSS no se escribe ningún número de este estándar.
+   *
+   * Lo que el estándar NO fija, porque son reglas de la app y no del diseño:
+   *
+   *   - El alto de los controles. El estándar dice 48px para los campos y 40px
+   *     para el buscador, y habla de una web de escritorio. Acá el mínimo que se
+   *     toca con el dedo son 52px, que no se baja: por eso `--campo-alto` y el
+   *     alto del buscador valen 52 y no lo que dice el estándar.
+   *   - El alto máximo del diálogo, que el estándar deja en 70vh. Acá va en 92vh
+   *     porque los diálogos tienen veinte campos y con 70 queda siempre un
+   *     pedazo de formulario fuera de la pantalla.
+   *   - El verde #00a650, que es el de los rótulos sobre fondo blanco, como
+   *     "envío gratis". La insignia de stock va sobre un verde pálido y necesita
+   *     más contraste del que da ese verde, así que sigue con el verde oscuro.
+   *   - La tipografía, porque la del estándar es una fuente de marca que no se
+   *     puede cargar. `--fuente` ya cae en las del sistema, que es lo mismo.
    * ================================================================= */
 
-  /* Espaciado: 4 / 8 / 12 / 16. */
-  --tarjeta-espacio-xs:  4px;
-  --tarjeta-espacio-sm:  8px;
-  --tarjeta-espacio-md:  12px;
-  --tarjeta-espacio-lg:  16px;
+  /* -----------------------------------------------------------------
+   * Lo que comparten todos los componentes
+   * ----------------------------------------------------------------- */
+
+  /* El espaciado del estándar: 4 / 8 / 12 / 16. Es escala propia y no la general
+     de la app, que está corrida un paso y sirve para el resto de las pantallas. */
+  --interfaz-espacio-1: 4px;
+  --interfaz-espacio-2: 8px;
+  --interfaz-espacio-3: 12px;
+  --interfaz-espacio-4: 16px;
+
+  /* Los tres grises y el fondo neutro de la pantalla. */
+  --interfaz-texto:   #333333;
+  --interfaz-texto-2: #666666;
+  --interfaz-texto-3: #999999;
+  --interfaz-fondo:   #ebebeb;
+  --interfaz-borde:   #e6e6e6;
+
+  /* Las dos medidas de texto que el estándar repite en todos lados. */
+  --interfaz-texto-xs: 12px;
+  --interfaz-texto-sm: 14px;
+
+  /*
+   * El azul: el del botón de acción, el del borde de foco y el del botón
+   * secundario de la tarjeta, que es fondo azul al 15% con letra azul.
+   */
+  --interfaz-azul:              #3483fa;
+  --interfaz-azul-fuerte:       #2968c8;
+  --interfaz-azul-tenue:        rgb(65 137 230 / 15%);
+  --interfaz-azul-tenue-fuerte: rgb(65 137 230 / 25%);
+  --interfaz-azul-foco:         rgb(52 131 250 / 20%);
+
+  /* El rojo de error y de la acción que borra, con el mismo formato que el azul. */
+  --interfaz-error:              #f04438;
+  --interfaz-error-tenue:        rgb(240 68 56 / 10%);
+  --interfaz-error-tenue-fuerte: rgb(240 68 56 / 18%);
+
+  /* Los tres radios del estándar: 8px la caja, 6px el control, 4px la etiqueta. */
+  --interfaz-radio:   8px;
+  --interfaz-radio-2: 6px;
+  --interfaz-radio-3: 4px;
+
+  /* La sombra de un píxel, que es la de las cajas del estándar. */
+  --interfaz-sombra: 0 1px 2px 0 rgb(0 0 0 / 12%);
+
+  /* -----------------------------------------------------------------
+   * La tarjeta de producto
+   * ----------------------------------------------------------------- */
 
   /* El relleno de la tarjeta. En el formato de lista horizontal va uno más grande,
      que es lo que dice el estándar. */
-  --tarjeta-relleno:     var(--tarjeta-espacio-md);
-  --tarjeta-relleno-fila:var(--tarjeta-espacio-lg);
+  --tarjeta-relleno:      var(--interfaz-espacio-3);
+  --tarjeta-relleno-fila: var(--interfaz-espacio-4);
 
-  /* Texto. El precio va en 20px en el teléfono y en 24px en pantalla ancha. */
-  --tarjeta-texto-xs:     12px;
-  --tarjeta-texto-sm:     14px;
+  /* El precio es lo único grande de la tarjeta: 20px, sin negrita y con la línea
+     apretada. */
   --tarjeta-texto-precio: 20px;
   --tarjeta-interlinea-1: 1.1;
   --tarjeta-interlinea-2: 1.3;
 
-  /* Los tres grises del estándar: principal, secundario y el apagado. */
-  --tarjeta-texto:   #333333;
-  --tarjeta-texto-2: #666666;
-  --tarjeta-texto-3: #999999;
-
-  /* Bordes, radios y sombra de la tarjeta. */
-  --tarjeta-borde: #ededed;
-  --tarjeta-radio: 8px;
-  --tarjeta-sombra: 0 1px 2px 0 rgb(0 0 0 / 12%);
-
-  /* Radios de lo que va adentro: el botón de la acción y la insignia. */
-  --tarjeta-radio-boton:   6px;
-  --tarjeta-radio-insignia: 4px;
+  /* -----------------------------------------------------------------
+   * La cabecera y el buscador
+   * ----------------------------------------------------------------- */
 
   /*
-   * El azul del estándar: el del botón de acción de la tarjeta.
+   * El fondo de la cabecera es el verde del ícono de la app, no el amarillo que
+   * trae el estándar: es el color con el que la app ya se reconoce y con el que
+   * queda pintada la barra del navegador en el celular instalado.
    *
-   * El botón de la tarjeta es el secundario --fondo azul al 15% con letra azul--,
-   * y no el primario, porque la acción principal de una tarjeta de producto no es
-   * tocarla: es compararla. Hay dos tintes del mismo azul, el de reposo y el de
-   * encima del dedo.
-   *
-   * El verde del estándar no está: es el de los rótulos de texto sobre fondo
-   * blanco, como "envío gratis" o el descuento. La insignia de stock va sobre un
-   * verde pálido y necesita más contraste del que da ese verde, así que sigue con
-   * el verde oscuro de la app.
+   * Es el `--verde-600`, que es el color del ícono, y no el `--verde-700` que
+   * estaba antes porque ése se veía casi negro. El texto va en blanco como el
+   * ícono: el blanco sobre este verde queda en 3 a 1, que no alcanza el 4 a 1 que
+   * pide el contraste, y es el mismo precio que paga el ícono. Si se quiere más
+   * contraste hay que subir el verde al `--verde-500` y pintar el texto de negro.
    */
-  --tarjeta-azul:              #3483fa;
-  --tarjeta-azul-tenue:        rgb(65 137 230 / 15%);
-  --tarjeta-azul-tenue-fuerte: rgb(65 137 230 / 25%);
+  --cabecera-fondo:  var(--verde-600);
+  --cabecera-sombra: 0 1px 2px 0 rgb(0 0 0 / 10%);
 
-  /* El botón de borrar no va en azul: es la acción que borra. Mismo formato que
-     el azul, con el rojo de la app en vez del azul del estándar. */
-  --tarjeta-rojo-tenue:        rgb(220 38 38 / 10%);
-  --tarjeta-rojo-tenue-fuerte: rgb(220 38 38 / 18%);
+  /* El texto de la cabecera va en blanco. Sobre el verde no sirve ningún gris de
+     la app: el más claro que hay es el 400, y con el verde queda en 3 a 1. */
+  --cabecera-texto: #ffffff;
+
+  /* El buscador es una caja blanca sin borde, con relieve y esquinas de 2px: es
+     la única parte de la app que va encima del verde de la cabecera. */
+  --buscador-sombra: 0 1px 2px 0 rgb(0 0 0 / 20%);
+  --buscador-radio:  2px;
+
+  /* -----------------------------------------------------------------
+   * Los formularios
+   * ----------------------------------------------------------------- */
+
+  /* 52px y no los 48px del estándar: es el mínimo que se toca con el dedo. */
+  --campo-alto:         52px;
+  --campo-borde:        #cccccc;
+  --campo-relleno:      var(--interfaz-espacio-3);
+  --campo-grupo-hueco:  6px;
+  --campo-grupo-margen: var(--interfaz-espacio-4);
+
+  /* -----------------------------------------------------------------
+   * Los diálogos
+   * ----------------------------------------------------------------- */
+
+  --velo-fondo:          rgb(0 0 0 / 60%);
+  --dialogo-ancho:       500px;
+  --dialogo-sombra:      0 10px 25px rgb(0 0 0 / 20%);
+  --dialogo-relleno:     var(--interfaz-espacio-4);
+  --dialogo-pie-relleno: var(--interfaz-espacio-3) var(--interfaz-espacio-4);
+  --dialogo-pie-fondo:   #f9f9f9;
 }

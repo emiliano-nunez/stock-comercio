@@ -29,18 +29,18 @@
   min-height: var(--toque-min);
   padding: var(--relleno-control);
 
-  border: 2px solid transparent;
-  border-radius: var(--radio-lg);
+  border: 1px solid transparent;
+  border-radius: var(--interfaz-radio-2);
   background-color: var(--color-superficie);
-  color: var(--color-texto);
+  color: var(--interfaz-texto);
 
   font-size: var(--texto-base);
   line-height: var(--texto-base-al);
-  font-weight: var(--grosor-fuerte);
+  font-weight: var(--grosor-media);
 
-  transition: background-color var(--transicion-rapida),
-              border-color var(--transicion-rapida),
-              transform var(--transicion-rapida);
+  transition: background-color var(--transicion-media),
+              border-color var(--transicion-media),
+              transform var(--transicion-media);
 }
 
 .btn:active {
@@ -48,7 +48,7 @@
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--color-marca);
+  outline: 2px solid var(--interfaz-azul);
   outline-offset: 2px;
 }
 
@@ -66,19 +66,19 @@
 }
 
 .btn-principal {
-  background-color: var(--color-marca);
+  background-color: var(--interfaz-azul);
   color: var(--color-texto-invertido);
-  box-shadow: var(--sombra-sm);
+  box-shadow: var(--interfaz-sombra);
 }
 
 .btn-principal:active:not(:disabled) {
-  background-color: var(--color-marca-fuerte);
+  background-color: var(--interfaz-azul-fuerte);
 }
 
 .btn-secundario {
   background-color: var(--color-superficie);
-  color: var(--gris-700);
-  border-color: var(--color-borde);
+  color: var(--interfaz-texto);
+  border-color: var(--interfaz-borde);
 }
 
 .btn-secundario:active:not(:disabled) {
@@ -86,13 +86,13 @@
 }
 
 .btn-peligro {
-  background-color: var(--color-peligro);
+  background-color: var(--interfaz-error);
   color: var(--color-texto-invertido);
-  box-shadow: var(--sombra-sm);
+  box-shadow: var(--interfaz-sombra);
 }
 
 .btn-peligro:active:not(:disabled) {
-  background-color: var(--color-peligro-fuerte);
+  background-color: var(--interfaz-error-tenue-fuerte);
 }
 
 /*
@@ -281,6 +281,10 @@ svg {
 
 /* =================================================================
  * Campos
+ *
+ * Border de 1px, esquinas de 6px, relleno de 12px de los lados y el alto táctil
+ * de la app. Los valores salen de los tokens `--campo-*` y `--interfaz-*`, que
+ * están en tokens.css con el resto del estándar.
  * ================================================================= */
 
 .campo,
@@ -288,24 +292,40 @@ svg {
 .area-texto {
   display: block;
   width: 100%;
-  min-height: var(--toque-min);
-  padding: var(--relleno-control);
+  min-height: var(--campo-alto);
 
-  border: 2px solid var(--color-borde);
-  border-radius: var(--radio-lg);
+  border: 1px solid var(--campo-borde);
+  border-radius: var(--interfaz-radio-2);
   background-color: var(--color-superficie);
-  color: var(--color-texto);
+  color: var(--interfaz-texto);
 
   font-size: var(--texto-base);
   line-height: var(--texto-base-al);
 
-  transition: border-color var(--transicion-rapida), box-shadow var(--transicion-rapida);
+  transition: border-color var(--transicion-media), box-shadow var(--transicion-media);
 }
 
-.campo:focus {
+/* Los campos de una línea llevan el relleno sólo de los lados: con el alto
+   puesto, el texto queda centrado solo y el aire de arriba y abajo sobra. */
+.campo,
+.selector {
+  padding: 0 var(--campo-relleno);
+}
+
+/* El área de texto sí necesita aire vertical: es donde se escriben las notas. */
+.area-texto {
+  padding: var(--interfaz-espacio-1) var(--campo-relleno);
+}
+
+/* El borde del foco y el halo que lo acompaña, en el azul del estándar. Los tres
+   tipos de campo lo llevan: antes sólo el campo de texto lo tenía y el selector
+   se quedaba sin ninguna señal de foco. */
+.campo:focus,
+.selector:focus,
+.area-texto:focus {
   outline: none;
-  border-color: var(--color-marca);
-  box-shadow: 0 0 0 3px var(--verde-100);
+  border-color: var(--interfaz-azul);
+  box-shadow: 0 0 0 2px var(--interfaz-azul-foco);
 }
 
 .campo:disabled {
@@ -336,9 +356,32 @@ svg {
   padding-inline-start: 1.75rem;
 }
 
+/*
+ * El buscador.
+ *
+ * Es el único campo de la app que va sobre el amarillo de la cabecera, y por eso
+ * no lleva borde: es una caja blanca con relieve y esquinas de 2px, como lo dice
+ * el estándar. Con borde, la sombra y el halo del foco se turnarían entre sí.
+ *
+ * El estándar lo pone en 14px y acá queda en 16px, que es el piso que impone el
+ * navegador del teléfono: por debajo de 16px, iOS agranda la página al enfocarlo y
+ * el salto tapa el campo que se está escribiendo.
+ *
+ * Esta regla está después de `.campo` a propósito y no antes: los dos selectores
+ * tienen el mismo peso y el que gana es el que aparece último en el archivo.
+ */
 .buscador-campo {
+  border: 0;
+  border-radius: var(--buscador-radio);
+  box-shadow: var(--buscador-sombra);
   padding-inline-start: 2.5rem;
   padding-inline-end: 4.25rem;
+}
+
+/* Con foco están las dos sombras: la del halo y la de la caja, que si no desaparece
+   y el campo pierde la separación contra el amarillo. */
+.buscador-campo:focus {
+  box-shadow: var(--buscador-sombra), 0 0 0 2px var(--interfaz-azul-foco);
 }
 
 .campo-boton {
@@ -352,11 +395,11 @@ svg {
   padding: var(--relleno-control);
   padding-inline-end: var(--espacio-1);
   background-color: var(--color-superficie);
-  border: 2px solid var(--color-borde);
-  border-radius: var(--radio-lg);
-  color: var(--color-texto);
+  border: 1px solid var(--campo-borde);
+  border-radius: var(--interfaz-radio-2);
+  color: var(--interfaz-texto);
   font-size: var(--texto-base);
-  min-height: var(--toque-min);
+  min-height: var(--campo-alto);
   width: 100%;
   text-align: left;
 }
@@ -542,13 +585,13 @@ svg {
 .fila-tocable {
   display: flex;
   align-items: center;
-  gap: var(--espacio-3);
+  gap: var(--interfaz-espacio-3);
   flex: 1 1 auto;
   min-width: 0;
   min-height: var(--toque-min);
-  padding: var(--espacio-2) var(--espacio-3);
+  padding: var(--interfaz-espacio-2) var(--interfaz-espacio-3);
   border: none;
-  border-radius: var(--radio-md);
+  border-radius: var(--interfaz-radio-2);
   background-color: transparent;
   color: inherit;
   font: inherit;
@@ -558,6 +601,42 @@ svg {
 
 .fila-tocable:active {
   background-color: var(--gris-100);
+}
+
+/*
+ * Las filas de las listas de dentro de una tarjeta: las de categorías, las de
+ * estados de stock, las de proveedores y las del pedido de faltantes.
+ *
+ * La escalera de texto es la de la tarjeta de producto: el nombre en 14px del gris
+ * principal y el detalle en 12px del secundario. Se scopea al recuadro y no a la
+ * fila porque `medio` y `micro` son clases generales que también están en los
+ * diálogos y en el formulario.
+ */
+.recuadro-suave .medio {
+  font-size: var(--interfaz-texto-sm);
+  color: var(--interfaz-texto);
+}
+
+.recuadro-suave .micro {
+  font-size: var(--interfaz-texto-xs);
+}
+
+.recuadro-suave .apagado {
+  color: var(--interfaz-texto-2);
+}
+
+/* Los botones de editar y de borrar de esas filas, con el mismo formato que los de
+   la tarjeta: azul el de editar y rojo el de borrar, los dos con fondo al 10%. */
+.recuadro-suave .editar-categoria,
+.recuadro-suave .editar-proveedor {
+  background-color: var(--interfaz-azul-tenue);
+  color: var(--interfaz-azul);
+}
+
+.recuadro-suave .eliminar-categoria,
+.recuadro-suave .eliminar-proveedor {
+  background-color: var(--interfaz-error-tenue);
+  color: var(--interfaz-error);
 }
 
 /* =================================================================
@@ -649,10 +728,10 @@ svg {
 .etiqueta {
   display: flex;
   align-items: center;
-  gap: var(--espacio-1);
-  margin-bottom: var(--espacio-1);
-  color: var(--gris-700);
-  font-size: var(--texto-sm);
+  gap: var(--interfaz-espacio-1);
+  margin-bottom: var(--campo-grupo-hueco);
+  color: var(--interfaz-texto);
+  font-size: var(--interfaz-texto-sm);
   font-weight: var(--grosor-medio);
 }
 
@@ -679,7 +758,7 @@ svg {
 }
 
 .campo-grupo {
-  margin-bottom: var(--espacio-4);
+  margin-bottom: var(--campo-grupo-margen);
 }
 
 .campo-grupo-apretado {

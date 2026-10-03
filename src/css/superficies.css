@@ -13,9 +13,9 @@
      escrito en tokens.css y ese es el lugar donde se cambia. */
   padding: var(--tarjeta-relleno);
   background-color: var(--color-superficie);
-  border: 1px solid var(--tarjeta-borde);
-  border-radius: var(--tarjeta-radio);
-  box-shadow: var(--tarjeta-sombra);
+  border: 1px solid var(--interfaz-borde);
+  border-radius: var(--interfaz-radio);
+  box-shadow: var(--interfaz-sombra);
   overflow: hidden;
 }
 
@@ -64,11 +64,11 @@
   overflow: hidden;
   white-space: normal;
 
-  font-size: var(--tarjeta-texto-sm);
+  font-size: var(--interfaz-texto-sm);
   line-height: var(--tarjeta-interlinea-2);
   font-weight: var(--grosor-normal);
-  color: var(--tarjeta-texto);
-  margin-block-end: var(--tarjeta-espacio-xs);
+  color: var(--interfaz-texto);
+  margin-block-end: var(--interfaz-espacio-1);
 }
 
 /*
@@ -83,7 +83,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--tarjeta-espacio-xs);
+  gap: var(--interfaz-espacio-1);
   margin-block-start: 0;
 }
 
@@ -103,21 +103,21 @@
   font-size: var(--tarjeta-texto-precio);
   line-height: var(--tarjeta-interlinea-1);
   font-weight: var(--grosor-normal);
-  color: var(--tarjeta-texto);
+  color: var(--interfaz-texto);
 }
 
 /* El costo, el mínimo y el código son los datos de apoyo: 12px y en el gris
    secundario del estándar. */
 .datos-producto .micro {
-  font-size: var(--tarjeta-texto-xs);
+  font-size: var(--interfaz-texto-xs);
 }
 
 .datos-producto .apagado {
-  color: var(--tarjeta-texto-2);
+  color: var(--interfaz-texto-2);
 }
 
 .datos-producto .tenue {
-  color: var(--tarjeta-texto-3);
+  color: var(--interfaz-texto-3);
 }
 
 /*
@@ -139,7 +139,7 @@
   width: 5rem;
   height: 5rem;
   background-color: var(--gris-100);
-  border-radius: var(--tarjeta-radio);
+  border-radius: var(--interfaz-radio);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -239,8 +239,8 @@
    foto: es un dato de apoyo y no tiene por qué caer al fondo de la tarjeta. */
 .stock-fecha {
   margin-block-start: auto;
-  font-size: var(--tarjeta-texto-xs);
-  color: var(--tarjeta-texto-2);
+  font-size: var(--interfaz-texto-xs);
+  color: var(--interfaz-texto-2);
   white-space: nowrap;
 }
 
@@ -255,7 +255,7 @@
   width: 100%;
   aspect-ratio: 1;
   background-color: var(--gris-100);
-  border-radius: var(--tarjeta-radio);
+  border-radius: var(--interfaz-radio);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -307,19 +307,19 @@
   font-size: var(--tarjeta-texto-precio);
   line-height: var(--tarjeta-interlinea-1);
   font-weight: var(--grosor-normal);
-  color: var(--tarjeta-texto);
+  color: var(--interfaz-texto);
 }
 
 .cuadricula .tarjeta .micro {
-  font-size: var(--tarjeta-texto-xs);
+  font-size: var(--interfaz-texto-xs);
 }
 
 .cuadricula .tarjeta .apagado {
-  color: var(--tarjeta-texto-2);
+  color: var(--interfaz-texto-2);
 }
 
 .cuadricula .tarjeta .tenue {
-  color: var(--tarjeta-texto-3);
+  color: var(--interfaz-texto-3);
 }
 
 .marco-foto-vacio {
@@ -462,7 +462,7 @@
   display: grid;
   grid-template-columns: 5rem minmax(0, 1fr) auto;
   grid-template-areas: "foto info acciones";
-  column-gap: var(--tarjeta-espacio-sm);
+  column-gap: var(--interfaz-espacio-2);
   padding: var(--tarjeta-relleno);
 }
 
@@ -475,7 +475,7 @@
       "acciones  acciones";
     /* En la PC lo único que hay entre columnas es la foto y el texto, y ahí sí hay
        lugar: va en el paso de 12px del estándar. */
-    column-gap: var(--tarjeta-espacio-md);
+    column-gap: var(--interfaz-espacio-3);
   }
 }
 
@@ -506,7 +506,7 @@
 .acciones-tarjeta {
   grid-area: acciones;
   display: flex;
-  gap: var(--tarjeta-espacio-sm);
+  gap: var(--interfaz-espacio-2);
 }
 
 @media (max-width: 839px) {
@@ -517,8 +517,8 @@
 
 @media (min-width: 840px) {
   .acciones-tarjeta {
-    border-block-start: 1px solid var(--tarjeta-borde);
-    padding-block-start: var(--tarjeta-espacio-sm);
+    border-block-start: 1px solid var(--interfaz-borde);
+    padding-block-start: var(--interfaz-espacio-2);
   }
 }
 
@@ -538,13 +538,13 @@
  * tenía.
  */
 .acciones-tarjeta .btn-icono-solo {
-  border-radius: var(--tarjeta-radio-boton);
-  background-color: var(--tarjeta-azul-tenue);
-  color: var(--tarjeta-azul);
+  border-radius: var(--interfaz-radio-2);
+  background-color: var(--interfaz-azul-tenue);
+  color: var(--interfaz-azul);
 }
 
 .acciones-tarjeta .btn-icono-solo:hover {
-  background-color: var(--tarjeta-azul-tenue-fuerte);
+  background-color: var(--interfaz-azul-tenue-fuerte);
 }
 
 /*
@@ -556,12 +556,12 @@
  * saldría azul.
  */
 .acciones-tarjeta .texto-peligro {
-  background-color: var(--tarjeta-rojo-tenue);
+  background-color: var(--interfaz-error-tenue);
   color: var(--color-peligro-fuerte);
 }
 
 .acciones-tarjeta .texto-peligro:hover {
-  background-color: var(--tarjeta-rojo-tenue-fuerte);
+  background-color: var(--interfaz-error-tenue-fuerte);
 }
 
 .tarjeta-peligro {
@@ -667,14 +667,21 @@
  * ================================================================= */
 
 .recuadro {
-  padding: var(--espacio-3);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-lg);
+  padding: var(--interfaz-espacio-3);
+  border: 1px solid var(--interfaz-borde);
+  border-radius: var(--interfaz-radio);
   background-color: var(--color-superficie);
 }
 
+/*
+ * El recuadro de una fila de lista.
+ *
+ * Va con el gris neutro del estándar y sin borde: es la caja blanca de la tarjeta
+ * con una fila gris adentro, que es como se separa una cosa de otra sin inventar
+ * una línea por cada lado.
+ */
 .recuadro-suave {
-  background-color: var(--gris-50);
+  background-color: var(--interfaz-fondo);
   border-color: transparent;
 }
 
@@ -788,7 +795,7 @@
   justify-content: center;
   padding: var(--espacio-4);
 
-  background-color: rgb(0 0 0 / 50%);
+  background-color: var(--velo-fondo);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 
@@ -801,17 +808,21 @@
   z-index: var(--capa-dialogo);
 
   width: 100%;
-  max-width: 28rem;
+  max-width: var(--dialogo-ancho);
   /* `dvh` y no `vh`: en el navegador del teléfono `vh` mide la pantalla con la
      barra de direcciones oculta, o sea más alta que lo que se ve, y el diálogo
      se salía por abajo. `min()` deja el 92vh de siempre en la pantalla de
-     escritorio. */
+     escritorio.
+
+     El estándar dejaría esto en 70vh y no se aplica: los diálogos de esta app
+     tienen el formulario de producto con veinte campos, y con 70vh siempre queda
+     un pedazo de formulario debajo de la pantalla. */
   max-height: min(92vh, calc(100dvh - var(--espacio-6)));
   overflow-y: auto;
 
   background-color: var(--color-superficie);
-  border-radius: var(--radio-xl);
-  box-shadow: var(--sombra-xl);
+  border-radius: var(--interfaz-radio);
+  box-shadow: var(--dialogo-sombra);
 }
 
 .dialogo-ancho {
@@ -834,10 +845,11 @@
  *
  * Los rellenos del diálogo son los mismos que en la pantalla grande y ahí el
  * formulario tiene veinte campos: con tanto aire entre ellos el alto crece y
- * el pie queda lejos del contenido, con tres pantallas de_scroll_ por delante.
+ * el pie queda lejos del contenido, con tres pantallas de scroll por delante.
  *
  * No baja el alto táctil de los controles: eso se queda en 52px en todos los
- * tamaños. Lo que se achica es el aire alrededor.
+ * tamaños. Lo que se achica es el aire alrededor, y nunca por debajo del paso de
+ * 12px del estándar.
  */
 @media (max-width: 480px) {
   .velo {
@@ -853,11 +865,11 @@
   .dialogo-cabecera,
   .dialogo-cuerpo,
   .dialogo-pie-fija {
-    padding: var(--espacio-3);
+    padding: var(--interfaz-espacio-3);
   }
 
   .dialogo-pie {
-    padding: 0 var(--espacio-3) var(--espacio-3);
+    padding: 0 var(--interfaz-espacio-3) var(--interfaz-espacio-3);
   }
 }
 
@@ -866,26 +878,29 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--espacio-2);
-  padding: var(--espacio-4);
-  border-bottom: 1px solid var(--color-borde-tenue);
+  padding: var(--dialogo-relleno);
+  border-bottom: 1px solid var(--interfaz-borde);
 }
 
 .dialogo-cabecera-fija {
   flex-shrink: 0;
   background-color: var(--color-marca-tenue);
-  border-top-left-radius: var(--radio-xl);
-  border-top-right-radius: var(--radio-xl);
+  border-top-left-radius: var(--interfaz-radio);
+  border-top-right-radius: var(--interfaz-radio);
 }
 
 .dialogo-cabecera-aviso {
   background-color: var(--color-aviso-tenue);
 }
 
+/* El título del diálogo va en 600 y no en 700: es el estándar, y con el cuerpo del
+   diálogo en 14px una negrita de 18px tapa la primera línea de lo que está
+   abajo. */
 .dialogo-titulo {
   display: flex;
   align-items: center;
   gap: var(--espacio-2);
-  font-weight: var(--grosor-fuerte);
+  font-weight: var(--grosor-media);
 }
 
 .dialogo-cerrar {
@@ -904,7 +919,7 @@
 }
 
 .dialogo-cuerpo {
-  padding: var(--espacio-4);
+  padding: var(--dialogo-relleno);
 }
 
 /*
@@ -930,25 +945,28 @@
 
 .dialogo-pie {
   display: flex;
-  gap: var(--espacio-3);
+  gap: var(--interfaz-espacio-3);
   justify-content: flex-end;
-  padding: 0 var(--espacio-4) var(--espacio-4);
+  padding: 0 var(--dialogo-relleno) var(--dialogo-relleno);
 }
 
 /*
  * El pie de un diálogo largo. Va pegado al borde de abajo y no se desplaza con el
  * contenido, porque sus botones son la razón de estar del diálogo y si hay que
  * llegar hasta el final de una lista para encontrarlos, no sirven.
+ *
+ * Es la barra de pie del estándar: 12px de arriba y 16px de los lados, una línea
+ * arriba y fondo gris muy claro. El pie simple, el de los diálogos sin contenido
+ * largo, no lleva fondo ni línea: ahí los botones van sobre el papel y no hacen
+ * falta las dos cosas.
  */
 .dialogo-pie-fija {
   position: sticky;
   bottom: 0;
   flex-shrink: 0;
-  padding: var(--espacio-3);
-  border-top: 1px solid var(--color-borde-tenue);
-  background-color: rgb(255 255 255 / 95%);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  padding: var(--dialogo-pie-relleno);
+  border-top: 1px solid var(--interfaz-borde);
+  background-color: var(--dialogo-pie-fondo);
 }
 
 /*
@@ -1089,9 +1107,9 @@
 }
 
 .insignia-pequena {
-  padding: 2px var(--tarjeta-espacio-xs);
-  border-radius: var(--tarjeta-radio-insignia);
-  font-size: var(--tarjeta-texto-xs);
+  padding: 2px var(--interfaz-espacio-1);
+  border-radius: var(--interfaz-radio-3);
+  font-size: var(--interfaz-texto-xs);
 }
 
 /* =================================================================
