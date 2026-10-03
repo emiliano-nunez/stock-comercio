@@ -902,34 +902,34 @@
 .pila-avisos {
   position: fixed;
   /*
-   * La separación de abajo sube por el botón de agregar. Ese botón estaba fijo
-   * abajo a la derecha, así que una pila apoyada en el borde le tapaba los
-   * últimos píxeles y, como la pila va por encima en el orden de capas, no sólo
-   * lo tapaba: se comía el toque y el usuario no podía agregar un producto con
-   * un aviso en pantalla.
+   * Los avisos van arriba y centrados.
    *
-   * El botón ya no flota: está en el header, en el buscador. Por eso la pila
-   * vuelve al margen de siempre, y el alto que se liberó acá lo gana la última
-   * fila de tarjetas, que antes quedaba escondida detrás del botón.
+   * Abajo tapaban la última fila de tarjetas y, como la pila va por encima en el
+   * orden de capas, también se comía el toque: no había forma de tocar el aviso ni
+   * lo que estaba abajo. Arriba no hay nada que tapar porque el header es fijo y
+   * los avisos pasan por delante de él.
    */
-  bottom: calc(var(--espacio-6) + env(safe-area-inset-bottom));
+  top: calc(var(--espacio-3) + env(safe-area-inset-top));
   left: var(--espacio-3);
   right: var(--espacio-3);
   z-index: var(--capa-aviso);
 
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: var(--espacio-2);
 
   pointer-events: none;
 }
 
+/* En pantalla ancha la pila toma un ancho fijo y se mantiene centrada con los
+   márgenes automático, para que los avisos no se estiren de lado a lado. */
 @media (min-width: 768px) {
   .pila-avisos {
     left: auto;
-    right: var(--espacio-3);
+    right: auto;
     width: 24rem;
+    margin-inline: auto;
   }
 }
 

@@ -1,6 +1,7 @@
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { dbUtils } from '../db.js';
 import { esc } from '../utils/html.js';
+import { icono } from '../utils/iconos.js';
 
 export class ScannerModal {
   constructor(onScan) {
@@ -8,9 +9,9 @@ export class ScannerModal {
     this.scanner = null;
     this.modal = null;
     this.isScanning = false;
-    // Pasa a true en cuanto el usuario cierra el modal (a mano o por código).
+    // Pasa a true en cuanto el usuario cierra el modal (a mano o por cÃ³digo).
 
-    // formulario de producto sobre un escáner que el usuario ya descartó.
+    // formulario de producto sobre un escÃ¡ner que el usuario ya descartÃ³.
     this._cerrado = false;
   }
 
@@ -27,9 +28,9 @@ export class ScannerModal {
       await this.iniciarEscaneo();
     } catch (error) {
 
-      // aquí, así que el usuario veía desaparecer el modal sin explicación.
+      // aquÃ­, asÃ­ que el usuario veÃ­a desaparecer el modal sin explicaciÃ³n.
       this.escanerFallido = true;
-      console.error('No se pudo iniciar el escáner:', error);
+      console.error('No se pudo iniciar el escÃ¡ner:', error);
     }
   }
 
@@ -40,13 +41,13 @@ export class ScannerModal {
       <div class="dialogo dialogo-sin-desplazar">
         <!-- Header -->
         <div class="dialogo-cabecera">
-          <h2 class="titulo titulo-icono">${icono('escanear')}<span>Escanear Código</span></h2>
-          <button id="cerrar-scanner" class="btn-fantasma btn-icono" aria-label="Cerrar escáner">
-            ✕
+          <h2 class="titulo titulo-icono">${icono('escanear')}<span>Escanear CÃ³digo</span></h2>
+          <button id="cerrar-scanner" class="btn-fantasma btn-icono" aria-label="Cerrar escÃ¡ner">
+            âœ•
           </button>
         </div>
 
-        <!-- Visor del escáner -->
+        <!-- Visor del escÃ¡ner -->
         <div class="marco-video">
           <div id="scanner-container" class="visor-video"></div>
 
@@ -54,7 +55,7 @@ export class ScannerModal {
           <div class="capa-centrada">
             <div class="marco-escaner">
               <div class="pista">
-                Coloca el código dentro del marco
+                Coloca el cÃ³digo dentro del marco
               </div>
             </div>
           </div>
@@ -62,7 +63,7 @@ export class ScannerModal {
 
         <!-- Estado -->
         <div id="scanner-status" class="dialogo-cuerpo centro-texto detalle apagado pie-suave">
-          Iniciando cámara...
+          Iniciando cÃ¡mara...
         </div>
       </div>
     `;
@@ -80,12 +81,12 @@ export class ScannerModal {
     const esContextoSeguro = window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
     if (!esContextoSeguro) {
-      // No se reintenta: sin HTTPS no hay solución, hace falta escribir el código.
+      // No se reintenta: sin HTTPS no hay soluciÃ³n, hace falta escribir el cÃ³digo.
       this.mostrarError(
-        'El lector de la cámara necesita HTTPS. Esta página está abierta por HTTP, y los navegadores sólo dan la cámara en conexiones seguras.',
+        'El lector de la cÃ¡mara necesita HTTPS. Esta pÃ¡gina estÃ¡ abierta por HTTP, y los navegadores sÃ³lo dan la cÃ¡mara en conexiones seguras.',
         { reintentable: false }
       );
-      throw new Error('El escáner requiere HTTPS');
+      throw new Error('El escÃ¡ner requiere HTTPS');
     }
 
     this.scanner = new Html5Qrcode('scanner-container');
@@ -105,25 +106,25 @@ export class ScannerModal {
       }
 
       if (!cameraId) {
-        throw new Error('No se encontraron cámaras');
+        throw new Error('No se encontraron cÃ¡maras');
       }
 
       const config = {
         fps: 15,
         /*
-         * La zona que se escanea tiene que ser una FUNCIÓN, no un objeto.
+         * La zona que se escanea tiene que ser una FUNCIÃ“N, no un objeto.
          *
-         * html5-qrcode interpreta distinto cada forma: un número suelto es una
-         * fracción del visor, una función recibe el ancho y alto reales del
-         * visor, y un objeto {width, height} son PÍXELES ABSOLUTOS. Con un
-         * objeto de 0.8 x 0.4 la zona medía 0,8 píxeles, la librería tiraba
+         * html5-qrcode interpreta distinto cada forma: un nÃºmero suelto es una
+         * fracciÃ³n del visor, una funciÃ³n recibe el ancho y alto reales del
+         * visor, y un objeto {width, height} son PÃXELES ABSOLUTOS. Con un
+         * objeto de 0.8 x 0.4 la zona medÃ­a 0,8 pÃ­xeles, la librerÃ­a tiraba
          * "minimum size of 'config.qrbox' dimension value is 50px" y el bucle
-         * que decodifica los cuadros nunca llegaba a correr. Se veía la cámara
-         * y no se detectaba nada, sin ningún error en pantalla.
+         * que decodifica los cuadros nunca llegaba a correr. Se veÃ­a la cÃ¡mara
+         * y no se detectaba nada, sin ningÃºn error en pantalla.
          *
-         * Como función se mide sobre el visor real. Va ancha y baja porque los
-         * códigos de barras son una línea horizontal, y siempre por encima de los
-         * 50px que la librería exige en cada lado.
+         * Como funciÃ³n se mide sobre el visor real. Va ancha y baja porque los
+         * cÃ³digos de barras son una lÃ­nea horizontal, y siempre por encima de los
+         * 50px que la librerÃ­a exige en cada lado.
          */
         qrbox: (ancho, alto) => ({
           width: Math.max(50, Math.round(ancho * 0.9)),
@@ -155,25 +156,25 @@ export class ScannerModal {
 
       await new Promise(r => setTimeout(r, 300));
       if (!this.scanner.isScanning) {
-        throw new Error('La cámara se abrió pero el lector no pudo arrancar.');
+        throw new Error('La cÃ¡mara se abriÃ³ pero el lector no pudo arrancar.');
       }
 
       this.isScanning = true;
       const statusEl = this.modal.querySelector('#scanner-status');
-      statusEl.textContent = 'Apunta la cámara al código de barras';
+      statusEl.textContent = 'Apunta la cÃ¡mara al cÃ³digo de barras';
       statusEl.className = 'dialogo-cuerpo centro-texto detalle texto-marca pie-suave';
 
     } catch (error) {
-      console.error('Error iniciando escáner:', error);
+      console.error('Error iniciando escÃ¡ner:', error);
       await this.soltarCamara();
 
-      let mensaje = 'No se pudo acceder a la cámara.';
+      let mensaje = 'No se pudo acceder a la cÃ¡mara.';
       if (error?.name === 'NotAllowedError') {
-        mensaje = 'Permisos de cámara denegados. Actívalos en el candado de la barra de direcciones.';
+        mensaje = 'Permisos de cÃ¡mara denegados. ActÃ­valos en el candado de la barra de direcciones.';
       } else if (error?.name === 'NotFoundError') {
-        mensaje = 'No se encontró ninguna cámara en este dispositivo.';
+        mensaje = 'No se encontrÃ³ ninguna cÃ¡mara en este dispositivo.';
       } else if (error?.name === 'NotReadableError') {
-        mensaje = 'La cámara está siendo usada por otra aplicación.';
+        mensaje = 'La cÃ¡mara estÃ¡ siendo usada por otra aplicaciÃ³n.';
       } else if (error?.message) {
         mensaje = error.message;
       }
@@ -188,33 +189,33 @@ export class ScannerModal {
     try {
       await this.scanner.clear();
     } catch {
-      // clear() tira si el escáner nunca llegó a renderizar. No hay nada que soltar.
+      // clear() tira si el escÃ¡ner nunca llegÃ³ a renderizar. No hay nada que soltar.
     }
   }
 
   /**
-   * Deja el escáner en un estado donde no puede escanear y explica qué pasó.
+   * Deja el escÃ¡ner en un estado donde no puede escanear y explica quÃ© pasÃ³.
    *
-   * Además de avisar, ofrece escribir el código a mano. No siempre hay salida:
-   * sin HTTPS, sin permiso de cámara o con otra app usando la cámara, el lector
-   * no tiene arreglo, y obligar al usuario a cerrar y buscar el código en el
+   * AdemÃ¡s de avisar, ofrece escribir el cÃ³digo a mano. No siempre hay salida:
+   * sin HTTPS, sin permiso de cÃ¡mara o con otra app usando la cÃ¡mara, el lector
+   * no tiene arreglo, y obligar al usuario a cerrar y buscar el cÃ³digo en el
    * buscador era un rodeo por algo que se resuelve en la misma pantalla.
    */
   mostrarError(mensaje, { reintentable = true } = {}) {
     const statusEl = this.modal?.querySelector('#scanner-status');
     if (!statusEl) return;
 
-    // corriendo y el usuario cree que todavía está leyendo.
+    // corriendo y el usuario cree que todavÃ­a estÃ¡ leyendo.
     this.modal.querySelector('.marco-video')?.classList.add('oculto');
     this.isScanning = false;
 
     statusEl.className = 'dialogo-cuerpo centro-texto detalle apilado-3';
     statusEl.innerHTML = `
       <p class="texto-peligro">${esc(mensaje)}</p>
-      <p class="apagado">La cámara no va a servir para leer el código. Podés apagarla y escribirlo vos mismo: la app trabaja igual.</p>
+      <p class="apagado">La cÃ¡mara no va a servir para leer el cÃ³digo. PodÃ©s apagarla y escribirlo vos mismo: la app trabaja igual.</p>
       <div class="apilado">
-        <button id="btn-codigo-a-mano" class="btn-principal">${icono('lapiz')} Escribir el código a mano</button>
-        ${reintentable ? `<button id="btn-reintentar-scanner" class="btn-secundario">${icono('refrescar')} Reintentar la cámara</button>` : ''}
+        <button id="btn-codigo-a-mano" class="btn-principal">${icono('lapiz')} Escribir el cÃ³digo a mano</button>
+        ${reintentable ? `<button id="btn-reintentar-scanner" class="btn-secundario">${icono('refrescar')} Reintentar la cÃ¡mara</button>` : ''}
       </div>
     `;
 
@@ -235,11 +236,11 @@ export class ScannerModal {
   }
 
   /**
-   * El campo para escribir el código a mano.
+   * El campo para escribir el cÃ³digo a mano.
    *
    * Se arma como form y no como un input suelto para que la tecla Enter mande
-   * el mismo código que el botón, que es lo que espera cualquiera que esté
-   * tipeando un código de barras.
+   * el mismo cÃ³digo que el botÃ³n, que es lo que espera cualquiera que estÃ©
+   * tipeando un cÃ³digo de barras.
    */
   mostrarCampoCodigo() {
     const statusEl = this.modal.querySelector('#scanner-status');
@@ -247,7 +248,7 @@ export class ScannerModal {
 
     statusEl.className = 'dialogo-cuerpo centro-texto detalle apilado-3';
     statusEl.innerHTML = `
-      <p class="medio">Escribí el código de barras</p>
+      <p class="medio">EscribÃ­ el cÃ³digo de barras</p>
       <form id="form-codigo-manual" class="apilado" novalidate>
         <input
           type="text"
@@ -259,10 +260,10 @@ export class ScannerModal {
           autocorrect="off"
           spellcheck="false"
           placeholder="Ej: 7791234567890"
-          aria-label="Código de barras"
+          aria-label="CÃ³digo de barras"
         >
-        <p id="aviso-codigo-manual" class="texto-peligro oculto">Poné el código y volvé a buscar.</p>
-        <button type="submit" class="btn-principal">Buscar este código</button>
+        <p id="aviso-codigo-manual" class="texto-peligro oculto">PonÃ© el cÃ³digo y volvÃ© a buscar.</p>
+        <button type="submit" class="btn-principal">Buscar este cÃ³digo</button>
       </form>
     `;
 
@@ -299,29 +300,29 @@ export class ScannerModal {
     this.reproducirBeep();
 
     const statusEl = this.modal.querySelector('#scanner-status');
-    statusEl.textContent = `✅ Código detectado: ${codigo}`;
+    statusEl.textContent = `âœ… CÃ³digo detectado: ${codigo}`;
     statusEl.className = 'dialogo-cuerpo centro-texto detalle texto-marca-fuerte';
 
     await this.resolverCodigo(codigo, 800);
   }
 
   /**
-   * Cierra el escáner y le entrega el código a la app, exista o no en la base.
+   * Cierra el escÃ¡ner y le entrega el cÃ³digo a la app, exista o no en la base.
    *
-   * Lo usan tanto el código leído por la cámara como el que escribió el usuario a
+   * Lo usan tanto el cÃ³digo leÃ­do por la cÃ¡mara como el que escribiÃ³ el usuario a
    * mano: si cada uno armara su propio camino, el que escribe a mano se
-   * saltaría la búsqueda de duplicados y el diálogo de código repetido.
+   * saltarÃ­a la bÃºsqueda de duplicados y el diÃ¡logo de cÃ³digo repetido.
    *
-   * modal se vaya. El código escrito a mano no la necesita: no hay de qué
+   * modal se vaya. El cÃ³digo escrito a mano no la necesita: no hay de quÃ©
    * taparse la vista.
    */
   async resolverCodigo(codigo, espera = 0) {
 
-    // codigoBarras no es único, y con .first() el usuario veía un producto
+    // codigoBarras no es Ãºnico, y con .first() el usuario veÃ­a un producto
 
     //
 
-    // que el usuario elija, y con un primero + un número no hay nada que elegir.
+    // que el usuario elija, y con un primero + un nÃºmero no hay nada que elegir.
     const coincidencias = await dbUtils.buscarPorCodigoBarras(codigo);
 
     await this.detenerEscaneo();
@@ -330,7 +331,7 @@ export class ScannerModal {
       await new Promise(r => setTimeout(r, espera));
     }
 
-    // Si en esos milisegundos el usuario cerró el escáner a mano (✕, Escape o
+    // Si en esos milisegundos el usuario cerrÃ³ el escÃ¡ner a mano (âœ•, Escape o
 
     if (this._cerrado) return;
 

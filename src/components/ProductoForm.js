@@ -283,7 +283,13 @@ export class ProductoForm {
                     ${icono('galeria')}<span>Galería</span>
                   </button>
                 </div>
-                <input type="file" id="input-galeria" accept="image/*" capture="environment" class="oculto">
+                <!--
+              Sin capture: con ese atributo el teléfono abre la cámara en vez del
+              selector de archivos, así que el botón decía "Galería" y sacaba la
+              foto. Con accept="image/*" a secas el selector deja elegir una foto
+              ya sacada, y en la mayoría de los teléfonos también ofrece la cámara.
+            -->
+            <input type="file" id="input-galeria" accept="image/*" class="oculto">
               </div>
               ${!camaraDisponible ? `
                 <p class="micro apagado con-margen-arriba-chica">${icono('alerta')} La cámara requiere HTTPS. Usá la galería.</p>
