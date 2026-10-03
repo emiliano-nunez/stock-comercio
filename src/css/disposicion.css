@@ -450,24 +450,26 @@
   }
 
   /*
-   * La cabecera es una columna de piezas, cada una debajo de la otra:
+   * La cabecera es una columna de SEIS piezas, cada una debajo de la otra:
    *
    *   1. el nombre de la app
    *   2. el buscador
    *   3. el botón de agregar, a lo ancho
-   *   4. inventario, catálogo y categorías, uno debajo del otro
-   *   5. historial y pedido, uno debajo del otro
+   *   4. inventario, catálogo y categorías
+   *   5. historial
+   *   6. pedido
    *
-   * Para que el nombre quede solo y los dos botones al final hay que romper la
-   * fila que en el teléfono los junta: `display: contents` borra su caja y
-   * convierte a sus hijos en piezas directas de la columna. Es lo mismo que se
-   * hace con las pestañas, que en el teléfono son una fila y acá una lista.
+   * Para que quede así hay que romper las dos filas que en el teléfono juntan las
+   * piezas: la del nombre con el par de botones, y la del par entre sí. En las
+   * dos, `display: contents` borra la caja y deja a los hijos como piezas
+   * directas de la columna. Es lo mismo que se hace con las pestañas, que en el
+   * teléfono son una fila de tres y acá una lista.
    *
    * OJO con el selector. `display: contents` borra la CAJA, no el lugar en el
-   * árbol del DOM, así que para el CSS el nombre y el par de botones siguen
-   * siendo hijos de `.cabecera-fila`. El `order` tiene que pedirse con
-   * `.cabecera-fila > ...` y no con `.cabecera-cuerpo > ...`, que nunca
-   * matcheó y por eso los botones quedaban sin ancho y escondidos.
+   * árbol del DOM, así que para el CSS los hijos siguen colgando de
+   * `.cabecera-fila` y de `.fila-corta`, nunca de `.cabecera-cuerpo`. El `order`
+   * tiene que pedirse con esos nombres de clase intermedios, porque con
+   * `.cabecera-cuerpo > ...` no matchea nunca y el `order` se pierde en silencio.
    */
   .cabecera-cuerpo {
     display: flex;
@@ -543,19 +545,41 @@
    * botón: en columna los dos se estiran a lo ancho de la columna y quedan
    * alineados con el resto de las piezas.
    */
+  /*
+   * El par historial/pedido también se deshace. Si se lo deja como una sola
+   * pieza, esa pieza es una columna interna y se sigue leyendo como un bloque
+   * con dos cosas adentro en vez de dos opciones de la barra. Con
+   * `display: contents` cada botón pasa a ser una pieza de la columna y la lista
+   * queda de seis, no de cinco.
+   */
   .cabecera-fila > .fila-corta {
-    order: 4;
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--espacio-1);
-    margin-block-start: var(--espacio-2);
+    display: contents;
+  }
+
+  .cabecera-fila > .fila-corta > * {
+    order: 5;
+  }
+
+  .cabecera-fila > .fila-corta > *:last-child {
+    order: 6;
   }
 
   /*
    * Y se les da el alto mínimo táctil, que en el teléfono no necesitan porque se
    * apoyan contra el nombre.
    */
-  .cabecera-fila > .fila-corta .btn-texto {
+  /*
+   * Y los dos botones se miden como las pestañas: mismo alto, ícono a la
+   * izquierda, marca de activo en el borde izquierdo y el ancho entero de la
+   * columna.
+   *
+   * El ancho sale de `align-self: stretch` y no de un `width: 100%`: al ser
+   * piezas directas de la columna, el `stretch` del padre ya las deja a lo ancho
+   * y un `width: 100%` las haría pedir el ancho de la columna sin contar el
+   * relleno, con lo que se salen por la derecha.
+   */
+  .cabecera-fila > .fila-corta > .btn-texto {
+    align-self: stretch;
     min-height: var(--toque-min);
     justify-content: flex-start;
     gap: var(--espacio-3);
@@ -566,7 +590,7 @@
     font-size: var(--texto-sm);
   }
 
-  .cabecera-fila > .fila-corta .btn-texto svg {
+  .cabecera-fila > .fila-corta > .btn-texto svg {
     flex-shrink: 0;
     width: 1.15rem;
     height: 1.15rem;
