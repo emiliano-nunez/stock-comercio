@@ -329,6 +329,79 @@
   }
 }
 
+/*
+ * La segunda fila del header: el buscador y el botón de agregar.
+ *
+ * El buscador toma el ancho que sobra y el botón se queda con su cuadrado, que
+ * es lo mínimo que permite tocarlo. `min-width: 0` en el buscador es lo que
+ * deja que en realidad encoja: sin eso, un input con `width: 100%` se niega a
+ * bajar del ancho que le da su contenido y empuja el botón fuera de la fila.
+ *
+ * Estas reglas van ACÁ y no más abajo, en la parte de utilidades, porque la
+ * media query de 1024px que ensancha el botón está más arriba en el archivo.
+ * Con el orden al revés, la regla base le gana a la de la media query —misma
+ * especificidad, gana la última— y el botón se queda con el ancho del cuadrado
+ * en vez de ocupar la columna.
+ */
+.fila-busca {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+}
+
+.fila-busca > .posicionado {
+  flex: 1;
+  min-width: 0;
+}
+
+/*
+ * El botón de agregar, a la derecha del buscador.
+ *
+ * Toma la misma altura y la misma curva que el campo de al lado, y no las suyas
+ * propias: así los dos se leen como una sola fila y no como dos cosas sueltas.
+ * Por eso el alto y la curva salen de las variables del campo en vez de
+ * escribirse como números acá.
+ *
+ * El ancho sí es el suyo, porque tiene que ser cuadrado para que el ícono quede
+ * centrado. En el teléfono es sólo el ícono; la palabra aparece en el
+ * escritorio, con el botón a lo ancho de la barra.
+ */
+.boton-agregar {
+  flex: 0 0 auto;
+  width: var(--toque-min);
+  height: var(--toque-min);
+  margin-top: var(--espacio-2);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+
+  border-radius: var(--radio-lg);
+  background-color: var(--color-marca);
+  color: var(--color-texto-invertido);
+  font-size: var(--texto-lg);
+  line-height: 1;
+}
+
+.boton-agregar:active {
+  background-color: var(--color-marca-fuerte);
+  transform: scale(0.95);
+}
+
+/*
+ * La palabra del botón de agregar.
+ *
+ * No usa `.texto-boton`, que es la regla de "si no entra, escondé el texto" y
+ * corta en 400px: en una tablet de 700px el botón se volvía un cuadrado con
+ * "Crear" apretado adentro. Acá el ícono es solo hasta que la barra lateral
+ * existe, porque es recién ahí que el botón pasa a ocupar todo el ancho y la
+ * palabra entra sin apretar.
+ */
+.texto-agregar {
+  display: none;
+}
+
 .rejilla-inventario {
   display: grid;
   grid-template-columns: 1fr;
@@ -385,30 +458,23 @@
   }
 
   /*
-   * El título y los botones de historial y pedido están, en el HTML, juntos en
-   * una fila que en el teléfono va arriba de todo. Con `display: contents` esa
-   * fila desaparece y sus tres hijos pasan a ser hijos directos de la barra, así
-   * que con `order` se reacomodan como una lista vertical sin tocar el HTML y
-   * sin romper el teléfono, donde la fila sigue siendo una fila.
+   * La fila del nombre se deshace y sus tres hijos pasan a ser hijos directos de
+   * la barra, para que el nombre, el buscador, el botón de agregar y las pestañas
+   * queden en una sola columna.
    *
-   * El orden es el que se lee: el nombre, el buscador, y después las cinco
-   * opciones, cada una debajo de la otra.
+   * El orden NO hay que pedirlo con `order`: en el HTML ya es el que se quiere
+   * ver —el nombre y el par historial/pedido en la primera fila, después el
+   * buscador con el botón, y después las pestañas— y `display: contents` no
+   * cambia el orden de lectura, sólo deja de dibujar la caja. Con `order` había
+   * que repetir el orden en dos grupos de selectores distintos, porque
+   * `display: contents` borra la caja pero no el lugar en el árbol del DOM, y
+   * cualquier selector escrito mal dejaba de matchear en silencio.
    */
   .cabecera-fila {
     display: contents;
   }
 
-  /*
-   * OJO con el selector de estos dos.
-   *
-   * `display: contents` borra la CAJA de la fila, no su lugar en el árbol del
-   * DOM: para el selector de CSS, el título y el par historial/pedido siguen
-   * siendo hijos de `.cabecera-fila`. Por eso `order` tiene que pedirse con
-   * `.cabecera-fila > h1` y no con `.cabecera-cuerpo > h1`, que nunca	matcheó
-   * y por eso los dos botones quedaban sin ancho y ocultos.
-   */
   .cabecera-fila > h1 {
-    order: 1;
     margin-block-end: var(--espacio-3);
     /* En la barra el nombre va a la izquierda; centrado se ve como un boton. */
     justify-content: flex-start;
@@ -422,6 +488,7 @@
   .fila-busca {
     flex-direction: column;
     gap: var(--espacio-2);
+    margin-block-end: var(--espacio-3);
   }
 
   .fila-busca > .posicionado {
@@ -440,40 +507,27 @@
   .boton-agregar {
     width: 100%;
     margin-top: 0;
-    gap: var(--espacio-2);
     padding-inline: var(--espacio-4);
     font-size: var(--texto-base);
     font-weight: var(--grosor-fuerte);
   }
 
-  /*
-   * El orden de abajo hacia arriba es el que se lee: el nombre, el buscador, el
-   * botón de agregar, las tres pestañas, y al pie historial y pedido.
-   */
-  .fila-busca {
-    order: 2;
-    margin-block-end: var(--espacio-3);
-  }
-
-  .cabecera-cuerpo > .pestanas {
-    order: 3;
+  .texto-agregar {
+    display: inline;
   }
 
   /*
    * Historial y pedido van en fila, uno al lado del otro, abajo de las pestañas.
    *
-   * Se los había puesto en columna porque quedaba más parejo con las pestañas,
-   * que también son una lista, pero en una columna de 18rem los dos botones
-   * apilados se leen como dos opciones más de la lista, y son el par que va al
-   * lado del nombre. En fila se leen como el par que son. Es la disposición que
-   * ya está probada en el teléfono.
+   * En el teléfono ya son una fila y acá se deja igual: se leen como el par que
+   * son, y no como dos opciones más de la lista.
    *
    * Cada uno toma la mitad con `flex: 1`, así que se apoyan en los bordes de la
    * barra y el conjunto se lee como una fila más de la lista.
    */
   .cabecera-fila > .fila-corta {
-    order: 4;
     gap: var(--espacio-2);
+    margin-block-start: var(--espacio-2);
   }
 
   /*
@@ -642,58 +696,6 @@
 
 .fila-corta {
   gap: 0.375rem;
-}
-
-/*
- * La segunda fila del header: el buscador y el botón de agregar.
- *
- * El buscador toma el ancho que sobra y el botón se queda con su cuadrado, que
- * es lo mínimo que permite tocarlo. `min-width: 0` en el buscador es lo que
- * deja que en realidad encoja: sin eso, un input con `width: 100%` se niega a
- * bajar del ancho que le da su contenido y empuja el botón fuera de la fila.
- */
-.fila-busca {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--espacio-2);
-}
-
-.fila-busca > .posicionado {
-  flex: 1;
-  min-width: 0;
-}
-
-/*
- * El botón de agregar, a la derecha del buscador.
- *
- * Toma la misma altura y la misma curva que el campo de al lado, y no las suyas
- * propias: así los dos se leen como una sola fila y no como dos cosas sueltas.
- * Por eso el alto y la curva salen de las variables del campo en vez de
- * escribirse como números acá.
- *
- * El ancho sí es el suyo, porque tiene que ser cuadrado para que el ícono quede
- * centrado y no seatechique.
- */
-.boton-agregar {
-  flex: 0 0 auto;
-  width: var(--toque-min);
-  height: var(--toque-min);
-  margin-top: var(--espacio-2);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: var(--radio-lg);
-  background-color: var(--color-marca);
-  color: var(--color-texto-invertido);
-  font-size: var(--texto-lg);
-  line-height: 1;
-}
-
-.boton-agregar:active {
-  background-color: var(--color-marca-fuerte);
-  transform: scale(0.95);
 }
 
 .fila-apretada {
