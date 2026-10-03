@@ -138,8 +138,8 @@ export class PedidoModal {
     } else {
       const haySinProveedor = this.grupos.some(g => !g.clave);
       modal.innerHTML = `
-        <div class="dialogo">
-          <div class="dialogo-cabecera">
+        <div class="dialogo dialogo-columna">
+          <div class="dialogo-cabecera dialogo-cabecera-fija">
             <h2 class="titulo titulo-icono">${icono('etiqueta')}<span>Pedido de Faltantes</span></h2>
             <button id="cerrar-pedido" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
           </div>

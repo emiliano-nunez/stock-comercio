@@ -49,10 +49,23 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   const claseEstado = estado === 'vacio' ? 'insignia-sin' : estado === 'poco' ? 'insignia-poco' : 'insignia-ok';
   const textoEstado = estado === 'vacio' ? 'Agotado' : estado === 'poco' ? 'Poco' : 'OK';
 
+  /*
+   * Todas las filas aparecen siempre.
+   *
+   * Antes la fila se sacaba entera cuando el valor venía vacío, así que la planilla
+   * cambiaba de largo según el producto y no se distinguía "no lo llenó" de "este
+   * producto no tiene ese dato". Ahora la fila está siempre y el hueco se dice con
+   * un guion, que es lo que el usuario lee como campo sin llenar.
+   */
   const filas = [];
+  const SIN_LLENAR = '<span class="sin-llenar">sin llenar</span>';
+
   const fila = (dato, valor, extra = '') => {
-    if (valor === null || valor === undefined || valor === '') return;
-    filas.push(`<tr><th scope="row">${esc(dato)}</th><td class="planilla-valor ${extra}">${valor}</td></tr>`);
+    const vacio = valor === null || valor === undefined || valor === '';
+    const celda = vacio ? SIN_LLENAR : valor;
+    filas.push(
+      `<tr><th scope="row">${esc(dato)}</th><td class="planilla-valor ${extra}">${celda}</td></tr>`
+    );
   };
 
   fila('Stock', `${stock} <span class="tenue">${esc(unidadStock)}</span>`, 'js-detalle-stock');

@@ -134,8 +134,8 @@ export class HistorialModal {
     ` : '';
 
     modal.innerHTML = `
-      <div class="dialogo">
-        <div class="dialogo-cabecera">
+      <div class="dialogo dialogo-columna">
+        <div class="dialogo-cabecera dialogo-cabecera-fija">
           <h2 class="titulo titulo-icono">${icono('sincronizar')} Volver Atrás</h2>
           <button id="cerrar-historial" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
         </div>

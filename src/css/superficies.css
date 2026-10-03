@@ -120,6 +120,21 @@
     height: 2.5rem;
     font-size: 1rem;
   }
+
+  /*
+   * Los botones de la tarjeta no se estiran.
+   *
+   * Llevan `btn-crece`, que es `flex: 1`, para repartirse el ancho de la fila
+   * cuando hay dos: en el escritorio eso los deja parejos. En el teléfono, con la
+   * tarjeta de una columna, cada uno se llevaba la mitad del ancho y el renglón
+   * entero parecía devoted a los botones en vez de a los datos.
+   *
+   * No baja el alto táctil: siguen siendo cuadrados de 52px, que es lo que se toca
+   * con el dedo. Lo que se achica es el ancho.
+   */
+  .acciones-tarjeta .btn-crece {
+    flex: 0 0 auto;
+  }
 }
 
 /*
@@ -545,7 +560,11 @@
 
   width: 100%;
   max-width: 28rem;
-  max-height: 90vh;
+  /* `dvh` y no `vh`: en el navegador del teléfono `vh` mide la pantalla con la
+     barra de direcciones oculta, o sea más alta que lo que se ve, y el diálogo
+     se salía por abajo. `min()` deja el 92vh de siempre en la pantalla de
+     escritorio. */
+  max-height: min(92vh, calc(100dvh - var(--espacio-6)));
   overflow-y: auto;
 
   background-color: var(--color-superficie);
@@ -564,8 +583,40 @@
 .dialogo-columna {
   display: flex;
   flex-direction: column;
-  max-height: 92vh;
+  max-height: min(92vh, calc(100dvh - var(--espacio-6)));
   overflow: hidden;
+}
+
+/*
+ * En el teléfono el formulario se achica.
+ *
+ * Los rellenos del diálogo son los mismos que en la pantalla grande y ahí el
+ * formulario tiene veinte campos: con tanto aire entre ellos el alto crece y
+ * el pie queda lejos del contenido, con tres pantallas de_scroll_ por delante.
+ *
+ * No baja el alto táctil de los controles: eso se queda en 52px en todos los
+ * tamaños. Lo que se achica es el aire alrededor.
+ */
+@media (max-width: 480px) {
+  .velo {
+    padding: var(--espacio-2);
+    padding-top: calc(var(--espacio-2) + env(safe-area-inset-top));
+    padding-bottom: calc(var(--espacio-2) + env(safe-area-inset-bottom));
+  }
+
+  .dialogo {
+    max-height: calc(100dvh - var(--espacio-4));
+  }
+
+  .dialogo-cabecera,
+  .dialogo-cuerpo,
+  .dialogo-pie-fija {
+    padding: var(--espacio-3);
+  }
+
+  .dialogo-pie {
+    padding: 0 var(--espacio-3) var(--espacio-3);
+  }
 }
 
 .dialogo-cabecera {
@@ -1010,6 +1061,13 @@
 .planilla-valor {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* El campo que el usuario no llenó: se ve como texto, no como dato. */
+.sin-llenar {
+  color: var(--gris-400);
+  font-style: italic;
+  font-variant-numeric: normal;
 }
 
 .planilla tr:last-child th,
