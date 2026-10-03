@@ -2,6 +2,7 @@ import { db, dbUtils } from '../db.js';
 import { toast } from '../utils/toast.js';
 import { esc, escAttr } from '../utils/html.js';
 import { exportarBackup, importarBackup, descargarBackup, leerBackupArchivo } from '../utils/backup.js';
+import { icono } from '../utils/iconos.js';
 
 /**
  * Dos cosas que hay que decir y que no están en otro lado.
@@ -100,7 +101,7 @@ export class HistorialModal {
               data-snapshot-id="${escAttr(item.id)}"
             >
               <div class="miniatura miniatura-marca">
-                <span class="mediano">🔄</span>
+                <span class="mediano">${icono('sincronizar')}</span>
               </div>
               <div class="crece ancho-cero">
                 <p class="fuerte cortado">${esc(this.formatearMotivo(item.motivo))}</p>
@@ -135,7 +136,7 @@ export class HistorialModal {
     modal.innerHTML = `
       <div class="dialogo">
         <div class="dialogo-cabecera">
-          <h2 class="titulo">🔄 Volver Atrás</h2>
+          <h2 class="titulo">${icono('sincronizar')} Volver Atrás</h2>
           <button id="cerrar-historial" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
         </div>
         ${cuerpo}
@@ -377,7 +378,7 @@ formatearFecha(fechaISO) {
         <div class="dialogo">
           <div class="dialogo-cabecera dialogo-cabecera-aviso">
             <h2 class="titulo fila">
-              <span>⚠️</span> ${esc(titulo)}
+              <span class="icono-rosa">${icono('alerta')}</span> ${esc(titulo)}
             </h2>
             <button class="btn-fantasma btn-icono" data-accion="cancelar" aria-label="Cerrar">✕</button>
           </div>

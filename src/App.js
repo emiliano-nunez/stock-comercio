@@ -8,6 +8,7 @@ import { abrirDetalleProducto } from './components/ProductoDetalle.js';
 import { toast } from './utils/toast.js';
 import { esc, escAttr, fmtPrecio } from './utils/html.js';
 import { normalizarTexto } from './utils/texto.js';
+import { icono } from './utils/iconos.js';
 
 // Clave interna para ordenar los productos sin categoría al final.
 // Se usa '\uFFFF' (el último código Unicode) en vez de un texto legible: antes
@@ -274,10 +275,10 @@ export class App {
               <h1 class="titulo">📦 Stock Comercio</h1>
               <div class="fila fila-corta">
                 <button id="btn-historial" class="btn-texto" aria-label="Historial y restaurar">
-                  <span aria-hidden="true">🔄</span><span class="texto-boton">Historial</span>
+                  ${icono('historial')}<span class="texto-boton">Historial</span>
                 </button>
                 <button id="btn-pedido" class="btn-texto" aria-label="Pedido de faltantes">
-                  <span aria-hidden="true">📋</span><span class="texto-boton">Pedido</span>
+                  ${icono('etiqueta')}<span class="texto-boton">Pedido</span>
                 </button>
               </div>
             </div>
@@ -291,9 +292,9 @@ export class App {
                 placeholder="Buscar por nombre o código..."
                 value="${escAttr(this.busqueda)}"
               >
-              <span class="buscador-lupa">🔍</span>
+              <span class="buscador-lupa">${icono('buscar')}</span>
               <button id="btn-escanear-header" class="buscador-boton" aria-label="Escanear código de barras">
-                📷
+                ${icono('camara')}
               </button>
             </div>
 
@@ -346,7 +347,7 @@ export class App {
           class="boton-flotante"
           aria-label="Agregar producto"
         >
-          <span class="grande" aria-hidden="true">＋</span>
+          <span class="grande">${icono('mas')}</span>
         </button>
       </div>
     `;
@@ -369,7 +370,7 @@ export class App {
       if (this.busqueda) {
         return `
           <div class="vacio">
-            <span class="vacio-icono">🔍</span>
+            <span class="vacio-icono">${icono('buscar')}</span>
             <p class="detalle medio con-margen-arriba">Sin resultados</p>
             <p class="detalle con-margen-arriba-chica">No se encontró "${esc(this.busqueda)}"</p>
             <button id="btn-limpiar-busqueda" class="btn-principal con-margen-arriba-amplia">Limpiar búsqueda</button>
@@ -379,7 +380,7 @@ export class App {
 
       return `
         <div class="vacio">
-          <span class="vacio-icono-grande">📦</span>
+          <span class="vacio-icono-grande">${icono('lapiz')}</span>
           <h2 class="subtitulo con-margen-arriba-amplia">Inventario vacío</h2>
           <p class="detalle apagado con-margen-arriba">Toca "Agregar producto" para empezar</p>
         </div>
@@ -673,7 +674,7 @@ export class App {
 
     const avisoFotoPerdida = p.fotoPerdida
       ? `<p class="aviso aviso-atencion fila-corta con-margen-abajo-chica">
-           <span class="no-crece">⚠️</span>
+           <span class="no-crece">${icono('alerta')}</span>
            <span>Falta la foto</span>
          </p>`
       : '';
@@ -759,7 +760,7 @@ export class App {
 
         ${this.categorias.length === 0 ? `
           <div class="vacio">
-            <span class="vacio-icono">📂</span>
+            <span class="vacio-icono">${icono('etiqueta')}</span>
             <p class="detalle medio con-margen-arriba">Sin categorías</p>
             <button id="btn-nueva-categoria-vacia" class="btn-principal con-margen-arriba">➕ Crear primera categoría</button>
           </div>
@@ -849,7 +850,7 @@ export class App {
           <div class="fila fila-separada con-margen-abajo">
             <h3 class="etiqueta-seccion">🚚 Proveedores</h3>
             <button id="btn-nuevo-proveedor" class="btn-principal btn-chico">
-              <span aria-hidden="true">➕</span><span>Nuevo</span>
+              ${icono('mas')}<span>Nuevo</span>
             </button>
           </div>
 
@@ -921,7 +922,7 @@ export class App {
     // el usuario no distinguiría una cosa de la otra.
     const avisoFotoPerdida = p.fotoPerdida
       ? `<p class="aviso aviso-atencion fila-corta">
-           <span class="no-crece">⚠️</span>
+           <span class="no-crece">${icono('alerta')}</span>
            <span class="cortado">Falta la foto: no se encuentra en el dispositivo</span>
          </p>`
       : '';
@@ -969,14 +970,14 @@ export class App {
               grilla se ve despareja.
             -->
             <div class="fila fila-corta con-margen-arriba-auto separador-arriba relleno-superior-1">
-              <button class="btn-fantasma btn-crece btn-chico" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
-                <span aria-hidden="true">📋</span><span>Duplicar</span>
+              <button class="btn-fantasma btn-crece btn-icono-solo" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
+                ${icono('duplicar')}
               </button>
-              <button class="btn-fantasma btn-crece btn-chico" data-action="edit" data-id="${escAttr(p.id)}" aria-label="Editar ${escAttr(p.nombre)}">
-                <span aria-hidden="true">✏️</span><span>Editar</span>
+              <button class="btn-fantasma btn-crece btn-icono-solo" data-action="edit" data-id="${escAttr(p.id)}" aria-label="Editar ${escAttr(p.nombre)}">
+                ${icono('editar')}
               </button>
-              <button class="btn-fantasma btn-crece btn-chico texto-peligro" data-action="delete" data-id="${escAttr(p.id)}" aria-label="Eliminar ${escAttr(p.nombre)}">
-                <span aria-hidden="true">🗑️</span><span>Eliminar</span>
+              <button class="btn-fantasma btn-crece btn-icono-solo texto-peligro" data-action="delete" data-id="${escAttr(p.id)}" aria-label="Eliminar ${escAttr(p.nombre)}">
+                ${icono('eliminar')}
               </button>
             </div>
           </div>

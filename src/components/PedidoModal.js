@@ -1,6 +1,7 @@
 import { dbUtils, getUnidadBase, claveProveedor } from '../db.js';
 import { toast } from '../utils/toast.js';
 import { esc, escAttr } from '../utils/html.js';
+import { icono } from '../utils/iconos.js';
 
 // El título que se manda arriba de todo del texto copiado, para que el
 // proveedor reconozca de qué lista viene.
@@ -125,7 +126,7 @@ export class PedidoModal {
             <button id="cerrar-pedido" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
           </div>
           <div class="dialogo-cuerpo centro-texto">
-            <span class="vacio-icono">✅</span>
+            <span class="vacio-icono">${icono('verificar')}</span>
             <h3 class="subtitulo con-margen-arriba-amplia">¡Todo en orden!</h3>
             <p class="apagado con-margen-arriba">No hay productos por debajo del stock mínimo</p>
           </div>

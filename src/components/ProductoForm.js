@@ -6,6 +6,7 @@ import { abrirCodigoDuplicado } from './CodigoDuplicado.js';
 import { toast } from '../utils/toast.js';
 import { esc, escAttr } from '../utils/html.js';
 import { normalizarTexto } from '../utils/texto.js';
+import { icono } from '../utils/iconos.js';
 
 export class ProductoForm {
   constructor(onSave, onClose, producto = null, onBuscarCodigo = null, onBorrarProducto = null) {
@@ -257,7 +258,7 @@ export class ProductoForm {
         <form id="form-producto" class="dialogo-cuerpo apilado-3 crece">
           <!-- Foto del producto -->
           <div>
-            <div class="etiqueta">📷 Foto del producto</div>
+            <div class="etiqueta">${icono('camara')} Foto del producto</div>
             <div class="posicionado">
               <div id="preview-container" class="marco-foto marco-foto-vacio">
                 ${this.imagenUrl ? `
@@ -265,7 +266,7 @@ export class ProductoForm {
                   <button type="button" id="quitar-foto" class="boton-cerrar-foto" aria-label="Quitar foto">✕</button>
                 ` : `
                   <div class="vacio">
-                    <span class="vacio-icono">📷</span>
+                    <span class="vacio-icono">${icono('camara')}</span>
                     <p class="detalle con-margen-arriba-chica">Sin foto</p>
                   </div>
                 `}
@@ -278,7 +279,7 @@ export class ProductoForm {
                   ${!camaraDisponible ? 'disabled' : ''}
                   aria-label="${camaraDisponible ? 'Abrir cámara' : 'Cámara requiere HTTPS (no disponible en red local)'}"
                 >
-                  📷 Cámara${!camaraDisponible ? ' 🔒' : ''}
+                  ${icono('camara')} Cámara${!camaraDisponible ? ' 🔒' : ''}
                 </button>
                 <button type="button" id="btn-galeria" class="btn-secundario btn-crece fila-centro">
                   🖼️ Galería
@@ -1185,7 +1186,7 @@ export class ProductoForm {
     } else {
       container.innerHTML = `
         <div class="vacio">
-          <span class="vacio-icono">📷</span>
+          <span class="vacio-icono">${icono('camara')}</span>
           <p class="detalle con-margen-arriba-chica">Sin foto</p>
         </div>
       `;

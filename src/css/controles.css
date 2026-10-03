@@ -142,6 +142,41 @@
   }
 }
 
+/*
+ * Los íconos de la app
+ *
+ * El tamaño va acá y no en cada svg, porque el default de un svg embebido es
+ * 300x150 y sin esto el botón se descuadra. El 1em deja que el ícono crezca con
+ * el texto del control que lo contiene.
+ */
+svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/*
+ * El botón de sólo ícono.
+ *
+ * Cuadrado y del tamaño del mínimo táctil, que la clase base ya no deja bajar:
+ * sacar el texto ahorra ancho pero el área que se toca con el dedo sigue siendo
+ * la misma.
+ */
+.btn-icono-solo {
+  width: var(--toque-min);
+  height: var(--toque-min);
+  padding: 0;
+  font-size: 1.25rem;
+}
+
+/* El ícono de los títulos y los slotted, que va más grande que el del botón. */
+.vacio-icono svg,
+.vacio-icono-grande svg {
+  width: 1.6em;
+  height: 1.6em;
+}
+
 .btn-fantasma.texto-peligro:active:not(:disabled) {
   background-color: var(--rojo-50);
 }

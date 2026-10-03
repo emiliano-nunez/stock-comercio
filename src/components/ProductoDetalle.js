@@ -1,5 +1,6 @@
 import { TIPOS_VENTA, estadoStock, getPrecioPrincipal, getUnidadPrincipal, getUnidadBase, categoriasDe, COLORES_CATEGORIAS } from '../db.js';
 import { esc, escAttr, fmtPrecio } from '../utils/html.js';
+import { icono } from '../utils/iconos.js';
 
 /**
  * La fecha de compra es un día, no un instante: la elige el usuario en un
@@ -151,7 +152,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
       <div class="dialogo-cuerpo apilado-3">
         ${
           p.fotoPerdida
-            ? `<p class="aviso aviso-atencion fila-corta"><span class="no-crece">⚠️</span><span>Falta la foto: no se encuentra en el dispositivo</span></p>`
+            ? `<p class="aviso aviso-atencion fila-corta"><span class="no-crece">${icono('alerta')}</span><span>Falta la foto: no se encuentra en el dispositivo</span></p>`
             : ''
         }
 

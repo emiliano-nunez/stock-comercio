@@ -1,5 +1,6 @@
 import { db, dbUtils, estadoStock, getUnidadBase } from '../db.js';
 import { esc, escAttr, fmtPrecio } from '../utils/html.js';
+import { icono } from '../utils/iconos.js';
 
 /**
  * Diálogo de código de barras repetido.
@@ -172,7 +173,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
         <div class="dialogo">
           <div class="dialogo-cabecera dialogo-cabecera-aviso">
             <h2 class="titulo fila ancho-cero">
-              <span>⚠️</span>
+              <span class="icono-rosa">${icono('alerta')}</span>
               <span class="cortado">Código repetido</span>
             </h2>
             <button class="btn-fantasma btn-icono no-crece" data-accion="cancelar" aria-label="Cerrar">✕</button>
