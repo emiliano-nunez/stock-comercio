@@ -429,19 +429,26 @@
     margin-block-end: 0;
   }
 
-  /* En la barra el botón toma todo el ancho, que es lo que lo hace legible como
-     la acción principal de la pantalla. El margen de arriba lo puso el `gap` de
-     la columna, así que acá se saca. */
+  /*
+   * En la barra el botón toma todo el ancho y suma su texto, que es lo que lo
+   * hace legible como la acción principal de la pantalla y no como un botón
+   * suelto. En el teléfono queda cuadrado con el ícono solo, porque al lado del
+   * buscador no entra la palabra.
+   *
+   * El margen de arriba lo puso el `gap` de la columna, así que acá se saca.
+   */
   .boton-agregar {
     width: 100%;
     margin-top: 0;
+    gap: var(--espacio-2);
+    padding-inline: var(--espacio-4);
+    font-size: var(--texto-base);
+    font-weight: var(--grosor-fuerte);
   }
 
   /*
    * El orden de abajo hacia arriba es el que se lee: el nombre, el buscador, el
-   * botón de agregar, las tres pestañas, y al pie historial y pedido, que son
-   * los dos que se usan de vez en cuando y no compiten con lo que se está
-   * mirando.
+   * botón de agregar, las tres pestañas, y al pie historial y pedido.
    */
   .fila-busca {
     order: 2;
@@ -452,30 +459,42 @@
     order: 3;
   }
 
+  /*
+   * Historial y pedido van en fila, uno al lado del otro, abajo de las pestañas.
+   *
+   * Se los había puesto en columna porque quedaba más parejo con las pestañas,
+   * que también son una lista, pero en una columna de 18rem los dos botones
+   * apilados se leen como dos opciones más de la lista, y son el par que va al
+   * lado del nombre. En fila se leen como el par que son. Es la disposición que
+   * ya está probada en el teléfono.
+   *
+   * Cada uno toma la mitad con `flex: 1`, así que se apoyan en los bordes de la
+   * barra y el conjunto se lee como una fila más de la lista.
+   */
   .cabecera-fila > .fila-corta {
-    order: 5;
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--espacio-1);
-    /* Lo empuja al pie de la barra sin dejar un hueco vacío arriba. */
-    margin-block-start: auto;
+    order: 4;
+    gap: var(--espacio-2);
   }
 
   /*
-   * Historial y pedido pasan a verse como las pestañas: mismo alto, mismo
-   * ícono a la izquierda, y la marca de "activo" en el borde izquierdo. Sin
-   * esto son dos botones chicos pegados al título y no se los lee como parte de
-   * la lista de opciones.
+   * Historial y pedido pasan a verse como las pestañas: mismo alto, ícono a la
+   * izquierda y la marca de "activo" en el borde izquierdo. Sin esto son dos
+   * botones chicos pegados al título y no se los lee como parte de la lista.
+   *
+   * `flex: 1` y no `width: 100%`: en fila, el ancho hay que sacarlo del reparto
+   * del padre. Con `width: 100%` los dos botones piden el ancho entero de la
+   * columna y se salen de la barra.
    */
   .cabecera-fila > .fila-corta .btn-texto {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     min-height: var(--toque-min);
     padding-inline: var(--espacio-3);
     border: none;
     border-left: 3px solid transparent;
     border-radius: 0;
     justify-content: flex-start;
-    gap: var(--espacio-3);
+    gap: var(--espacio-2);
     color: var(--gris-600);
     font-size: var(--texto-sm);
     font-weight: var(--grosor-normal);

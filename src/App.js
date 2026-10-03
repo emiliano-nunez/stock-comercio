@@ -361,7 +361,7 @@ export class App {
                 class="boton-agregar"
                 aria-label="Agregar producto"
               >
-                ${icono('mas')}
+                ${icono('mas')}<span class="texto-boton">Crear Producto</span>
               </button>
             </div>
 
