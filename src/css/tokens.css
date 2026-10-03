@@ -41,6 +41,14 @@
   --rojo-700: #b91c1c;
   --rojo-900: #7f1d1d;
 
+  /* El violeta es acento, no marca: marca el estado elegido y el foco. La marca
+     sigue siendo verde. */
+  --violeta-50:  #f0edff;
+  --violeta-300: #b0a2ff;
+  --violeta-500: #8c7cff;
+  --violeta-600: #6f5ce8;
+  --violeta-700: #5a49c4;
+
   --color-fondo:           var(--gris-50);
   --color-superficie:      #ffffff;
   --color-texto:           var(--gris-900);
@@ -57,6 +65,14 @@
   --color-peligro-tenue:   var(--rojo-50);
   --color-aviso:           var(--ambar-600);
   --color-aviso-tenue:     var(--ambar-50);
+
+  /* El acento va en dos tonos porque #8c7cff da 3,3:1 sobre blanco: sirve para
+     bordes, rellenos y resplandor, pero no para leer texto. El texto del color
+     claro usa el tono más oscuro. */
+  --color-acento:        var(--violeta-500);
+  --color-acento-texto:  var(--violeta-600);
+  --color-acento-tenue:  var(--violeta-50);
+  --color-acento-borde:  var(--violeta-300);
 
   /* -----------------------------------------------------------------
    * Tipografía
@@ -121,14 +137,15 @@
    * ----------------------------------------------------------------- */
   --radio-sm:   0.25rem;
   --radio-md:   0.5rem;
-  --radio-lg:   0.75rem;
-  --radio-xl:   1rem;
+  --radio-lg:   0.875rem;
+  --radio-xl:   1.25rem;
   --radio-full: 9999px;
 
-  --sombra-sm: 0 1px 2px rgb(0 0 0 / 6%);
-  --sombra-md: 0 2px 6px rgb(0 0 0 / 8%);
-  --sombra-lg: 0 8px 24px rgb(0 0 0 / 12%);
-  --sombra-xl: 0 12px 32px rgb(0 0 0 / 18%);
+  --sombra-sm: 0 1px 2px rgb(0 0 0 / 4%);
+  --sombra-md: 0 2px 8px rgb(0 0 0 / 4%);
+  --sombra-lg: 0 8px 24px rgb(0 0 0 / 4%);
+  --sombra-xl: 0 12px 32px rgb(0 0 0 / 8%);
+  --sombra-resplandor: 0 8px 20px rgb(140 124 255 / 25%);
 
   --capa-cabecera: 40;
   --capa-flotante: 50;

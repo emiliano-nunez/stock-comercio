@@ -48,7 +48,7 @@
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--color-marca);
+  outline: 2px solid var(--color-acento-texto);
   outline-offset: 2px;
 }
 
@@ -250,8 +250,8 @@
 
 .campo:focus {
   outline: none;
-  border-color: var(--color-marca);
-  box-shadow: 0 0 0 3px var(--verde-100);
+  border-color: var(--color-acento);
+  box-shadow: 0 0 0 3px var(--color-acento-tenue);
 }
 
 .campo:disabled {
@@ -406,9 +406,10 @@
 }
 
 .opcion-elegida {
-  background-color: var(--color-marca-tenue);
-  border-color: var(--verde-200);
-  color: var(--verde-800);
+  background-color: var(--color-acento-tenue);
+  border-color: var(--color-acento-borde);
+  color: var(--color-acento-texto);
+  box-shadow: var(--sombra-resplandor);
 }
 
 /* =================================================================
