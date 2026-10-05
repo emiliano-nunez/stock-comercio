@@ -67,9 +67,7 @@ export class App {
 
   constructor() {
     this.productos = [];
-    this.productosVisibles = [];
-    this._totalEnVista = 0;
-    this._urlsDeImagen = new Map();
+    this.productosFiltrados = [];
     this.categorias = [];
     this.busqueda = '';
     this.ordenarPor = 'nombre';
@@ -348,114 +346,80 @@ export class App {
     document.body.appendChild(velo);
   }
 
-  /**
-   * Cargar lo que la app necesita, menos el inventario.
-   *
-   * Antes esta función traía **todos** los productos con sus fotos. Ahora trae lo
-   * chico: el catálogo de categorías, la lista de proveedores y los contadores de
-   * los tres paneles. Los productos los trae la consulta de la vista, de a pages.
-   *
-   * La diferencia es la que hace que la app abra en un teléfono gama baja: para
-   * pintar sesenta tarjetas ya no hace falta tener quinientos productos con sus
-   * quinientas fotos en la memoria.
-   */
   async cargarTodo() {
+    // si no los blobs se acumulan en memoria en cada recarga de la vista.
+    dbUtils.revocarImagenes(this.productos);
+    this.productos = await dbUtils.getAllProductosConImagenes();
     this.categorias = await db.categorias.toArray();
     this.proveedores = await dbUtils.listarProveedores();
-
-    // Los contadores de los tres paneles salen de cuentas sobre índices, y
-    // `contarProductos` necesita el catálogo para los ids de categoría.
-    dbUtils.fijarCategoriasParaContar(this.categorias);
-    this._contadores = await dbUtils.contarProductos();
-    this._contadoresPorProveedor = await dbUtils.contarPorProveedor();
-
-    await this.aplicarFiltroYOrden();
+    this.aplicarFiltroYOrden();
   }
 
-  /**
-   * Pintar la vista con lo que devuelve la base.
-   *
-   * Antes esta función era el filtro: tomaba el inventario entero que estaba en
-   * memoria, lo ordenaba y dejaba las tarjetas en `productosFiltrados`. Ahora
-   * sólo le pide una página a `consultarProductos()` y pinta eso.
-   *
-   * La diferencia que importa no es de milisegundos, es de memoria: para mostrar
-   * sesenta tarjetas la base devuelve sesenta productos, no el inventario entero
-   * con las fotos de todos. En un teléfono gama baja, que es para el que está
-   * hecha la app, esa es la diferencia entre abrirla y no abrirla.
-   *
-   * El respaldo contra el desbordamiento es el número de secuencia: si el
-   * usuario escribe rápido, dos consultas pueden terminar en orden distinto al
-   * que se Teclearon, y gana la última que se pidió.
-   */
-  async aplicarFiltroYOrden() {
-    this._secuenciaConsulta = (this._secuenciaConsulta || 0) + 1;
-    const secuencia = this._secuenciaConsulta;
+  aplicarFiltroYOrden() {
+    let resultado = [...this.productos];
 
-    try {
-      const { productos, total } = await dbUtils.consultarProductos({
-        limite: this._limiteRender,
-        busqueda: this.busqueda,
-        categoriaId: this.categoriaVista,
-        estado: this.estadoVista,
-        proveedor: normalizarTexto(this.proveedorVista || ''),
-        ordenarPor: this.ordenarPor,
-        ordenDireccion: this.ordenDireccion
+    /*
+     * La búsqueda normaliza las dos puntas: lo que escribió el usuario y lo que
+     * tiene el producto. Con un toLowerCase() solo, "limon" no encontraba
+     * "Limón" y el producto quedaba escondido sin aviso de por qué, que es la
+     * peor forma de no encontrar algo: el usuario ve que hay más productos y no
+     * los ve.
+     *
+     * Busca por nombre, código de barras, categoría y proveedor. Los dos
+     * últimos no estaban y son lo que uno escribe cuando recuerda de dónde
+     * compró algo en vez de cómo se llama.
+     */
+    const query = normalizarTexto(this.busqueda);
+    if (query) {
+      resultado = resultado.filter(p => {
+        if (normalizarTexto(p.nombre).includes(query)) return true;
+        if (p.codigoBarras && normalizarTexto(p.codigoBarras).includes(query)) return true;
+        if (p.proveedor && normalizarTexto(p.proveedor).includes(query)) return true;
+        return categoriasDe(p).some(id => {
+          const cat = this.categorias.find(c => c.id === id);
+          return cat && normalizarTexto(cat.nombre).includes(query);
+        });
       });
-
-      // Una consulta más lenta que la que la reemplazó: si el usuario sigue
-      // escribiendo mientras espera, el resultado ya no le sirve.
-      if (secuencia !== this._secuenciaConsulta) return;
-
-      this._totalEnVista = total;
-      this.productos = await this.conFotosDe(productos);
-      this.productosVisibles = this.productos;
-      this.renderVista();
-    } catch (error) {
-      console.error('[App] No se pudo consultar la lista:', error);
-      toast.error('No se pudo leer la lista de productos');
     }
-  }
 
-  /**
-   * Ponerle la URL de la foto a los productos de la página, sin repetir trabajo.
-   *
-   * Las fotos se piden sólo de las que el producto todavía no tiene resuelta, y
-   * las URLs que ya se crearon se guardan por id de imagen: si el producto no
-   * cambió de foto, la URL sigue siendo la misma y no hay que volver a leer el
-   * blob ni crear otra.
-   *
-   * Antes cada recarga de la vista revocaba todas las URLs y creaba otras
-   * tantas, para las mismas fotos: quinientas URLs nuevas por recarga con quinientos
-   * productos. Eso es trabajo que no se ve en pantalla, y es de lo que más se queja un
-   * teléfono chico.
-   *
-   * @param {object[]} productos la página que se va a pintar.
-   * @returns {Promise<object[]>} los mismos productos, con `imagenUrl` o con
-   *   `fotoPerdida`.
-   */
-  async conFotosDe(productos) {
-    const faltan = [...new Set(
-      productos.map(p => p.imagenId).filter(Boolean)
-    )].filter(idImagen => !this._urlsDeImagen.has(idImagen));
+    resultado.sort((a, b) => {
+      let valA, valB;
 
-    if (faltan.length) {
-      const imagenes = await db.imagenes.where('id').anyOf(faltan).toArray();
-      for (const img of imagenes) {
-        const fuente = img.thumb || img.blob;
-        if (fuente) this._urlsDeImagen.set(img.id, URL.createObjectURL(fuente));
+      switch (this.ordenarPor) {
+        case 'nombre':
+          // Ordenar por texto normalizado y no por el crudo: si no, "Limon"
+
+          valA = normalizarTexto(a.nombre);
+          valB = normalizarTexto(b.nombre);
+          break;
+        case 'stock':
+          valA = a.stock || 0;
+          valB = b.stock || 0;
+          break;
+        case 'precio':
+          valA = a.precio || 0;
+          valB = b.precio || 0;
+          break;
+        case 'categoria':
+          valA = normalizarTexto(this.getCategoriaOrden(a));
+          valB = normalizarTexto(this.getCategoriaOrden(b));
+          break;
+        case 'fecha':
+          valA = new Date(a.actualizadoEl || 0).getTime();
+          valB = new Date(b.actualizadoEl || 0).getTime();
+          break;
+        default:
+          valA = normalizarTexto(a.nombre);
+          valB = normalizarTexto(b.nombre);
       }
-    }
 
-    return productos.map(p => {
-      if (!p.imagenId) return p;
-
-      const url = this._urlsDeImagen.get(p.imagenId);
-      if (url) return { ...p, imagenUrl: url };
-
-      // El producto apunta a una foto que ya no está en el dispositivo.
-      return { ...p, fotoPerdida: true };
+      if (valA < valB) return this.ordenDireccion === 'asc' ? -1 : 1;
+      if (valA > valB) return this.ordenDireccion === 'asc' ? 1 : -1;
+      return 0;
     });
+
+    this.productosFiltrados = resultado;
+    this.renderVista();
   }
 
   //
@@ -684,23 +648,37 @@ export class App {
    */
 
   /**
-   * Los productos visibles: son los que ya trajo la consulta.
+   * Los productos que le tocan a la vista actual.
    *
-   * `productosDeLaVista()` ya no filtra nada. Antes armaba el grupo de la
-   * categoría, del estado o del proveedor sobre el arreglo entero, y por eso se llamaba cuatro o cinco veces por render para tener lo mismo. Ahora
-   * ese filtro lo hace `consultarProductos()` en la base, una sola vez, y lo que
-   * llega ya viene filtrado.
-   *
-   * Lo que queda acá es el reparto del catálogo por estado de stock, que es una
-   * cosa de lectura y no de filtro: el catálogo muestra los tres grupos juntos.
+   * Abrir una categoría es mirar el catálogo de esa categoría, no una búsqueda:
+   * por eso el filtro vive acá y no en aplicarFiltroYOrden(), que alimenta las
+   * tres vistas. Si viviera allí, cambiar de pestaña llevaría el filtro puesto y
+   * el inventario mostraría un solo grupo de productos sin avisar.
    */
   productosDeLaVista() {
-    return this.productosVisibles || [];
+    if (this.vistaActual !== 'catalogo') return this.productosFiltrados;
+    let base = this.productosFiltrados;
+    if (this.categoriaVista) {
+      base = base.filter(p => tieneCategoria(p, this.categoriaVista));
+    }
+    if (this.estadoVista) {
+      base = base.filter(p => estadoStock(p) === this.estadoVista);
+    }
+    if (this.proveedorVista) {
+
+      // traer el nombre escrito con otra mayúscula y si se comparara literal el
+      // grupo saldría vacío sin avisar por qué.
+      const clave = normalizarTexto(this.proveedorVista);
+      base = base.filter(p => normalizarTexto(p.proveedor || '') === clave);
+    }
+    return base;
   }
 
   productosVisibles() {
     const base = this.productosDeLaVista();
-    if (this.vistaActual !== 'catalogo') return base;
+    if (this.vistaActual !== 'catalogo') {
+      return base.slice(0, this._limiteRender);
+    }
 
     const porEstado = new Map(App.ESTADOS_STOCK.map(e => [e.clave, []]));
     for (const p of base) {
@@ -726,19 +704,14 @@ export class App {
     return visibles;
   }
 
-  /** Cuántos hay en total en el grupo abierto, para el "cargar más". */
-  totalEnVista() {
-    return this._totalEnVista ?? this.productosDeLaVista().length;
-  }
-
   renderCargarMasHTML(visibles) {
 
-    const faltan = this.totalEnVista() - visibles.length;
+    const faltan = this.productosDeLaVista().length - visibles.length;
     if (faltan <= 0) return '';
 
     return `
       <div class="centro-texto">
-        <p class="detalle apagado con-margen-abajo">Mostrando ${visibles.length} de ${this.totalEnVista()}</p>
+        <p class="detalle apagado con-margen-abajo">Mostrando ${visibles.length} de ${this.productosDeLaVista().length}</p>
         <button id="btn-cargar-mas" class="btn-secundario">
           Cargar ${Math.min(faltan, App.LIMITE_RENDER)} más
         </button>
@@ -750,13 +723,13 @@ export class App {
 
     // que está vacío es el grupo: si dijera "Catálogo vacío" el usuario pensaría
 
-    if ((this.categoriaVista || this.estadoVista) && this._totalEnVista === 0) {
+    if ((this.categoriaVista || this.estadoVista) && this.productosDeLaVista().length === 0) {
       const cat = this.categoriaVista ? this.categorias.find(c => c.id === this.categoriaVista) : null;
       const nombre = cat
         ? cat.nombre
         : (App.ESTADOS_STOCK.find(e => e.clave === this.estadoVista)?.etiqueta || 'Este grupo');
 
-      const hayProductos = this._totalEnVista > 0;
+      const hayProductos = this.productosFiltrados.length > 0;
       return `
         <div class="apilado-4">
           ${this.renderFiltroVistaHTML()}
@@ -776,7 +749,7 @@ export class App {
       `;
     }
 
-    if (this._totalEnVista === 0) {
+    if (this.productosFiltrados.length === 0) {
       return `
         <div class="vacio">
           <span class="vacio-icono-grande">📚</span>
@@ -847,11 +820,11 @@ export class App {
       </span>
     `).join('');
 
-    const total = this.totalEnVista();
+    const total = this.productosDeLaVista().length;
     return `
       <div class="recuadro recuadro-marca fila fila-separada con-margen-abajo-amplia">
         <span class="fila fila-amplia no-crece">${nombres}</span>
-        <span class="detalle apagado no-crece">${total} de ${this._totalEnVista}</span>
+        <span class="detalle apagado no-crece">${total} de ${this.productosFiltrados.length}</span>
         <button id="btn-ver-catalogo-completo" class="btn-secundario detalle">
           Ver todo
         </button>
@@ -1041,8 +1014,11 @@ export class App {
    * hasta que ya lo necesita.
    */
   renderEstadosStockHTML() {
-    const conteos = this._contadores?.porEstado
-      || Object.fromEntries(App.ESTADOS_STOCK.map(e => [e.clave, 0]));
+    const conteos = new Map(App.ESTADOS_STOCK.map(e => [e.clave, 0]));
+    for (const p of this.productos) {
+      const clave = estadoStock(p);
+      conteos.set(clave, (conteos.get(clave) || 0) + 1);
+    }
 
     return `
       <div class="tarjeta">
@@ -1076,15 +1052,8 @@ export class App {
     `;
   }
 
-  /**
-   * Cuántos productos hay en una categoría.
-   *
-   * Antes recorría el inventario entero, y como el panel de categorías lo llama
-   * dos veces por línea, eso eran cuarenta recorridos completos por cada pantalla
-   * que se pintaba. Ahora es un número que la base ya tenía contado.
-   */
   contarProductosCategoria(categoriaId) {
-    return this._contadores?.porCategoria?.get(categoriaId) ?? 0;
+    return this.productos.filter(p => tieneCategoria(p, categoriaId)).length;
   }
 
   /**
@@ -1098,7 +1067,12 @@ export class App {
    * de borrar: son nombres que el usuario escribió y puede querer corregirlos.
    */
   renderProveedoresHTML() {
-    const conteos = this._contadoresPorProveedor || new Map();
+    const conteos = new Map();
+    for (const p of this.productos) {
+      const clave = normalizarTexto(p.proveedor || '');
+      if (!clave) continue;
+      conteos.set(clave, (conteos.get(clave) || 0) + 1);
+    }
 
     return `
       <div class="tarjeta">
@@ -1465,39 +1439,8 @@ export class App {
    * en un atributo y no hace falta envolverla en otro elemento que se coma el
    * clic de los botones de adentro.
    */
-  /**
-   * Un producto por id, buscando en la base si no está en la página.
-   *
-   * `this.productos` es lo que se está pintando, no el inventario. Antes estas
-   * acciones lo buscaban sólo ahí, así que un producto que quedaba fuera de la
-   * pantalla --porque el usuario filtró, cambió de pestaña o cargó más-- las
-   * dejaba sin hacer nada, en silencio y sin error.
-   *
-   * @param {string} id
-   * @returns {Promise<object|null>} el producto con su foto resuelta, o null.
-   */
-  async productoPorId(id) {
-    const enLaPagina = this.productos.find(p => p.id === id);
-    if (enLaPagina) return enLaPagina;
-
-    try {
-      const guardado = await db.productos.get(id);
-      if (!guardado) return null;
-
-      const [conFoto] = await this.conFotosDe([guardado]);
-      return conFoto || guardado;
-    } catch (error) {
-      // No propaga: la llaman cinco acciones que se disparan desde un clic, y si
-      // una falla no puede ser una promesa rechazada sin manejar sino una acción
-      // que no hace nada sin decir por qué.
-      console.error('[App] No se pudo leer el producto:', error);
-      toast.error('No se pudo abrir el producto');
-      return null;
-    }
-  }
-
-  async abrirDetalle(id) {
-    const producto = await this.productoPorId(id);
+  abrirDetalle(id) {
+    const producto = this.productos.find(p => p.id === id);
     if (!producto) return;
     abrirDetalleProducto({
       producto,
@@ -1514,7 +1457,7 @@ export class App {
     this._ajustandoStock = this._ajustandoStock || {};
     this._ajustandoStock[id] = true;
 
-    const producto = await this.productoPorId(id);
+    const producto = this.productos.find(p => p.id === id);
     if (!producto) { this._ajustandoStock[id] = false; return; }
 
     const tipo = TIPOS_VENTA.find(t => t.value === producto.tipoVenta) || TIPOS_VENTA[0];
@@ -1621,9 +1564,9 @@ export class App {
     );
   }
 
-  async editarProducto(id) {
+  editarProducto(id) {
     if (this._productoFormAbierto) return;
-    const producto = await this.productoPorId(id);
+    const producto = this.productos.find(p => p.id === id);
     if (!producto) return;
     this._productoFormAbierto = true;
     abrirFormularioProducto(
@@ -1648,9 +1591,9 @@ export class App {
 
   //   - imagenUrl: es un ObjectURL que pertenece al catálogo. Pasarlo haría que
 
-  async duplicarProducto(id) {
+  duplicarProducto(id) {
     if (this._productoFormAbierto) return;
-    const original = await this.productoPorId(id);
+    const original = this.productos.find(p => p.id === id);
     if (!original) return;
 
     const {
@@ -1685,7 +1628,7 @@ export class App {
    * decida liberarla. La app nunca borra fotos sola.
    */
   async eliminarProducto(id, { confirmado = false } = {}) {
-    const producto = await this.productoPorId(id);
+    const producto = this.productos.find(p => p.id === id);
     if (!producto) return;
 
     if (!confirmado) {
@@ -1897,28 +1840,15 @@ export class App {
       if (!nombre) return toast.error('El nombre es obligatorio');
 
       try {
-        /*
-         * Renombrar una categoría cambia el nombre por el que se ordenan y se
-         * buscan los productos que están en ella, así que sus campos derivados
-         * también cambian. Sin esto, el producto queda ordenándose por el nombre
-         * viejo de su categoría, que es una cosa que el usuario nunca ve y por lo
-         * tanto nunca puede corregir.
-         */
         if (esEdicion) {
-          await db.transaction('rw', [db.categorias, db.productos], async () => {
-            await db.categorias.update(cat.id, { nombre, color });
-            await dbUtils.recalcularDerivados(
-              producto => categoriasDe(producto).includes(cat.id),
-              () => ({})
-            );
-          });
+          await db.categorias.update(cat.id, { nombre, color });
         } else {
           const id = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           await db.categorias.add({ id, nombre, color });
         }
         toast.success(esEdicion ? 'Categoría actualizada' : 'Categoría creada');
         cerrar();
-        await this.recargarYAvisar();
+        await this.cargarTodo();
       } catch (error) {
         toast.error('Error guardando categoría');
       }
@@ -1929,15 +1859,8 @@ export class App {
     const cat = this.categorias.find(c => c.id === categoriaId);
     if (!cat) return;
 
-    /*
-     * Los productos de la categoría se buscan en la base y no en lo que hay
-     * cargado: `this.productos` es la página que se está pintando, no el
-     * inventario. Con la lista de la pantalla, borrar una categoría dejaba
-     * apuntando a un id que ya no existe a todos los productos que no estaban en
-     * la página abierta.
-     */
-    const productosAfectados = await db.productos.where('categoriaIds').equals(categoriaId).toArray();
-    const count = productosAfectados.length;
+    const count = this.contarProductosCategoria(categoriaId);
+    const productosAfectados = this.productos.filter(p => tieneCategoria(p, categoriaId));
 
     const conOtra = productosAfectados.filter(p => categoriasDe(p).length > 1).length;
     const mensaje = count === 0
@@ -1962,12 +1885,9 @@ export class App {
         await db.categorias.delete(categoriaId);
 
         for (const p of productosAfectados) {
-          const sinLaCategoria = {
-            ...p,
+          await db.productos.update(p.id, {
             categoriaIds: categoriasDe(p).filter(id => id !== categoriaId)
-          };
-          Object.assign(sinLaCategoria, dbUtils.camposDerivados(sinLaCategoria, this.categorias));
-          await db.productos.put(sinLaCategoria);
+          });
         }
       });
 
@@ -2070,13 +1990,9 @@ export class App {
     const prov = this.proveedores.find(p => p.id === proveedorId);
     if (!prov) return;
 
-    /*
-     * El conteo sale de la base y no de la página: el aviso dice cuántos
-     * productos quedan sin proveedor, y si contara sólo los sesenta que están
-     * en pantalla diría un número que no es el que hay.
-     */
-    const total = await dbUtils.contarPorProveedor()
-      .then(conteos => conteos.get(normalizarTexto(prov.nombre)) || 0);
+    const total = this.productos.filter(
+      p => normalizarTexto(p.proveedor || '') === normalizarTexto(prov.nombre)
+    ).length;
 
     const mensaje = total === 0
       ? `¿Sacar "${prov.nombre}" de la lista?`

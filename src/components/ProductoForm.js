@@ -1402,18 +1402,22 @@ export class ProductoForm {
     };
 
     try {
+      /*
+       * Se guarda por `guardarProducto()` y no con `db.productos.update()` a
+       * mano, porque esa función es la que recalcula los campos derivados: el
+       * estado de stock, el nombre por el que se ordena, el precio por el que se
+       * ordena y el texto por el que se busca.
+       *
+       * Si el nombre o el precio se guardaran sin recalcular, el producto se
+       * guardaría bien pero no aparecería al buscarlo ni al ordenarlo, y el
+       * contador del panel de estados quedaría mal. Sin error: sólo la lista
+       * vacía.
+       */
       if (this.isEditing && this.producto?.id) {
-
-        //
-
-        // no tiene por qué coincidir con el del producto, y las entradas
-
-        await db.productos.update(this.producto.id, datosProducto);
-
+        await dbUtils.guardarProducto({ ...this.producto, ...datosProducto }, this.producto.id);
         toast.success('Producto actualizado');
       } else {
-        const id = dbUtils.generarId('prod');
-        await db.productos.add({ id, ...datosProducto });
+        await dbUtils.guardarProducto(datosProducto);
         toast.success('Producto agregado');
       }
 

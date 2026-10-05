@@ -1,4 +1,4 @@
-import { db, dbUtils, normalizarProveedor, COLORES_CATEGORIAS } from '../db.js';
+import { db, dbUtils, camposDerivados, normalizarProveedor, COLORES_CATEGORIAS } from '../db.js';
 import { normalizarTexto } from './texto.js';
 
 /**
@@ -216,7 +216,22 @@ export async function importarBackup(jsonStr) {
     if (imagenesBlobs.length) await db.imagenes.bulkPut(imagenesBlobs);
     if (categorias.length) await db.categorias.bulkPut(categorias);
     if (proveedores.length) await db.proveedores.bulkPut(proveedores);
-    if (productos.length) await db.productos.bulkPut(productos);
+
+    if (productos.length) {
+      /*
+       * Los campos derivados se calculan acá y no dentro de la transacción, con
+       * las categorías ya validadas del archivo. Es lo mismo que si los calculara
+       * `guardarProducto()`, salvo que el nombre de la categoría puede no venir:
+       * un producto puede apuntar a una categoría que la copia no trae, y en ese
+       * caso el orden por categoría y la búsqueda por categoría lo tratan como
+       * "sin categoría", que es lo que corresponde.
+       */
+      const conDerivados = productos.map(p => ({
+        ...p,
+        ...camposDerivados(p, categorias)
+      }));
+      await db.productos.bulkPut(conDerivados);
+    }
   });
 
   return {
