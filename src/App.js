@@ -615,7 +615,7 @@ export class App {
   }
 
   renderInventarioHTML() {
-    if (this.productosFiltrados.length === 0) {
+    if (this._totalEnVista === 0) {
       if (this.busqueda) {
         return `
           <div class="vacio">

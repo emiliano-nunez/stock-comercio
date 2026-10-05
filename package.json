@@ -1,13 +1,13 @@
 {
   "name": "stock-comercio-pwa",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "App de Control de Stock Local-First (PWA) para comerciantes",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "verificar": "node verificar-sintaxis.mjs && node verificar-caracteres.mjs && node verificar-imports.mjs && node verificar-plantillas.mjs && node verificar-escapado.mjs",
+    "verificar": "node verificar-sintaxis.mjs && node verificar-caracteres.mjs && node verificar-imports.mjs && node verificar-plantillas.mjs && node verificar-escapado.mjs && node verificar-propiedades.mjs",
     "publicar": "npm run verificar && npm run build"
   },
   "dependencies": {
