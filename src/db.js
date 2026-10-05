@@ -543,17 +543,35 @@ export const dbUtils = {
       .toArray();
   },
 
+  /*
+   * Ajustar el stock de un producto.
+   *
+   * El leer y el escribir van en UNA transacción, y no sueltos. Con un `get()` y
+   * después un `update()`, dos escritores se pisan: cada uno lee el valor viejo,
+   * le suma lo suyo y escribe, y el ajuste del segundo se pierde sin error.
+   *
+   * No es una posibilidad teórica. La misma base la ven todas las pestañas del
+   * navegador y la PWA instalada del mismo origen: si tenés la app en el teléfono
+   * y el navegador en la computer, los dos ajustes cuentan sobre el mismo número.
+   * En una app cuyo único propósito es que el stock cuadre, ése es el peor
+   * lugar para una carrera.
+   *
+   * La transacción de Dexie es la que serializa: dos llamadas que la piden sobre
+   * la misma tabla se ejecutan una después de la otra, no en paralelo.
+   */
   async ajustarStock(id, delta) {
-    const producto = await db.productos.get(id);
-    if (!producto) throw new Error('Producto no encontrado');
+    return db.transaction('rw', db.productos, async () => {
+      const producto = await db.productos.get(id);
+      if (!producto) throw new Error('Producto no encontrado');
 
-    const nuevoStock = Math.max(0, (producto.stock || 0) + delta);
-    await db.productos.update(id, {
-      stock: nuevoStock,
-      actualizadoEl: new Date().toISOString()
+      const nuevoStock = Math.max(0, (producto.stock || 0) + delta);
+      await db.productos.update(id, {
+        stock: nuevoStock,
+        actualizadoEl: new Date().toISOString()
+      });
+
+      return { ...producto, stock: nuevoStock };
     });
-
-    return { ...producto, stock: nuevoStock };
   }
 };
 

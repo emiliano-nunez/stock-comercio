@@ -350,7 +350,7 @@ export class ProductoForm {
                     step="0.01"
                     min="0"
                     placeholder="0.00"
-                    value="${costoInicial}"
+                    value="${escAttr(costoInicial)}"
                     inputmode="decimal"
                   >
                 </div>
@@ -384,7 +384,7 @@ export class ProductoForm {
                   <li
                     class="opcion ${this.tipoVenta === tipo.value ? 'opcion-elegida' : ''}"
                     role="option"
-                    data-value="${tipo.value}"
+                    data-value="${escAttr(tipo.value)}"
                     aria-selected="${this.tipoVenta === tipo.value}"
                   >
                     <span class="mediano">${tipo.icon}</span>
@@ -393,7 +393,7 @@ export class ProductoForm {
                   </li>
                 `).join('')}
               </ul>
-              <input type="hidden" id="tipoVenta" name="tipoVenta" value="${this.tipoVenta}">
+              <input type="hidden" id="tipoVenta" name="tipoVenta" value="${escAttr(this.tipoVenta || "")}">
             </div>
           </div>
 
@@ -412,7 +412,7 @@ export class ProductoForm {
                   class="campo centro-texto crece ancho-cero"
                   step="${step}"
                   min="0"
-                  value="${stockInicial}"
+                  value="${escAttr(stockInicial)}"
                   inputmode="decimal"
                 >
                 <button type="button" class="btn-secundario btn-cuadro" data-stock-action="increment" aria-label="Aumentar stock">+</button>
@@ -432,7 +432,7 @@ export class ProductoForm {
                   class="campo centro-texto crece ancho-cero"
                   step="${step}"
                   min="0"
-                  value="${stockMinInicial}"
+                  value="${escAttr(stockMinInicial)}"
                   inputmode="decimal"
                 >
                 <button type="button" class="btn-secundario btn-cuadro" data-stockmin-action="increment" aria-label="Aumentar stock mínimo">+</button>
@@ -535,7 +535,7 @@ export class ProductoForm {
               id="fecha"
               name="fecha"
               class="campo"
-              value="${this.producto?.fecha || new Date().toISOString().split('T')[0]}"
+              value="${escAttr(this.producto?.fecha || new Date().toISOString().split('T')[0])}"
             >
           </div>
 
@@ -556,7 +556,7 @@ export class ProductoForm {
                     min="0"
                     max="100"
                     placeholder="21"
-                    value="${this.producto?.ivaPorcentaje ?? 0}"
+                    value="${escAttr(this.producto?.ivaPorcentaje ?? 0)}"
                     inputmode="decimal"
                   >
                   <span class="sufijo-campo">%</span>
@@ -574,7 +574,7 @@ export class ProductoForm {
                     step="0.01"
                     min="0"
                     placeholder="30"
-                    value="${this.producto?.margenPorcentaje ?? 50}"
+                    value="${escAttr(this.producto?.margenPorcentaje ?? 50)}"
                     inputmode="decimal"
                   >
                   <span class="sufijo-campo">%</span>
@@ -917,7 +917,7 @@ export class ProductoForm {
           type="button"
           class="btn-fantasma btn-cuadro texto-peligro eliminar-precio"
           data-unidad="${subUnidad.value}"
-          aria-label="Eliminar precio ${subUnidad.label}"
+          aria-label="Eliminar precio ${escAttr(subUnidad.label)}"
         >
           ✕
         </button>
@@ -940,7 +940,7 @@ export class ProductoForm {
             <button
               type="button"
               class="opcion fila fila-amplia"
-              data-value="${opt.value}"
+              data-value="${escAttr(opt.value)}"
             >
               <span class="grande">${opt.icon}</span>
               <span class="medio">${opt.label}</span>
@@ -1468,7 +1468,7 @@ export class ProductoForm {
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                value="${precioBase.valor || ''}"
+                value="${escAttr(precioBase.valor ?? '')}"
                 inputmode="decimal"
               >
             </div>
@@ -1499,7 +1499,7 @@ export class ProductoForm {
               step="0.01"
               min="0"
               placeholder="0.00"
-              value="${precioSub.valor || ''}"
+              value="${escAttr(precioSub.valor ?? '')}"
               inputmode="decimal"
             >
           </div>

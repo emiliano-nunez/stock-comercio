@@ -276,7 +276,7 @@ export class PedidoModal {
             <button type="button" class="btn-resta" data-pedido="cantidad" data-id="${escAttr(p.id)}" data-delta="-1"
               aria-label="Pedir menos ${escAttr(p.nombre)}">−</button>
             <input type="number" class="campo-numero campo-cantidad" data-id="${escAttr(p.id)}"
-              value="${cantidad}" min="0" inputmode="numeric"
+              value="${escAttr(cantidad)}" min="0" inputmode="numeric"
               aria-label="Cantidad a pedir de ${escAttr(p.nombre)}">
             <button type="button" class="btn-suma" data-pedido="cantidad" data-id="${escAttr(p.id)}" data-delta="1"
               aria-label="Pedir más ${escAttr(p.nombre)}">+</button>

@@ -20,6 +20,15 @@ export class App {
 
   static LIMITE_RENDER = 60;
 
+  /*
+   * Cuánto se espera antes de filtrar, en milisegundos.
+   *
+   * Es lo que separa "se busca mientras se escribe" de "se traba mientras se
+   * escribe". Con 250ms la lista se repinta una vez por palabra, que es lo que
+   * el ojo espera de una búsqueda, en vez de una vez por tecla.
+   */
+  static ESPERA_BUSQUEDA = 250;
+
   // El color de cada uno es el mismo que usa el badge de la tarjeta, para que
 
   /*
@@ -106,6 +115,9 @@ export class App {
       this.registrarServiceWorker();
       this.vigilarActualizacion();
       this.atenderAtajo();
+      this.vigilarErroresGlobales();
+      this.pedirEspacioPersistente();
+      this.refrescarAlVolver();
 
     } catch (error) {
 
@@ -113,6 +125,94 @@ export class App {
       console.error('[App] Error en el arranque:', error);
       this.mostrarErrorArranque(error);
     }
+  }
+
+  /*
+   * Errores que se escapan de cualquier handler.
+   *
+   * Sin esto, un error dentro de un listener no deja pantalla en blanco: deja el
+   * DOM viejo con el estado nuevo, en silencio, y el error sale como una promesa
+   * rechazada que nadie mira. Con esto el error queda anotado y se le dice al
+   * usuario, que es lo único que puede hacer con él.
+   *
+   * Se anotan en una lista de la propia página: es lo único que sobrevive a una
+   * recarga, y un error que nadie puede volver a leer no sirve de nada.
+   */
+  vigilarErroresGlobales() {
+    if (this._vigilandoErrores) return;
+    this._vigilandoErrores = true;
+
+    const anotar = (que, error) => {
+      console.error(`[App] ${que}:`, error);
+      try {
+        const lista = JSON.parse(localStorage.getItem('depoapp-errores') || '[]');
+        lista.unshift({ que, mensaje: String(error?.message || error), fecha: new Date().toISOString() });
+        localStorage.setItem('depoapp-errores', JSON.stringify(lista.slice(0, 20)));
+      } catch {
+        // Si ni el localStorage anda, no hay dónde anotarlo. No se avisa: el
+        // error ya está en la consola, que es lo que puede leer el que progresa.
+      }
+      toast.error('Algo falló. Si la pantalla no responde, recargá la app.');
+    };
+
+    window.addEventListener('error', (e) => {
+      if (e.error) anotar('Error', e.error);
+    });
+
+    window.addEventListener('unhandledrejection', (e) => {
+      // Lo de la cuota se avisa mejor y más tarde, en su propio lugar.
+      if (e.reason?.name === 'QuotaExceededError') return;
+      anotar('Promesa rechazada', e.reason);
+    });
+  }
+
+  /**
+   * Pedir que el navegador no nos barra la base cuando falta espacio.
+   *
+   * `persist()` es lo que separa "esta base vive acá" de "esta base vive hasta
+   * que el navegador decida". Chrome la concede casi siempre; Firefox y Safari la
+   * conceden con interacción del usuario, así que el resultado se mira pero no
+   * se espera: si no la concede, la app sigue igual y sólo depende más del
+   * respaldo.
+   */
+  pedirEspacioPersistente() {
+    if (!navigator.storage?.persist) return;
+    navigator.storage.persisted?.()
+      .then((ya) => { if (!ya) return navigator.storage.persist(); })      .then(() => navigator.storage.persisted())
+      .then((concedido) => {
+        if (!concedido) {
+          console.info(
+            '[App] El navegador no garantiza el almacenamiento. Conviene exportar la copia seguido.'
+          );
+        }
+      })
+      .catch(() => { /* no es crítico */ });
+  }
+
+  /**
+   * Recargar los datos cuando la app vuelve al frente.
+   *
+   * La misma base la ven todas las pestañas del navegador y la PWA instalada del
+   * mismo origen. Si ajustás stock en la computer y seguís en el teléfono, esta
+   * pantalla mostraba el número viejo sin decir nada. Al volver, se relee.
+   *
+   * Se relee la lista y se repinta sólo el contenido, sin tocar la cabecera: así
+   * no se pierde lo que el usuario tenía escrito en el buscador ni la posición
+   * del scroll.
+   */
+  refrescarAlVolver() {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      clearTimeout(this._temporizadorRefresco);
+      this._temporizadorRefresco = setTimeout(async () => {
+        try {
+          await this.cargarTodo();
+          this.aplicarFiltroYOrden();
+        } catch (error) {
+          console.error('[App] No se pudo refrescar al volver:', error);
+        }
+      }, App.ESPERA_BUSQUEDA);
+    });
   }
 
   mostrarErrorArranque(error) {
@@ -158,6 +258,92 @@ export class App {
         btn.disabled = false;
       }
     });
+  }
+
+  /**
+   * Recargar los datos y avisar si no se pudo.
+   *
+   * Se llama desde callbacks de diálogos que no esperan nada: si la base falla,
+   * sin esto el error se pierde y la pantalla queda mostrando datos viejos sin
+   * que nadie lo note.
+   *
+   * El caso que de verdad importa es la cuota. En un teléfono con muchas fotos el
+   * navegador puede quedarse sin espacio, y la escritura falla con un error que
+   * no dice nada. El mensaje dice las dos cosas que el usuario puede hacer:
+   * exportar la copia y liberar fotos sueltas.
+   */
+  async recargarYAvisar(alTerminar) {
+    try {
+      await this.cargarTodo();
+      if (alTerminar) alTerminar();
+    } catch (error) {
+      if (error?.name === 'QuotaExceededError') {
+        console.error('[App] No hay espacio para escribir:', error);
+        this.mostrarAvisoCuota();
+      } else {
+        console.error('[App] No se pudo recargar:', error);
+        toast.error('No se pudo guardar. Probá de nuevo.');
+      }
+      if (alTerminar) alTerminar();
+    }
+  }
+
+  mostrarAvisoCuota() {
+    const yaAvisado = this._avisoCuota;
+    this._avisoCuota = true;
+
+    if (yaAvisado) {
+      toast.error('El dispositivo se quedó sin espacio.');
+      return;
+    }
+
+    const velo = document.createElement('div');
+    velo.className = 'velo';
+    velo.innerHTML = `
+      <div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="cuota-titulo">
+        <div class="dialogo-cabecera dialogo-cabecera-aviso">
+          <h2 class="titulo fila" id="cuota-titulo">
+            <span>${icono('alerta')}</span> No hay espacio para guardar
+          </h2>
+        </div>
+        <div class="dialogo-cuerpo apilado-3">
+          <p class="detalle">
+            El último cambio <strong class="fuerte">no se guardó</strong>. El
+            teléfono se quedó sin espacio y nada de lo que se estaba haciendo quedó
+            escrito.
+          </p>
+          <div class="nota-info detalle">
+            <p class="fuerte con-margen-abajo-chica">Qué podés hacer</p>
+            <ul class="lista">
+              <li>Exportar la copia de seguridad.</li>
+              <li>Liberar las fotos que no están en ningún producto.</li>
+              <li>Sacar fotos de los productos que ya no vendas.</li>
+            </ul>
+          </div>
+          <p class="detalle apagado">
+            La app nunca borra una foto sola: eso lo decidís vos.
+          </p>
+        </div>
+        <div class="dialogo-pie">
+          <button class="btn-secundario btn-crece" data-accion="quitar">Entendido</button>
+          <button class="btn-principal btn-crece" data-accion="copia">${icono('descargar')} Ir a la copia</button>
+        </div>
+      </div>
+    `;
+
+    velo.addEventListener('click', (e) => {
+      if (e.target === velo || e.target.closest('[data-accion="quitar"]')) {
+        velo.remove();
+        return;
+      }
+      const irACopia = e.target.closest('[data-accion="copia"]');
+      if (irACopia) {
+        velo.remove();
+        this.abrirCopiaSeguridad();
+      }
+    });
+
+    document.body.appendChild(velo);
   }
 
   async cargarTodo() {
@@ -596,7 +782,7 @@ export class App {
         return `
         <section class="con-margen-abajo-amplia">
           <h3 class="titulo-seccion">
-            <span class="punto" style="background-color: ${estado.color}"></span>
+            <span class="punto" style="background-color: ${escAttr(estado.color)}"></span>
             ${esc(estado.etiqueta)} (${productos.length})
           </h3>
           <div class="cuadricula con-margen-arriba">
@@ -629,7 +815,7 @@ export class App {
 
     const nombres = grupos.map(g => `
       <span class="fila fila-amplia no-crece">
-        <span class="punto-chico" style="background-color: ${g.color}"></span>
+        <span class="punto-chico" style="background-color: ${escAttr(g.color)}"></span>
         <span class="medio">${esc(g.nombre)}</span>
       </span>
     `).join('');
@@ -674,9 +860,20 @@ export class App {
     this.render();
   }
 
-  // llama es el formulario de categoría, que siempre pasa el objeto.
+  /*
+   * El color de una categoría, y siempre uno de la paleta.
+   *
+   * El color va al HTML en `style="background-color: ..."` en cinco lugares, y un
+   * color que no sea un color rompe el atributo. Por eso esta función es la
+   * única puerta: si el valor no está en la paleta, devuelve el primero y no lo
+   * deja pasar. Un `||` no alcanza, porque el caso que rompe es un color que sí
+   * existe pero no es un color: "rojo" o `red; } body {`.
+   */
   getCategoriaColor(categoria) {
-    return categoria?.color || COLORES_CATEGORIAS[0];
+    const color = categoria?.color;
+    if (typeof color !== 'string') return COLORES_CATEGORIAS[0];
+    const limpio = color.trim().toLowerCase();
+    return COLORES_CATEGORIAS.find(c => c.toLowerCase() === limpio) || COLORES_CATEGORIAS[0];
   }
 
   // de sobra, y si el usuario tiene más de 20 categorías ya sabrá elegir.
@@ -767,7 +964,7 @@ export class App {
                   data-id="${escAttr(cat.id)}"
                   aria-label="Ver los productos de ${escAttr(cat.nombre)} en el catálogo"
                 >
-                  <span class="punto" style="background-color: ${this.getCategoriaColor(cat)}"></span>
+                  <span class="punto" style="background-color: ${escAttr(this.getCategoriaColor(cat))}"></span>
                   <span class="columna crece">
                     <span class="medio">${esc(cat.nombre)}</span>
                     <span class="micro apagado">
@@ -836,9 +1033,9 @@ export class App {
                 <button
                   class="fila-tocable"
                   data-estado="${escAttr(e.clave)}"
-                  aria-label="Ver en el catálogo los ${total} productos con estado ${escAttr(e.etiqueta)}"
+                  aria-label="Ver en el catálogo los ${escAttr(total)} productos con estado ${escAttr(e.etiqueta)}"
                 >
-                  <span class="punto" style="background-color: ${e.color}"></span>
+                  <span class="punto" style="background-color: ${escAttr(e.color)}"></span>
                   <span class="columna crece">
                     <span class="medio">${esc(e.etiqueta)}</span>
                     <span class="micro apagado">
@@ -899,7 +1096,7 @@ export class App {
                 <button
                   class="fila-tocable"
                   data-proveedor="${escAttr(prov.id)}"
-                  aria-label="Ver en el inventario los ${total} productos de ${escAttr(prov.nombre)}"
+                  aria-label="Ver en el inventario los ${escAttr(total)} productos de ${escAttr(prov.nombre)}"
                 >
                   <span class="columna crece">
                     <span class="medio">${esc(prov.nombre)}</span>
@@ -1036,20 +1233,36 @@ export class App {
 
     const buscador = document.getElementById('buscador');
     if (buscador) {
+      /*
+       * La búsqueda no filtra en cada tecla.
+       *
+       * Antes cada `input` ordenaba el inventario entero y repintaba sesenta
+       * tarjetas, así que escribir una palabra de veinte letras hacía veinte
+       * ordenamientos y veinte reconstrucciones de la lista. En un teléfono
+       * gama baja eso se siente: la pantalla se congela mientras se escribe.
+       *
+       * Con 250ms de espera la lista se repinta una vez, cuando el usuario deja
+       * de escribir. Sigue siendo lo bastante rápido para que se vea en vivo, y
+       * el `change` del botón "limpiar" y el del desplegable de orden no pasan
+       * por acá, así que no llegan tarde.
+       */
       buscador.addEventListener('input', (e) => {
-        this.busqueda = e.target.value;
-        // Búsqueda nueva = punto de partida nuevo: si no, el usuario que ya
-
-        this._limiteRender = App.LIMITE_RENDER;
-        this.aplicarFiltroYOrden();
+        const valor = e.target.value;
+        clearTimeout(this._temporizadorBusqueda);
+        this._temporizadorBusqueda = setTimeout(() => {
+          this.busqueda = valor;
+          this._limiteRender = App.LIMITE_RENDER;
+          this.aplicarFiltroYOrden();
+        }, App.ESPERA_BUSQUEDA);
       });
     }
 
     const btnLimpiar = document.getElementById('btn-limpiar-busqueda');
     if (btnLimpiar) {
       btnLimpiar.addEventListener('click', () => {
+        clearTimeout(this._temporizadorBusqueda);
         this.busqueda = '';
-        buscador.value = '';
+        if (buscador) buscador.value = '';
         this._limiteRender = App.LIMITE_RENDER;
         this.aplicarFiltroYOrden();
       });
@@ -1077,9 +1290,31 @@ export class App {
         cerrarOrden();
         this.aplicarFiltroYOrden();
       });
-      document.addEventListener('click', (e) => {
-        if (!listaOrden.contains(e.target) && e.target !== btnOrdenar) cerrarOrden();
-      });
+
+      /*
+       * Este listener va en `document`, que nunca se recrea, así que atarlo en
+       * cada render lo acumulaba: como el buscador repinta la vista en cada tecla,
+       * escribir una palabra de veinte letras dejaba veinte listeners vivos en
+       * `document`, cada uno con referencias a nodos ya desconectados del DOM.
+       * Cada clic en cualquier parte disparaba los veinte.
+       *
+       * Se ata una sola vez, con la misma guarda que usa la delegación del
+       * contenido. La lista y el botón se resuelven en el momento del clic, no
+       * en el de atar: así el listener sigue sirviendo aunque el header se haya
+       * repintado.
+       */
+      if (!this._ordenCerrarAlClicFuera) {
+        this._ordenCerrarAlClicFuera = (e) => {
+          const lista = document.getElementById('ordenar-options');
+          const boton = document.getElementById('btn-ordenar');
+          if (!lista || !boton) return;
+          if (!lista.contains(e.target) && e.target !== boton) {
+            lista.classList.add('oculto');
+            boton.setAttribute('aria-expanded', 'false');
+          }
+        };
+        document.addEventListener('click', this._ordenCerrarAlClicFuera);
+      }
     }
 
     document.getElementById('btn-cargar-mas')?.addEventListener('click', () => {
@@ -1230,22 +1465,28 @@ export class App {
     const cambioReal = delta * step;
 
     try {
-      await dbUtils.ajustarStock(id, cambioReal);
+      // El valor que vuelve es el que quedó en la base después de la transacción,
+      // no el calculado acá. Con dos pestañas abiertas, calcularlo del lado de
+      // esta podría mostrar un número que la base nunca tuvo.
+      const guardado = await dbUtils.ajustarStock(id, cambioReal);
+      if (!guardado) return null;
 
-      producto.stock = Math.max(0, (producto.stock || 0) + cambioReal);
-      producto.actualizadoEl = new Date().toISOString();
+      const nuevoStock = guardado.stock;
+      producto.stock = nuevoStock;
+      producto.actualizadoEl = guardado.actualizadoEl;
 
       // saltaba de posición porque el contenido se reconstruía.
       this.actualizarTarjetaStock(producto);
 
-      if (producto.stock > 0 && producto.stock <= (producto.stockMinimo || 0)) {
-        toast.warning(`⚠️ ${producto.nombre}: Stock bajo (${producto.stock} ${this.getUnidadBase(producto.tipoVenta)})`);
-      } else if (producto.stock === 0) {
+      if (nuevoStock > 0 && nuevoStock <= (producto.stockMinimo || 0)) {
+        toast.warning(`⚠️ ${producto.nombre}: Stock bajo (${nuevoStock} ${this.getUnidadBase(producto.tipoVenta)})`);
+      } else if (nuevoStock === 0) {
         toast.error(`❌ ${producto.nombre}: Agotado`);
       }
-      return producto.stock;
+      return nuevoStock;
     } catch (error) {
-      toast.error('Error ajustando stock');
+      console.error('[App] Error ajustando stock:', error);
+      toast.error('No se pudo ajustar el stock');
       return null;
     } finally {
       this._ajustandoStock[id] = false;
@@ -1313,7 +1554,7 @@ export class App {
     if (this._productoFormAbierto) return;
     this._productoFormAbierto = true;
     abrirFormularioProducto(
-      () => { this.cargarTodo(); this._productoFormAbierto = false; },
+      () => { this.recargarYAvisar(() => { this._productoFormAbierto = false; }); },
       () => { this._productoFormAbierto = false; },
       // La categoría viaja como producto semilla para que el formulario la traiga
 
@@ -1329,7 +1570,7 @@ export class App {
     if (!producto) return;
     this._productoFormAbierto = true;
     abrirFormularioProducto(
-      () => { this.cargarTodo(); this._productoFormAbierto = false; },
+      () => { this.recargarYAvisar(() => { this._productoFormAbierto = false; }); },
       () => { this._productoFormAbierto = false; },
       producto,
       (codigo) => this._alBuscarCodigo(codigo),
@@ -1367,7 +1608,7 @@ export class App {
 
     this._productoFormAbierto = true;
     abrirFormularioProducto(
-      () => { this.cargarTodo(); this._productoFormAbierto = false; },
+      () => { this.recargarYAvisar(() => { this._productoFormAbierto = false; }); },
       () => { this._productoFormAbierto = false; },
       datos,
       (codigo) => this._alBuscarCodigo(codigo),
@@ -1502,7 +1743,7 @@ export class App {
     // Se pasa un producto "semilla" con el código escaneado para que el
 
     abrirFormularioProducto(
-      () => { this.cargarTodo(); this._productoFormAbierto = false; },
+      () => { this.recargarYAvisar(() => { this._productoFormAbierto = false; }); },
       () => { this._productoFormAbierto = false; },
       { codigoBarras: codigo },
       (codigo) => this._alBuscarCodigo(codigo),
@@ -1515,7 +1756,7 @@ export class App {
     this._copiaAbierta = true;
 
     abrirCopiaSeguridad(
-      () => { this.cargarTodo(); },
+      () => { this.recargarYAvisar(); },
       () => { this._copiaAbierta = false; }
     );
   }
@@ -1552,11 +1793,11 @@ export class App {
             <label class="etiqueta">Color</label>
             <div class="fila envuelto">
               ${COLORES_CATEGORIAS.map(color => `
-                <button type="button" class="color-btn muestra-color ${cat && this.getCategoriaColor(cat) === color ? 'muestra-color-elegida' : ''}" data-color="${color}" style="background-color: ${color}; border-color: ${color}40;" aria-label="Color ${color}">
+                <button type="button" class="color-btn muestra-color ${cat && this.getCategoriaColor(cat) === color ? 'muestra-color-elegida' : ''}" data-color="${escAttr(color)}" style="background-color: ${escAttr(color)}; border-color: ${escAttr(color)}40;" aria-label="Color ${escAttr(color)}">
                 </button>
               `).join('')}
             </div>
-            <input type="hidden" id="cat-color" value="${cat ? this.getCategoriaColor(cat) : this.colorAleatorioCategoria()}">
+            <input type="hidden" id="cat-color" value="${escAttr(cat ? this.getCategoriaColor(cat) : this.colorAleatorioCategoria())}">
           </div>
           <div class="fila fila-amplia separador-arriba relleno-superior-2">
             <button type="button" id="btn-cat-cancelar" class="btn-secundario btn-crece">${esEdicion ? 'Cancelar' : 'Volver'}</button>
@@ -1631,13 +1872,24 @@ export class App {
     if (!confirmado) return;
 
     try {
-      await db.categorias.delete(categoriaId);
+      /*
+       * Las dos cosas en UNA transacción.
+       *
+       * Con un `delete` y después un `update` por producto, si el update número
+       * siete de veinte falla, la categoría ya estaba borrada y los productos
+       * quedaban apuntando a un id que ya no existe: productos que aparecen en
+       * todas partes y en ninguna categoría. Con la transacción, o entra todo o
+       * no entra nada.
+       */
+      await db.transaction('rw', [db.categorias, db.productos], async () => {
+        await db.categorias.delete(categoriaId);
 
-      for (const p of productosAfectados) {
-        await db.productos.update(p.id, {
-          categoriaIds: categoriasDe(p).filter(id => id !== categoriaId)
-        });
-      }
+        for (const p of productosAfectados) {
+          await db.productos.update(p.id, {
+            categoriaIds: categoriasDe(p).filter(id => id !== categoriaId)
+          });
+        }
+      });
 
       if (this.categoriaVista === categoriaId) this.categoriaVista = null;
       toast.success('Categoría eliminada');
