@@ -393,7 +393,6 @@ export const dbUtils = {
    *
    * @param {object} opciones
    * @param {number} [opciones.limite] cuántas tarjetas se van a pintar.
-   * @param {number} [opciones.desde] desde cuál, para el "cargar más".
    * @param {string} [opciones.busqueda] texto ya normalizado.
    * @param {string} [opciones.categoriaId]
    * @param {string} [opciones.estado] 'ok', 'poco' o 'vacio'.
@@ -405,7 +404,7 @@ export const dbUtils = {
    *   porque Dexie no lo da en la misma pasada.
    */
   async consultarProductos({
-    limite = 60, desde = 0,
+    limite = 60,
     busqueda = '', categoriaId = null, estado = null, proveedor = null,
     ordenarPor = 'nombre', ordenDireccion = 'asc'
   } = {}) {
@@ -456,17 +455,40 @@ export const dbUtils = {
      */
     const DESC = ordenDireccion === 'desc';
 
+    /*
+     * "Cargar más" agranda `limite` y vuelve a preguntar desde el principio, en vez
+     * de pedir la página siguiente. No hay `desde` a propósito: la lista se reordena
+     * y se refiltra con cada tecla, así que un desplazamiento guardaría una
+     * posición que en el próximo cambio ya no apunta al mismo producto. Volver a
+     * preguntar es una consulta más, y sobre una base con índice es barata.
+     *
+     * Por eso el recorte va una sola vez, después del orden, y no en cada rama.
+     * Que fuera un `slice` por rama era la forma natural de escribirlo, y por eso
+     * no estaba: `limite` se aceptaba en la firma y no se usaba en ningún lado. La
+     * app pintaba la lista entera siempre, y el "Cargar más" repetía el trabajo
+     * devolviendo lo mismo de nuevo.
+     *
+     * Va después del orden y no antes a propósito: si se recortara antes, con el
+     * orden al revés mostraría los mismos productos de siempre, porque el inverso
+     * de la cabeza es la cola.
+     *
+     * El corte se hace en memoria porque el orden también se resuelve en memoria
+     * con `sortBy`: Dexie no tiene forma de pedir "sixty, ya ordenadas". Lo que se ahorra sigue siendo lo importante, que es no traer los
+     * productos descartados por los filtros, y eso lo hace la base.
+     */
+    const paginar = (lista) => ({ productos: lista.slice(0, limite), total });
+
     if (ordenarPor === 'nombre') {
       const r = await coleccion.sortBy('nombreOrden');
-      return { productos: DESC ? r.slice().reverse() : r, total };
+      return paginar(DESC ? r.slice().reverse() : r);
     }
     if (ordenarPor === 'precio') {
       const r = await coleccion.sortBy('precioOrden');
-      return { productos: DESC ? r.slice().reverse() : r, total };
+      return paginar(DESC ? r.slice().reverse() : r);
     }
     if (ordenarPor === 'categoria') {
       const r = await coleccion.sortBy('categoriaOrden');
-      return { productos: DESC ? r.slice().reverse() : r, total };
+      return paginar(DESC ? r.slice().reverse() : r);
     }
     if (ordenarPor === 'fecha') {
       const r = await coleccion.toArray();
@@ -475,7 +497,7 @@ export const dbUtils = {
         const vb = b.actualizadoEl || '';
         return DESC ? (va < vb ? 1 : va > vb ? -1 : 0) : (va < vb ? -1 : va > vb ? 1 : 0);
       });
-      return { productos: r, total };
+      return paginar(r);
     }
 
     // Stock: no tiene índice a propósito, porque con la suma o la resta cambia
@@ -488,7 +510,7 @@ export const dbUtils = {
       if (va === vb) return 0;
       return DESC ? vb - va : va - vb;
     });
-    return { productos: r, total };
+    return paginar(r);
   },
 
   /**

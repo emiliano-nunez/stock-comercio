@@ -113,11 +113,12 @@ escritos en las reglas. `src/css/tokens.css` tiene dos bloques que hay que conoc
 ## Antes de tocar nada
 
 ```bash
-npm run verificar   # los cinco verificadores
-npm run build      # que compile de verdad
+npm run verificar   # los seis verificadores
+npm test            # la app arrancada de verdad
+npm run build       # que compile de verdad
 ```
 
-Los cinco verificadores nacieron de bugs que llegaron a la página publicada:
+Los seis verificadores nacieron de bugs que llegaron a la página publicada:
 
 | | Qué encuentra |
 |---|---|
@@ -126,11 +127,27 @@ Los cinco verificadores nacieron de bugs que llegaron a la página publicada:
 | `verificar-imports.mjs` | una llamada a una función propia sin su import |
 | `verificar-plantillas.mjs` | un acento grave en un comentario que corta una plantilla |
 | `verificar-escapado.mjs` | una interpolación sin escapar dentro de un atributo |
+| `verificar-propiedades.mjs` | un método que lee un campo que la clase no escribe, o un método cuyo nombre pisa una propiedad |
 
-Los tres primeros son los que más salvan: cortan el trabajo apenas se toca un
-archivo. Los dos últimos evitan que un dato del usuario salga crudo en el HTML.
+Los tres primeros cortan el trabajo apenas se toca un archivo. Los dos últimos
+evitan que un dato del usuario salga crudo en el HTML. El sexto cubre la clase de
+bug que más llegó a la pantalla: un `this.algo` que ya no existe, o un `this.algo`
+que existe pero tapó al método del mismo nombre.
 
-La publicación los corre sola: `npm run publicar` es la puerta, y es la que usan
+### `npm test`
+
+Los seis verificadores miran el archivo, y hay errores que sólo existen cuando el
+código corre: un método de Dexie que no existe en la versión instalada, un campo
+renombrado que quedó con una referencia suelta, un método tapado por una propiedad.
+Contra el texto del archivo no se ven.
+
+`pruebas/arranque.test.mjs` corre la app de verdad, con un DOM de verdad (`jsdom`)
+y una base IndexedDB de verdad en memoria (`fake-indexeddb`), y afirma que el
+inventario se dibuja, que las consultas devuelven la página que se pidió y que no
+hay errores en consola. Salió de los cuatro bugs seguidos que llegaron al usuario
+antes de que existiera.
+
+La publicación corre los tres: `npm run publicar` es la puerta, y es la que usan
 GitHub Actions y Netlify.
 
 ## Los íconos

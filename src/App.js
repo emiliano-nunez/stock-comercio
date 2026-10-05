@@ -67,7 +67,6 @@ export class App {
 
   constructor() {
     this.productos = [];
-    this.productosVisibles = [];
     this._totalEnVista = 0;
     this._urlsDeImagen = new Map();
     this.categorias = [];
@@ -409,7 +408,6 @@ export class App {
 
       this._totalEnVista = total;
       this.productos = await this.conFotosDe(productos);
-      this.productosVisibles = this.productos;
       this.renderVista();
     } catch (error) {
       console.error('[App] No se pudo consultar la lista:', error);
@@ -695,7 +693,7 @@ export class App {
    * cosa de lectura y no de filtro: el catálogo muestra los tres grupos juntos.
    */
   productosDeLaVista() {
-    return this.productosVisibles || [];
+    return this.productos || [];
   }
 
   productosVisibles() {
