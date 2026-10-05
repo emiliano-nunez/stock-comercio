@@ -523,15 +523,32 @@ export const dbUtils = {
   /**
    * Cuántos productos tiene cada proveedor.
    *
-   * Sale de un `groupBy` sobre el índice `proveedorClave`, que es el mismo
-   * campo por el que se filtra el grupo. Antes este número salía de recorrer el
-   * inventario entero una vez por proveedor, cada vez que se pintaba la pantalla.
+   * Sale del índice `proveedorClave`, que es el mismo campo por el que se filtra
+   * el grupo. Antes este número salía de recorrer el inventario entero una vez
+   * por proveedor, cada vez que se pintaba la pantalla.
    *
-   * @returns {Promise<Map<string, number>>} la clave normalizada y la cantidad.
+   * Se cuentan las claves y no los productos a propósito: `keys()` sobre un índice
+   * devuelve la lista de las claves repetidas, y como el índice ya está ordenado
+   * por proveedor, contarlas es recorrer una lista que anda sola. La base no
+   * devuelve ni un producto.
+   *
+   * No se usa `groupBy`: no existe en Dexie 4. Venía de la documentación de la
+   * versión 3 y en runtime tiraba `groupBy is not a function` apenas arrancaba la
+   * app, dentro de `cargarTodo()`.
+   *
+   * @returns {Promise<Map<string, number>>} la clave normalizada y la cantidad,
+   *   en orden alfabético, que es como el índice las devuelve.
    */
   async contarPorProveedor() {
-    const conteos = await db.productos.orderBy('proveedorClave').groupBy(p => p.proveedorClave || '', p => p.count());
-    return new Map(conteos);
+    const claves = await db.productos.orderBy('proveedorClave').keys();
+
+    const conteos = new Map();
+    for (const clave of claves) {
+      if (!clave) continue;
+      conteos.set(clave, (conteos.get(clave) || 0) + 1);
+    }
+
+    return conteos;
   },
 
   /** El catálogo, que `contarProductos` necesita para los ids de categoría. */
