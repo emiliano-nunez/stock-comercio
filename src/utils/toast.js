@@ -103,15 +103,6 @@ export class ToastManager {
   info(message, options) {
     return this.show(message, { ...options, type: 'info' });
   }
-
-  undo(message, onUndo, duration = 5000) {
-    return this.show(message, {
-      type: 'info',
-      duration,
-      action: '↩️ DESHACER',
-      onAction: onUndo
-    });
-  }
 }
 
 export const toast = new ToastManager();

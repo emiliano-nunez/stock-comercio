@@ -55,7 +55,8 @@ db.version(4).stores({
 // más caro.
 //
 // Verificado que la tabla productos SÓLO se consulta por codigoBarras
-// (ProductoForm y ScannerModal), y que historial sólo se ordena por fecha.
+// (ProductoForm y ScannerModal). La tabla historial se ve abajo: era la única
+// que se ordenaba por fecha.
 //
 // Lo que NO se hizo aquí, a propósito: marcar codigoBarras como único ('&').
 // Sería lo correcto, pero un índice único en IndexedDB también indexa el valor
@@ -158,15 +159,43 @@ db.version(7)
       }))
     );
   });
+/*
+ * v8: se elimina el historial de puntos de restauración.
+ *
+ * La app guardaba una copia completa de la tabla de productos antes de cada
+ * borrado, y hasta diez copias. Con eso: cada borrado escribía el inventario
+ * entero, las copias competían por la cuota con las fotos del usuario, y la tabla
+ * más pesada de la base era la que nadie miraba.
+ *
+ * Peor: "Volver atrás" devolvía el estado del inventario, no sólo lo borrado. Un
+ * punto tomaba antes de borrar la categoría "Bebidas" traía de vuelta todos los
+ * productos que el usuario había eliminado a mano en el último mes, con el mismo
+ * nombre y en otra categoría. Y una de esas copias guardaba las fotos de esos
+ * productos, así que la limpieza de fotos del historial terminaba borrando fotos
+ * que el usuario había tenido alguna vez.
+ *
+ * La app ahora no guarda ningún historial. Lo que protege al usuario es una sola
+ * cosa, y es explícita: **Exportar copia de seguridad**, que deja un archivo en el
+ * disco. Y antes de cualquier borrado se le pregunta, con el nombre de lo que va
+ * a desaparecer.
+ *
+ * La tabla se borra declarándola acá sin ella: Dexie elimina del esquema las
+ * tablas que la versión nueva no declara, y con eso se recuperan de golpe las
+ * copias que quedaban, que es el espacio que estaban ocupando.
+ */
+db.version(8).stores({
+  productos: 'id, codigoBarras, tipoVenta, costo, fechaCompra',
+  categorias: 'id, nombre, color',
+  proveedores: 'id, nombre',
+  imagenes: 'id'
+});
+
 /**
  * Las categorías de un producto, siempre como lista de ids.
  *
- * Un producto puede estar en varias. Se lee tolerando las dos formas porque hay
- * dos caminos por los que un producto viejo vuelve a aparecer con la forma
- * anterior: restaurar un punto de restauración tomado antes de esta versión, e
- * importar un backup viejo. Los snapshots del historial no se reescriben (son
- * el estado de otra fecha, y modificarlos sería mentir sobre ese estado), y un
- * backup pertenece al usuario tal como lo exportó.
+ * Un producto puede estar en varias. Se lee tolerando las dos formas porque un
+ * backup viejo puede traer la anterior: un backup pertenece al usuario tal como
+ * lo exportó, y reescribirlo sería mentir sobre lo que el archivo dice.
  *
  * @param {{categoriaIds?: string[], categoriaId?: string}} producto
  * @returns {string[]} puede estar vacía: un producto sin categoría es válido.
@@ -321,43 +350,29 @@ export const dbUtils = {
   },
 
   /**
-   * Clasifica las imágenes guardadas en tres conjuntos, según quién las
-   * referencia:
+   * Clasifica las imágenes guardadas según quién las referencia.
+   *
+   * Con el historial eliminado, sólo hay dos conjuntos y uno se va:
    *
    *   enProductos -> las tiene un producto vivo. Intocables.
-   *   delHistorial -> sólo las tiene algún punto de restauración. Son las fotos
-   *                 de productos que el usuario ya borró. Ocupan espacio y no
-   *                 las muestra nadie, pero son lo único que permite que
-   *                 "Volver Atrás" devuelva el producto CON su foto.
-   *   sueltas      -> no las referencia nadie. Salen de fotos canceladas o
-   *                 reemplazadas.
+   *   sueltas      -> no las referencia ningún producto. Salen de fotos
+   *                 canceladas o reemplazadas.
    *
-   * Los dos últimos son disjuntos, así que las dos limpiezas del historial no se
-   * pisan. Todo pasa por acá y no por dos funciones que cada una recalcula su
-   * propio criterio: si medir y limpiar calcularan distinto, el botón prometería
-   * una cantidad y borraría otra.
+   * Todo pasa por acá y no por dos funciones que cada una recalcula su propio
+   * criterio: si medir y limpiar calcularan distinto, el botón prometería una
+   * cantidad y borraría otra.
    */
   async _repartoDeImagenes() {
     const productos = await db.productos.toArray();
     const enProductos = new Set(productos.map(p => p.imagenId).filter(Boolean));
 
-    const snapshots = await db.historial.toArray();
-    const enHistorial = new Set();
-    for (const snapshot of snapshots) {
-      for (const p of snapshot.snapshotProductos || []) {
-        if (p.imagenId) enHistorial.add(p.imagenId);
-      }
-    }
-
     const todas = await db.imagenes.toArray();
     return {
-      delHistorial: todas.filter(img => enHistorial.has(img.id) && !enProductos.has(img.id)),
-      sueltas: todas.filter(img => !enProductos.has(img.id) && !enHistorial.has(img.id))
+      sueltas: todas.filter(img => !enProductos.has(img.id))
     };
   },
 
-  // criterio que usa la limpieza, para que el número del botón sea el número
-
+  /** Los bytes que ocupa un conjunto de imágenes, para poder decirle cuánto es. */
   async _medirConjunto(conjunto) {
     const bytes = conjunto.reduce(
       (total, img) => total + (img.blob?.size || 0) + (img.thumb?.size || 0),
@@ -366,83 +381,18 @@ export const dbUtils = {
     return { cantidad: conjunto.length, bytes, megas: bytes / (1024 * 1024) };
   },
 
-  /**
-   * Cuánta foto hay guardada que sólo existe para el historial: la de productos
-   * que el usuario ya eliminó. No la muestra nadie en el catálogo, pero pesa.
-   *
-   * Crece sin que el usuario lo decida, y es justo la consecuencia de que la
-   * app no borre fotos sola (son dato del usuario). Por eso se mide y se le
-   * ofrece liberarla, en vez de hacerlo por sorpresa.
-   */
-  async medirFotosDelHistorial() {
-    const { delHistorial } = await this._repartoDeImagenes();
-    return this._medirConjunto(delHistorial);
-  },
-
-  /**
-   * Borrar las fotos que sólo el historial referencia. Es la única acción de la
-   * app que elimina fotos que en algún momento fueron de un producto del
-   * usuario, y por eso el botón que la dispara insiste dos veces.
-   *
-   * Lo que NO se toca: las fotos de los productos que están en el inventario
-   * ahora. Y lo que se pierde: la capacidad de que "Volver Atrás" devuelva los
-   * productos borrados con su imagen. Los productos siguen volviendo; lo que no
-   * vuelve es la foto.
-   */
-  async liberarFotosDelHistorial() {
-    const { delHistorial } = await this._repartoDeImagenes();
-    if (delHistorial.length > 0) {
-      await db.imagenes.bulkDelete(delHistorial.map(img => img.id));
-    }
-    return delHistorial.length;
-  },
-
-  /**
-   * Qué cambiaría al restaurar un punto: qué productos volverían y cuáles
-   * desaparecerían.
-   *
-   * Sin esto, el diálogo dice "se sustituirá el inventario por el estado del
-   * 12/03" y el usuario decide a ciegas. Lo que más le cuesta imaginar es justo
-   * lo que pasa con los productos que él mismo borró: el punto se creó ANTES del
-   * borrado, así que restaurar trae de vuelta lo que él eliminó.
-   *
-   * @returns {Promise<{ vuelven: object[], seVan: object[] }>} `vuelven` están en
-   *   el snapshot pero no en la base (fueron borrados después); `seVan` están en
-   *   la base pero no en el snapshot (fueron agregados después).
-   */
-  async compararConSnapshot(snapshotId) {
-    const snapshot = await db.historial.get(snapshotId);
-    if (!snapshot) return { vuelven: [], seVan: [] };
-
-    // a nadie, TODOS los productos del usuario saldrían en `seVan`. El diálogo
-    // los pintaría como "12 productos que van a desaparecer" y sería mentira:
-
-    if (!Array.isArray(snapshot.snapshotProductos)) return { vuelven: [], seVan: [] };
-
-    const enSnapshot = new Map(snapshot.snapshotProductos.map(p => [p.id, p]));
-    const actuales = await db.productos.toArray();
-    const enBase = new Set(actuales.map(p => p.id));
-
-    return {
-      vuelven: snapshot.snapshotProductos.filter(p => !enBase.has(p.id)),
-      seVan: actuales.filter(p => !enSnapshot.has(p.id))
-    };
-  },
-
-  //
-  // Se centraliza para que la galería y la cámara hagan lo mismo: si una de las
-
-  //
-  // El campo se llama creadoEl y no fecha porque es el que backup.js ya
-  // exporta e importa: renombrarlo acá ponía `creadoEl: undefined` en cada
-
   async guardarImagen(id, blob, thumb = null) {
     await db.imagenes.add({ id, blob, thumb, creadoEl: new Date().toISOString() });
     return id;
   },
 
-  // Hay que llamarlo ANTES de reemplazarla: createObjectURL() no se puede
-
+  /*
+   * Liberar las URLs de objeto de una tanda de productos.
+   *
+   * Hay que llamarlo ANTES de reemplazarla: una URL de objeto es una referencia
+   * viva al blob, y sin revocar se quedan todas apuntando a la memoria del
+   * proceso aunque la foto ya no se muestre.
+   */
   revocarImagenes(productos) {
     if (!Array.isArray(productos)) return;
     for (const p of productos) {
@@ -452,52 +402,18 @@ export const dbUtils = {
     }
   },
 
-  //
-
-  async resumenFotos(snapshotProductos = []) {
-    const conFoto = snapshotProductos.filter(p => p.imagenId);
-    const ids = [...new Set(conFoto.map(p => p.imagenId))];
-    let disponibles = 0;
-    if (ids.length > 0) {
-      const claves = await db.imagenes.where('id').anyOf(ids).keys().toArray();
-      disponibles = claves.length;
-    }
-    return { total: snapshotProductos.length, conFoto: conFoto.length, disponibles };
-  },
-
-  //
-
-  // principio puede haber más de uno: un backup importado, o dos productos
-
-  // .first(), que elige uno al azar de entre los duplicados, así que el usuario
-
-  //
-
+  /*
+   * Los productos con un código de barras exacto.
+   *
+   * El índice de `codigoBarras` NO es único a propósito (está escrito en la nota
+   * de la v5), así que puede haber más de uno: un backup importado, o dos
+   * productos que el usuario les cargó el mismo código a mano. Por eso devuelve
+   * todos y no uno con `.first()`, que elegiría al azar entre los duplicados y el
+   * usuario no sabría cuál de los dos estaba viendo.
+   */
   async buscarPorCodigoBarras(codigo) {
     if (!codigo) return [];
     return db.productos.where('codigoBarras').equals(String(codigo)).toArray();
-  },
-
-  async crearPuntoRestauracion(motivo = 'Manual') {
-    const productos = await db.productos.toArray();
-    const snapshot = {
-
-      id: `restauracion_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-      fecha: new Date().toISOString(),
-      motivo,
-      snapshotProductos: productos.map(p => ({ ...p }))
-    };
-
-    await db.historial.add(snapshot);
-
-    const LIMITE = 10;
-    const count = await db.historial.count();
-    if (count > LIMITE) {
-      const excedentes = await db.historial.orderBy('fecha').limit(count - LIMITE).toArray();
-      await db.historial.bulkDelete(excedentes.map(h => h.id));
-    }
-
-    return snapshot;
   },
 
   async listarProveedores() {
@@ -588,97 +504,25 @@ export const dbUtils = {
     });
   },
 
-  //
-  // { conFotos } resuelve lo que el usuario elige en el diálogo de confirmación:
-
-  //
-
-  // dato del usuario, y mientras el blob siga ahí el imagenId de cada snapshot
-
-  async restaurarDesdeSnapshot(snapshotId, { conFotos = true } = {}) {
-    const snapshot = await db.historial.get(snapshotId);
-    if (!snapshot) throw new Error('Punto de restauración no encontrado');
-
-    // Red de seguridad: un snapshot sin productos nunca es un "estado" válido.
-
-    if (!Array.isArray(snapshot.snapshotProductos) || snapshot.snapshotProductos.length === 0) {
-      throw new Error('Este punto de restauración está vacío y no se puede aplicar');
-    }
-
-    const productos = conFotos
-      ? snapshot.snapshotProductos
-      : snapshot.snapshotProductos.map(({ imagenId, ...p }) => ({ ...p, imagenId: null }));
-
-    //
-    // Va ANTES de la transacción a propósito. Si guardar el respaldo falla, que
-
-    await this.crearPuntoRestauracion('Antes de restaurar');
-
-    await db.transaction('rw', db.productos, async () => {
-      await db.productos.clear();
-      await db.productos.bulkPut(productos);
-    });
-
-    return snapshot;
-  },
-
-  // Todo en una sola transacción (productos + historial) para que el snapshot
-
-  //
-  // La foto NO se borra: es dato del usuario. Si el blob se fuera, el
-
-  // La app nunca borra fotos sola (ver limpiarImagenesSinUsar).
-  async eliminarProducto(id, { conPuntoRestauracion = true } = {}) {
+  /*
+   * Borrar un producto.
+   *
+   * Es una de las dos cosas que la app borra, y la otra son las fotos sueltas.
+   * Las dos le preguntan al usuario antes, con el nombre de lo que desaparece: un
+   * borrado acá ya no se puede deshacer dentro de la app. Lo que lo protege es
+   * la copia de seguridad que el usuario exporta a mano.
+   *
+   * La foto NO se borra: es dato del usuario. Queda en la tabla de imágenes sin
+   * que nadie la referencie, y aparece en "Liberar fotos sin usar" para que sea
+   * él quien decida. Ver limpiarImagenesSinUsar.
+   */
+  async eliminarProducto(id) {
     const producto = await db.productos.get(id);
     if (!producto) throw new Error('Producto no encontrado');
 
-    await db.transaction('rw', [db.productos, db.historial], async () => {
-      if (conPuntoRestauracion) {
-
-        const productos = await db.productos.toArray();
-        await db.historial.add({
-          id: `restauracion_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-          fecha: new Date().toISOString(),
-          motivo: 'eliminacion',
-          snapshotProductos: productos.map(p => ({ ...p }))
-        });
-
-        const count = await db.historial.count();
-        if (count > 10) {
-          const masAntiguos = await db.historial.orderBy('fecha').limit(count - 10).toArray();
-          await db.historial.bulkDelete(masAntiguos.map(h => h.id));
-        }
-      }
-
-      await db.productos.delete(id);
-    });
+    await db.productos.delete(id);
 
     return producto;
-  },
-
-  //
-
-  // ya estuviera ocupado (el usuario lo volvió a crear mientras tanto), se
-
-  async restaurarProductoEliminado(producto) {
-    if (!producto?.id) throw new Error('Nada que restaurar');
-
-    await db.transaction('rw', db.productos, async () => {
-      const existente = await db.productos.get(producto.id);
-      if (existente) {
-        throw new Error('Ya existe un producto con ese código, no se restauró');
-      }
-
-      const { imagenUrl, ...datos } = producto;
-
-      await db.productos.add(datos);
-    });
-
-    return producto;
-  },
-
-  async getHistorial() {
-    return db.historial.orderBy('fecha').reverse().toArray();
   },
 
   async buscarProductos(query) {

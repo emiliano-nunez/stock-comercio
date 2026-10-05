@@ -1408,15 +1408,6 @@ export class ProductoForm {
 
         // no tiene por qué coincidir con el del producto, y las entradas
 
-        const huellaPrecios = (lista) => (lista || [])
-          .map(p => `${p.unidad}:${p.valor}`)
-          .sort()
-          .join('|');
-        const cambioPrecio = huellaPrecios(this.producto.precios) !== huellaPrecios(precios);
-        if (cambioPrecio) {
-          await dbUtils.crearPuntoRestauracion('precios');
-        }
-
         await db.productos.update(this.producto.id, datosProducto);
 
         toast.success('Producto actualizado');

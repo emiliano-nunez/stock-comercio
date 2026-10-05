@@ -1,6 +1,6 @@
 import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, getUnidadBase, getPrecioPrincipal, categoriasDe, tieneCategoria } from './db.js';
 import { abrirFormularioProducto } from './components/ProductoForm.js';
-import { abrirHistorial } from './components/HistorialModal.js';
+import { abrirCopiaSeguridad } from './components/CopiaSeguridadModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
 import { abrirScanner } from './components/ScannerModal.js';
 import { abrirCodigoDuplicado } from './components/CodigoDuplicado.js';
@@ -74,8 +74,6 @@ export class App {
     this.proveedorVista = null;
 
     this.proveedores = [];
-    this.ultimoEliminado = null;
-    this.timeoutDeshacer = null;
     this.categoriaEditando = null;
     this._limiteRender = App.LIMITE_RENDER;
   }
@@ -93,7 +91,7 @@ export class App {
           console.info(
             `[App] ${sueltas.cantidad} foto(s) sin ningún producto asociado, ` +
             `${sueltas.megas.toFixed(1)}MB. No se borran: la app no borra ` +
-            `fotos sola. Se pueden liberar desde el historial.`
+            `fotos sola. Se pueden liberar desde la copia de seguridad.`
           );
         }
       } catch (error) {
@@ -102,9 +100,6 @@ export class App {
       }
 
       await this.cargarTodo();
-
-      // Crear punto de restauración diario si no existe uno hoy
-      await this.crearPuntoRestauracionDiario();
 
       this.render();
       this.bindEvents();
@@ -163,15 +158,6 @@ export class App {
         btn.disabled = false;
       }
     });
-  }
-
-  async crearPuntoRestauracionDiario() {
-    const historial = await dbUtils.getHistorial();
-    const hoy = new Date().toISOString().split('T')[0];
-    const hayHoy = historial.some(h => h.fecha.startsWith(hoy));
-    if (!hayHoy && this.productos.length > 0) {
-      await dbUtils.crearPuntoRestauracion('cierre');
-    }
   }
 
   async cargarTodo() {
@@ -292,8 +278,8 @@ export class App {
         <header class="cabecera">
           <div class="cabecera-cuerpo">
             <h1 class="titulo fila fila-centro fila-amplia">${icono('caja')}<span>DepoApp</span></h1>
-            <button id="btn-historial" class="btn-texto" aria-label="Historial y restaurar">
-              ${icono('historial')}<span class="texto-boton">Historial</span>
+            <button id="btn-copia" class="btn-texto" aria-label="Copia de seguridad">
+              ${icono('descargar')}<span class="texto-boton">Copia</span>
             </button>
             <button id="btn-pedido" class="btn-texto" aria-label="Pedido de faltantes">
               ${icono('etiqueta')}<span class="texto-boton">Pedido</span>
@@ -1116,7 +1102,7 @@ export class App {
     });
 
     document.getElementById('btn-escanear-header')?.addEventListener('click', () => this.escanearCodigo());
-    document.getElementById('btn-historial')?.addEventListener('click', () => this.abrirHistorial());
+    document.getElementById('btn-copia')?.addEventListener('click', () => this.abrirCopiaSeguridad());
     document.getElementById('btn-pedido')?.addEventListener('click', () => this.abrirPedido());
     document.getElementById('btn-agregar-fab')?.addEventListener('click', () => this.nuevoProducto());
     document.getElementById('btn-actualizar-ahora')?.addEventListener('click', () => this.aplicarActualizacion());
@@ -1389,48 +1375,89 @@ export class App {
     );
   }
 
-  async eliminarProducto(id) {
+  /*
+   * Borrar un producto.
+   *
+   * Antes de borrar se le pregunta al usuario, con el nombre del producto y la
+   * foto de por medio. No hay historial ni "deshacer": si se borró, se borró, y lo
+   * único que queda es la copia de seguridad que el usuario exportó a mano.
+   *
+   * La foto NO se borra: queda en la tabla de imágenes sin que nadie la
+   * referencie, y aparece en la copia de seguridad para que sea el usuario el que
+   * decida liberarla. La app nunca borra fotos sola.
+   */
+  async eliminarProducto(id, { confirmado = false } = {}) {
     const producto = this.productos.find(p => p.id === id);
     if (!producto) return;
 
+    if (!confirmado) {
+      const ok = await this.confirmarBorrado({
+        titulo: `¿Eliminar "${producto.nombre}"?`,
+        mensaje: 'Se borra el producto y queda sin foto. No se puede deshacer. Si todavía no exportaste una copia de seguridad, conviene hacerlo ahora.',
+        confirmar: 'Eliminar'
+      });
+      if (!ok) return;
+    }
+
     try {
-
-      // producto en la misma transacción (si se usara db.productos.delete() no
-      // habría punto de restauración y no se podría volver atrás).
-      //
-      // La foto NO se borra: queda en db.imagenes para que el deshacer y el
-
-      // imagen. La app no borra fotos sola; si el usuario quiere liberar el
-
-      //
-      // Se guarda el producto devuelto (con su imagenId) para que el deshacer
-
-      const eliminado = await dbUtils.eliminarProducto(id);
-      this.ultimoEliminado = eliminado;
+      await dbUtils.eliminarProducto(id);
 
       await this.cargarTodo();
 
-      this.mostrarDeshacer(`🗑️ ${producto.nombre} eliminado`, async () => {
-        try {
-          await dbUtils.restaurarProductoEliminado(this.ultimoEliminado);
-          this.ultimoEliminado = null;
-          await this.cargarTodo();
-          toast.success('Producto restaurado');
-        } catch (error) {
-          console.error(error);
-          toast.error(`No se pudo deshacer: ${error.message}. Usá el historial para recuperarlo.`);
-        }
-      });
+      toast.success(`Producto eliminado: ${producto.nombre}`);
     } catch (error) {
       console.error(error);
       toast.error('Error eliminando producto');
     }
   }
 
-  mostrarDeshacer(mensaje, onUndo) {
-    if (this.timeoutDeshacer) clearTimeout(this.timeoutDeshacer);
-    toast.undo(mensaje, onUndo, 5000);
-    this.timeoutDeshacer = setTimeout(() => this.ultimoEliminado = null, 5000);
+  /**
+   * Preguntar antes de algo que no se puede deshacer.
+   *
+   * Un solo lugar para todos los borrados, para que ninguno se escape de la
+   * pregunta: cada uno pasa por acá y el botón dice qué cosa borra.
+   *
+   * @returns {Promise<boolean>} true si el usuario confirmó.
+   */
+  confirmarBorrado({ titulo, mensaje, confirmar = 'Eliminar', peligro = true }) {
+    return new Promise(resolve => {
+      const velo = document.createElement('div');
+      velo.className = 'velo';
+      velo.innerHTML = `
+        <div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="conf-titulo">
+          <div class="dialogo-cabecera ${peligro ? 'dialogo-cabecera-peligro' : ''}">
+            <h2 class="titulo" id="conf-titulo">${esc(titulo)}</h2>
+          </div>
+          <div class="dialogo-cuerpo">
+            <p class="detalle">${esc(mensaje)}</p>
+          </div>
+          <div class="dialogo-pie">
+            <button class="btn-secundario" data-accion="no">Cancelar</button>
+            <button class="${peligro ? 'btn-peligro' : 'btn-principal'}" data-accion="si">${esc(confirmar)}</button>
+          </div>
+        </div>
+      `;
+
+      const cerrar = (respuesta) => {
+        velo.remove();
+        document.removeEventListener('keydown', alTeclear);
+        resolve(respuesta);
+      };
+
+      const alTeclear = (e) => {
+        if (e.key === 'Escape') cerrar(false);
+      };
+
+      velo.addEventListener('click', (e) => {
+        if (e.target === velo) return cerrar(false);
+        const btn = e.target.closest('[data-accion]');
+        if (btn) cerrar(btn.dataset.accion === 'si');
+      });
+
+      document.addEventListener('keydown', alTeclear);
+      document.body.appendChild(velo);
+      velo.querySelector('[data-accion="si"]')?.focus();
+    });
   }
 
   async escanearCodigo() {
@@ -1483,14 +1510,13 @@ export class App {
     );
   }
 
-  abrirHistorial() {
-    if (this._historialAbierto) return;
-    this._historialAbierto = true;
+  abrirCopiaSeguridad() {
+    if (this._copiaAbierta) return;
+    this._copiaAbierta = true;
 
-    // siempre y el botón 🔄 dejaba de abrir el historial.
-    abrirHistorial(
+    abrirCopiaSeguridad(
       () => { this.cargarTodo(); },
-      () => { this._historialAbierto = false; }
+      () => { this._copiaAbierta = false; }
     );
   }
 

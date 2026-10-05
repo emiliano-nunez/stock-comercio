@@ -121,7 +121,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
           <p class="titulo-peligro">
             ¿Borrar <strong>${esc(p.nombre)}</strong>?
           </p>
-          <p class="detalle texto-peligro">Se puede recuperar desde el historial.</p>
+          <p class="detalle texto-peligro">No se puede deshacer.</p>
           <div class="fila">
             <button class="btn-secundario btn-crece" data-accion="cancelar-borrar" data-indice="${indice}">No, dejarlo</button>
             <button class="btn-peligro btn-crece" data-accion="borrar" data-indice="${indice}">Sí, borrar</button>

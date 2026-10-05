@@ -1,4 +1,4 @@
-import { db, dbUtils, categoriasDe, normalizarProveedor } from '../db.js';
+import { db, dbUtils, normalizarProveedor, COLORES_CATEGORIAS } from '../db.js';
 import { normalizarTexto } from './texto.js';
 
 /**
@@ -21,29 +21,108 @@ import { normalizarTexto } from './texto.js';
  *     importarlo con "Lácteos del Sur" tiene que dar el mismo grupo en el
  *     pedido, no dos.
  *
- * Lo que NO se toca son los snapshots del historial: son una foto del pasado del
- * usuario, y reescribirlos para que calcen con el código de hoy sería mentir
- * sobre lo que había en ese momento.
+ * Y además **descarta lo que no tiene forma**: un archivo de copia es lo único
+ * que entra a la base sin pasar por el formulario, y hay lugares de la app que
+ * escriben campos directo en el HTML sin escaparlos. Si una copia trae
+ * `nombre: "<img src=x onerror=...>"`, guardarlo tal cual deja ejecutar eso en el
+ * origen de la app, que es donde vive todo el inventario.
+ *
+ * Por eso cada campo pasa por `texto()` o por `numero()`, que no inventan nada:
+ * un tipo raro se convierte a cadena vacía o a 0, no se propaga.
  */
+function texto(valor, { largo = 4000 } = {}) {
+  if (typeof valor === 'string') return valor.slice(0, largo);
+  if (typeof valor === 'number' && Number.isFinite(valor)) return String(valor);
+  return '';
+}
+
+function numero(valor, porDefecto = 0) {
+  const n = typeof valor === 'number' ? valor : Number(valor);
+  return Number.isFinite(n) ? n : porDefecto;
+}
+
+function idTexto(valor, prefijo) {
+  const s = texto(valor, { largo: 120 });
+  return s || `${prefijo}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+/**
+ * Un color de los que la app reconoce, o nada.
+ *
+ * El color de una categoría va al HTML en un `style="background-color: ..."`, y
+ * hay un punto de la app que lo escribe sin escapar. Si el color viniera de una
+ * copia con cualquier texto, ese texto iría al atributo. La paleta está en db.js
+ * y es una lista cerrada: lo que no está en ella no es un color de esta app y no
+ * entra.
+ */
+function colorSeguro(valor) {
+  if (typeof valor !== 'string') return null;
+  const limpio = valor.trim().toLowerCase();
+  return COLORES_CATEGORIAS.some(c => c.toLowerCase() === limpio) ? limpio : null;
+}
+
+/** Los precios: los mismos campos que el formulario escribe. */
+function preciosSeguros(lista) {
+  if (!Array.isArray(lista)) return [];
+  return lista.slice(0, 24).map(p => ({
+    unidad: texto(p?.unidad, { largo: 40 }),
+    valor: numero(p?.valor),
+    icon: texto(p?.icon, { largo: 8 }),
+    esPrincipal: p?.esPrincipal === true
+  })).filter(p => p.unidad);
+}
+
 function normalizarProducto(p) {
-  const { categoriaId, ...resto } = p;
+  const { categoriaId, categoriaIds, ...resto } = p || {};
+
   return {
-    ...resto,
-    categoriaIds: categoriasDe(p),
+    id: idTexto(resto.id, 'prod'),
+    nombre: texto(resto.nombre, { largo: 300 }),
+    categoriaIds: (Array.isArray(categoriaIds) ? categoriaIds : [])
+      .slice(0, 24)
+      .map(id => texto(id, { largo: 120 }))
+      .filter(Boolean),
     proveedor: normalizarProveedor(resto.proveedor),
-    notas: typeof resto.notas === 'string' ? resto.notas : ''
+    notas: texto(resto.notas),
+    codigoBarras: resto.codigoBarras ? texto(resto.codigoBarras, { largo: 64 }) : null,
+    tipoVenta: texto(resto.tipoVenta, { largo: 60 }),
+    unidadPrincipal: texto(resto.unidadPrincipal, { largo: 60 }),
+    stock: Math.max(0, numero(resto.stock)),
+    stockMinimo: Math.max(0, numero(resto.stockMinimo)),
+    costo: Math.max(0, numero(resto.costo)),
+    precio: Math.max(0, numero(resto.precio)),
+    precios: preciosSeguros(resto.precios),
+    imagenId: resto.imagenId ? texto(resto.imagenId, { largo: 120 }) : null,
+    fechaCompra: texto(resto.fechaCompra, { largo: 40 }),
+    fecha: texto(resto.fecha, { largo: 40 }),
+    creadoEl: texto(resto.creadoEl, { largo: 40 }),
+    actualizadoEl: texto(resto.actualizadoEl, { largo: 40 })
+  };
+}
+
+function normalizarCategoria(c) {
+  return {
+    id: idTexto(c?.id, 'cat'),
+    nombre: texto(c?.nombre, { largo: 120 }),
+    color: colorSeguro(c?.color)
+  };
+}
+
+function normalizarFilaProveedor(p) {
+  return {
+    id: idTexto(p?.id, 'prov'),
+    nombre: normalizarProveedor(p?.nombre)
   };
 }
 
 export async function exportarBackup() {
-  const [productos, categorias, proveedores, historial, imagenes] = await Promise.all([
+  const [productos, categorias, proveedores, imagenes] = await Promise.all([
     db.productos.toArray(),
     db.categorias.toArray(),
     // La lista de proveedores también es del usuario. Si no viaja en el backup,
     // importarlo en otro aparato deja la lista vacía: los productos seguirían
     // teniendo su proveedor en el texto, pero no se verían en la pestaña.
     db.proveedores.toArray(),
-    db.historial.toArray(),
     db.imagenes.toArray()
   ]);
 
@@ -63,7 +142,6 @@ export async function exportarBackup() {
     productos,
     categorias,
     proveedores,
-    historial,
     imagenes: imagenesBase64
   };
 
@@ -71,100 +149,82 @@ export async function exportarBackup() {
 }
 
 /**
- * Importar backup desde JSON.
+ * Importar una copia desde JSON. **Reemplaza** el contenido actual.
  *
- * IMPORTANTE: esta función REEMPLAZA por completo el contenido actual
- * (productos, categorías, imágenes e historial). Antes no quedaba forma de
- * volver atrás, porque la propia importación vacía la tabla historial. Ahora
- * se guarda un punto de restauración del estado previo y se reinserta al final,
- * de modo que "Volver Atrás" permite deshacer el import.
+ * Importar es la única forma de meter datos en la base sin pasar por el
+ * formulario, así que es también la única puerta por la que puede entrar
+ * cualquier cosa. Por eso el archivo se lee y se valida entero ANTES de tocar
+ * una sola fila: si algo no tiene la forma que la app espera, se corta acá y la
+ * base queda como estaba.
+ *
+ * No queda forma de volver atrás: no hay historial. Lo que protege al usuario
+ * es que exporte una copia antes de importar, y el diálogo de importación se lo
+ * dice con esas palabras.
  */
 export async function importarBackup(jsonStr) {
   const backup = JSON.parse(jsonStr);
 
-  if (!backup.version || !backup.productos || !backup.categorias) {
-    throw new Error('Formato de backup inválido');
+  if (!backup || typeof backup !== 'object') {
+    throw new Error('El archivo no es una copia de DepoApp');
+  }
+  if (!Array.isArray(backup.productos) || !Array.isArray(backup.categorias)) {
+    throw new Error('El archivo no trae la lista de productos o de categorías');
   }
 
   const imagenesBlobs = await Promise.all(
-    (backup.imagenes || []).map(async (img) => ({
-      id: img.id,
-      blob: base64ToBlob(img.blob, img.tipo),
-      creadoEl: img.creadoEl
+    (Array.isArray(backup.imagenes) ? backup.imagenes : []).slice(0, 5000).map(async (img) => ({
+      id: idTexto(img?.id, 'img'),
+      blob: base64ToBlob(img?.blob, img?.tipo),
+      creadoEl: texto(img?.creadoEl, { largo: 40 })
     }))
   );
 
-  // transacción porque la transacción siguiente borra la tabla historial y se
+  // Todo se arma y se valida antes de la transacción. Si algo está mal, acá
+  // falla y todavía no se borró nada.
+  const productos = backup.productos.slice(0, 20000).map(normalizarProducto);
+  const categorias = backup.categorias.slice(0, 2000).map(normalizarCategoria);
+  const proveedores = (Array.isArray(backup.proveedores) ? backup.proveedores : [])
+    .slice(0, 2000)
+    .map(normalizarFilaProveedor)
+    .filter(p => p.nombre);
 
-  let puntoPrevio = null;
-  if (await db.productos.count() > 0) {
-    try {
-      puntoPrevio = await dbUtils.crearPuntoRestauracion('Antes de importar backup');
-    } catch (error) {
-
-      console.error('No se pudo crear el punto previo a la importación:', error);
-    }
+  if (!productos.some(p => p.nombre)) {
+    throw new Error('La copia no tiene ningún producto con nombre');
   }
 
-  // Limpiar + importar en UNA sola transacción: o entra todo el backup, o no
+  // La lista de proveedores se arma sola con los que traen los productos si el
+  // archivo no la trae: una copia anterior a esa tabla no la tiene, y sin esto
+  // importar dejaría la pestaña de proveedores vacía.
+  if (!proveedores.length) {
+    const vistos = new Map();
+    for (const p of productos) {
+      if (!p.proveedor) continue;
+      const clave = normalizarTexto(p.proveedor);
+      if (!vistos.has(clave)) vistos.set(clave, p.proveedor);
+    }
+    proveedores.push(
+      ...[...vistos.values()].map(nombre => ({ id: dbUtils.generarId('prov'), nombre }))
+    );
+  }
 
-  await db.transaction('rw', [db.productos, db.categorias, db.proveedores, db.historial, db.imagenes], async () => {
+  await db.transaction('rw', [db.productos, db.categorias, db.proveedores, db.imagenes], async () => {
     await db.imagenes.clear();
     await db.categorias.clear();
     await db.proveedores.clear();
     await db.productos.clear();
-    await db.historial.clear();
 
-    if (imagenesBlobs.length) {
-      await db.imagenes.bulkPut(imagenesBlobs);
-    }
-    if (backup.categorias.length) {
-      await db.categorias.bulkPut(backup.categorias);
-    }
-
-    if (backup.proveedores?.length) {
-      await db.proveedores.bulkPut(backup.proveedores);
-    }
-    if (backup.productos.length) {
-      // Normalizados al importar: un backup viejo trae `categoriaId` y no trae
-
-      await db.productos.bulkPut(backup.productos.map(normalizarProducto));
-    }
-
-    // nombres que traen los productos. Sin esto, importar un backup anterior a
-
-    if (!backup.proveedores?.length) {
-      const vistos = new Map();
-      for (const p of backup.productos) {
-        const nombre = (p.proveedor || '').trim();
-        if (!nombre) continue;
-        const clave = normalizarTexto(nombre);
-        if (!vistos.has(clave)) vistos.set(clave, nombre);
-      }
-      if (vistos.size) {
-        await db.proveedores.bulkPut(
-          [...vistos.values()].map(nombre => ({ id: dbUtils.generarId('prov'), nombre }))
-        );
-      }
-    }
-
-    if (backup.historial?.length) {
-      await db.historial.bulkPut(backup.historial);
-    }
-
-    if (puntoPrevio) {
-      await db.historial.put(puntoPrevio);
-    }
+    if (imagenesBlobs.length) await db.imagenes.bulkPut(imagenesBlobs);
+    if (categorias.length) await db.categorias.bulkPut(categorias);
+    if (proveedores.length) await db.proveedores.bulkPut(proveedores);
+    if (productos.length) await db.productos.bulkPut(productos);
   });
 
   return {
-    productos: backup.productos?.length || 0,
-    categorias: backup.categorias?.length || 0,
-    proveedores: backup.proveedores?.length || 0,
-    historial: backup.historial?.length || 0,
+    productos: productos.length,
+    categorias: categorias.length,
+    proveedores: proveedores.length,
     imagenes: imagenesBlobs.length,
-
-    reversible: !!puntoPrevio
+    reversible: false
   };
 }
 
