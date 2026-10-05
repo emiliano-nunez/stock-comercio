@@ -240,10 +240,47 @@ db.version(9)
   .upgrade(async tx => {
     const categorias = await tx.table('categorias').toArray();
     const productos = await tx.table('productos').toCollection().toArray();
+
+    /*
+     * Un producto por uno, y con su propio try.
+     *
+     * Dexie aborta toda la transacción si algo tira dentro del `upgrade`. Eso
+     * significa que un solo producto con un dato raro no deja de aparecer en un
+     * filtro: deja abrir la app. Y esta migración corre sobre los datos que el
+     * usuario ya tiene, escritos por versiones anteriores de la app que no los
+     * validaban, y que yo nunca vi.
+     *
+     * Si un producto no se puede derivar, se lo deja con campos vacíos en vez de
+     * frenar a los demás. Un producto que no aparece al buscar es un problema
+     * chico y avisado; una app que no abre es la pérdida de todo el inventario.
+     */
+    let derivados = 0;
+    let sinDerivar = 0;
+
     for (const p of productos) {
-      Object.assign(p, camposDerivados(p, categorias));
+      try {
+        Object.assign(p, camposDerivados(p, categorias));
+        derivados++;
+      } catch (error) {
+        sinDerivar++;
+        console.warn('[db] Producto', p.id, 'sin campos derivados:', error);
+        Object.assign(p, {
+          busqueda: normalizarTexto([p?.nombre, p?.codigoBarras, p?.proveedor].filter(Boolean).join(' ')),
+          estado: estadoStock(p || {}),
+          nombreOrden: normalizarTexto(p?.nombre || ''),
+          precioOrden: Number(p?.precio) || 0,
+          categoriaOrden: '',
+          proveedorClave: normalizarTexto(p?.proveedor || '')
+        });
+      }
     }
+
     if (productos.length) await tx.table('productos').bulkPut(productos);
+    if (sinDerivar) {
+      console.warn(`[db] Migración v9: ${sinDerivar} de ${productos.length} productos quedaron sin campos derivados completos.`);
+    } else if (derivados) {
+      console.info(`[db] Migración v9: ${derivados} productos con campos derivados.`);
+    }
   });
 
 /**
@@ -1072,7 +1109,21 @@ export function getUnidadPrincipal(producto) {
  */
 export function getPrecioPrincipal(producto) {
   const principal = getUnidadPrincipal(producto);
-  const precios = Array.isArray(producto?.precios) ? producto.precios : [];
+
+  /*
+   * El filtro de los que no son objetos va antes de buscar.
+   *
+   * `precios` viene de datos del usuario: de un backup importado y de lo que la
+   * app escribió antes de que existiera la validación al importar. Un hueco en la
+   * lista -- `[null]` -- hace que `p.unidad` sea leer sobre nada, y esta función se
+   * llama desde `camposDerivados()`, que a su vez la corre la migración v9 sobre
+   * todos los productos. Ahí un solo producto con un hueco no deja de funcionar:
+   * aborta la migración entera y la app no abre. Por eso el `Array.isArray` de
+   * antes no alcanzaba, porque una lista con un hueco dentro también es una lista.
+   */
+  const precios = Array.isArray(producto?.precios)
+    ? producto.precios.filter(p => p && typeof p === 'object')
+    : [];
 
   const exacto = precios.find(p => p.unidad === principal.value);
   if (exacto) {
