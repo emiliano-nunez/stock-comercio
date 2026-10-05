@@ -9,7 +9,10 @@
 # alguien la cambiara sin darse cuenta y dejara la app en blanco.
 
 [build]
-  command = "npm run build"
+  # `publicar` y no `build`: es la puerta que corre los cinco verificadores antes de
+  # compilar. El build solo, que es lo que estaba, no ve una interpolación sin
+  # escapar ni un acento grave en una plantilla.
+  command = "npm run publicar"
   publish = "dist"
 
 [build.environment]

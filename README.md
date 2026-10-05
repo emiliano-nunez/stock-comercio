@@ -41,11 +41,22 @@ funciona si la página está en HTTPS o en `localhost`.
 
 Todo vive en el IndexedDB del navegador, en el dispositivo donde se usa la app.
 No hay servidor: la base no se sincroniza entre equipos y no se puede recuperar
-desde otro aparato. Para no perder nada hay que usar **Exportar backup** desde el
-historial, que deja un archivo en el disco.
+desde otro aparato.
 
-Conviene hacerlo seguido: iOS borra los datos de una PWA que lleva unos días sin
+La app **no guarda ningún historial**. No hay puntos de restauración, no hay
+"volver atrás" y un borrado no se puede deshacer dentro de la app. Lo que la
+protege son dos cosas:
+
+- **Exportar la copia de seguridad**, desde el botón "Copia" de la barra. Deja un
+  archivo en el dispositivo con todo: productos, categorías, proveedores y fotos.
+- **Preguntar antes de borrar**, con el nombre de lo que va a desaparecer.
+
+Conviene exportar seguido: iOS borra los datos de una PWA que lleva unos días sin
 abrirse, y no avisa.
+
+Si el producto se borra, su foto queda guardada igual, sin que nadie la use. No se
+borra sola nunca: se ve cuántas hay en la copia de seguridad y se liberan sólo si
+lo decidís.
 
 ## Cómo está hecho
 
@@ -66,13 +77,27 @@ index.html            la página que sirve Vite
 vite.config.js        build, PWA y la ruta de publicación
 src/
   main.js             punto de entrada
-  App.js              el estado de la app y todo el HTML que se arma
-  db.js               el esquema y las consultas
-  components/         los diálogos: producto, escáner, cámara, historial, pedido
-  utils/              texto, íconos, fechas, avisos, imágenes
+  App.js              el estado de la app y el HTML que se arma
+  db.js               el esquema, las consultas y las escrituras
+  components/         los diálogos: producto, escáner, cámara, copia, pedido
+  utils/              texto, íconos, fechas, avisos, imágenes, respaldo
   css/                los estilos, divididos por tema
 public/icons/         el ícono de la app y el de los accesos directos
+medir-costo.mjs       mide el costo del filtrado, sin tocar la base
 ```
+
+## Cómo se lee y se escribe un producto
+
+Todo el HTML se arma con template literals, así que hay dos reglas que no se
+negocian:
+
+- **Todo texto del usuario pasa por `esc` o `escAttr`.** Y dentro de un atributo
+  siempre, aunque el valor sea un número o una constante: la regla es "en un
+  atributo, escapado", no "en un atributo, escapado si me acordé".
+- **Toda escritura de un producto pasa por `dbUtils.guardarProducto()`**, que
+  recalcula los campos derivados por los que se filtra y se ordena. Si uno se
+  olvidara, la escritura no fallaría: fallaría el filtro, y devolvería la lista
+  vacía sin decir por qué.
 
 ## Los estilos
 
@@ -88,16 +113,25 @@ escritos en las reglas. `src/css/tokens.css` tiene dos bloques que hay que conoc
 ## Antes de tocar nada
 
 ```bash
-node verificar-sintaxis.mjs     # que todos los archivos estén bien escritos
-node verificar-caracteres.mjs   # que no se hayan colado letras de otro idioma
-node verificar-imports.mjs      # que toda llamada tenga su import
-node verificar-plantillas.mjs   # que ningún comentario corte una plantilla
-npm run build                   # que compile de verdad
+npm run verificar   # los cinco verificadores
+npm run build      # que compile de verdad
 ```
 
-Los dos primeros son los que más salvan: el primero corta el trabajo apenas se
-toca un archivo, y el segundo encuentra los caracteres raros que quedan cuando un
-archivo se guarda con la codificación equivocada.
+Los cinco verificadores nacieron de bugs que llegaron a la página publicada:
+
+| | Qué encuentra |
+|---|---|
+| `verificar-sintaxis.mjs` | un archivo mal escrito |
+| `verificar-caracteres.mjs` | letras de otro idioma coladas en el código |
+| `verificar-imports.mjs` | una llamada a una función propia sin su import |
+| `verificar-plantillas.mjs` | un acento grave en un comentario que corta una plantilla |
+| `verificar-escapado.mjs` | una interpolación sin escapar dentro de un atributo |
+
+Los tres primeros son los que más salvan: cortan el trabajo apenas se toca un
+archivo. Los dos últimos evitan que un dato del usuario salga crudo en el HTML.
+
+La publicación los corre sola: `npm run publicar` es la puerta, y es la que usan
+GitHub Actions y Netlify.
 
 ## Los íconos
 

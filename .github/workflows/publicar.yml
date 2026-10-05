@@ -63,6 +63,28 @@ jobs:
           fi
           echo "Publicando en: $REPO -> $(cut -d= -f2 "$GITHUB_OUTPUT" | tail -1)"
 
+      - name: Verificar
+        # Los cinco verificadores, antes de compilar.
+        #
+        # `npm run build` sólo detecta errores de sintaxis y de imports rotos: es
+        # lo mínimo. Los verificadores miran lo que el build no ve, y cada uno
+        # nació de un bug que llegó a la página publicada:
+        #
+        #   sintaxis     que todos los archivos estén bien escritos
+        #   caracteres   letras de otro idioma coladas en el código, que aparecen
+        #                cuando un archivo se guarda con la codificación
+        #                equivocada y quedan ahí sin que nadie las vea
+        #   imports      una llamada a una función propia sin su import: es un
+        #                ReferenceError en runtime, no un error de compilación
+        #   plantillas   un acento grave dentro de un comentario que vive en una
+        #                plantilla: cierra el template literal y el archivo sigue
+        #                siendo JavaScript válido
+        #   escapado     una interpolación sin escapar dentro de un atributo de
+        #                HTML, que sale cruda
+        #
+        # Con esto, un push que rompe cualquiera de las cinco no se publica.
+        run: npm run verificar
+
       - name: Compilar
         run: npm run build
         env:

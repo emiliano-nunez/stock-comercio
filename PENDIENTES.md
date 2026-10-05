@@ -10,96 +10,106 @@ Ordenado por lo que duele más si no se hace, no por facilidad.
 
 ## P0 — Si se pierden, se pierden
 
-### El punto de restauración diario vive donde están los datos
+### No hay respaldo, y el riesgo es de iOS
 
-`crearPuntoRestauracionDiario()` (App.js) guarda un snapshot dentro del mismo
-IndexedDB que el inventario. Sirve para deshacer un error reciente, no para
-recuperarse de que se borre la base: si se borra la base, se borra también el
-punto de restauración. Son la misma cosa.
+La app no guarda historial. No hay puntos de restauración, no hay "volver atrás", y
+un borrado no se deshace dentro de la app. Lo que protege al usuario es una sola
+cosa: **exportar la copia de seguridad**, que deja un archivo en el disco.
 
-Es la debilidad estructural de una app local-first sin respaldo: todo lo que
-ofrece "Volver atrás" está guardado junto a los datos que debería proteger.
+El riesgo concreto es que **iOS borra los datos de una PWA que no se abre durante
+unos días**, sin aviso. No es un bug de la app y no se puede arreglar desde la app.
+Es el motivo por el que el respaldo automático tiene que existir antes de que esto
+llegue a un local real.
 
-**Arreglo:** un respaldo real, con el archivo fuera del navegador (ver abajo).
-El punto de restauración no se mueve: hacen falta las dos cosas.
+Hoy el respaldo es manual: hay que apretar "Copia" en la barra y después elegir
+dónde se guarda. Candidatos:
 
-### iOS borra los datos de las PWA después de unos días sin uso
+- Recordarle al usuario cuántos días lleva sin exportar. No evita la pérdida;
+  sólo deja de ser silenciosa, que es la mitad del problema.
+- Ofrecer la exportación al compartir o al cerrar.
 
-No es un bug de la app y no se puede arreglar desde la app. En iOS, una PWA que
-no se abre durante unos días pierde su IndexedDB sin aviso. Es el motivo por el
-que el respaldo automático tiene que existir antes de que esto llegue a un
-local real.
+**Arreglo:** un respaldo real, con el archivo fuera del navegador, más el aviso
+de los días.
 
-**Mitigación posible:** avisarle al usuario, en la app, cuántos días lleva sin
-abrirse. No evita la pérdida; sólo deja de ser silenciosa.
+### Importar una copia no se puede deshacer
+
+`importarBackup()` reemplaza productos, categorías, proveedores, fotos e historial
+de golpe, en una transacción. Si algo sale mal a mitad de camino, la base queda
+entera como estaba, pero **después de que terminó, no hay vuelta atrás**: el
+historial ya no existe.
+
+Hoy el diálogo lo dice y ofrece exportar antes de importar. Lo que falta es la
+otra mitad: que el propio import se guarde una copia de lo que había, y que la
+app la ofrezca para volver.
 
 ---
 
 ## Postergado por decisión del usuario
 
-### Respaldo automático
-
-Hoy el respaldo es manual: hay que abrir el historial y apretar "Exportar
-backup". Exportar e importar funcionan y están probados (`src/utils/backup.js`,
-con punto de restauración previo al import, para que un clic equivocado no
-destruya el inventario).
-
-Lo que falta es que el usuario no dependa de acordarse. Candidatos: exportar al
-cerrar la app, o avisar cada cierta cantidad de días si no se exportó desde
-hace mucho.
-
 ### Libro de movimientos / caja diaria
 
-No existe la tabla `movimientos`. El historial registra cambios con su motivo,
-pero no es un libro de ventas: no hay entradas por venta, no hay cobros, no se
-puede saber cuánto se vendió en el día ni cuánto dinero entró.
+No existe la tabla `movimientos`. El historial de cambios se borró con el resto del
+historial, así que hoy no hay ningún registro: cambiar el stock no deja rastro.
+
+Eso es una decisión del usuario y se respeta, pero conviene que sea consciente: sin
+registro de movimientos no se puede saber cuánto se vendió en el día, cuánto dinero
+entró, ni por qué el stock de un producto no cuadra.
 
 Es un módulo entero, no un arreglo. Va después de que el respaldo esté cerrado,
 porque sin respaldo todo lo que se registre se puede perder igual.
 
 ### Canal de pedidos sofisticado
 
-`PedidoModal.js` arma el texto del pedido y lo manda por WhatsApp. Lo que falta
-es todo lo demás: recibir pedidos, estado del pedido, historial de pedidos.
+`PedidoModal.js` arma el texto del pedido y lo manda por WhatsApp. Lo que falta es
+todo lo demás: recibir pedidos, estado del pedido, historial de pedidos.
 
-### v6 del esquema con índice único en `codigoBarras`
+### Índice único en `codigoBarras`
 
-Hoy el índice de `codigoBarras` **no** es único a propósito, y la decisión tiene
-un motivo concreto: un índice único en IndexedDB también indexa el `null`, así que
-sólo un producto de todo el inventario podría quedarse sin código.
+Hoy el índice de `codigoBarras` **no** es único a propósito, y la decisión tiene un
+motivo concreto: un índice único en IndexedDB también indexa el `null`, así que sólo
+un producto de todo el inventario podría quedarse sin código.
 
-La consecuencia es que dos productos pueden compartir código, y la app tiene que
-resolverlo en el momento, con el diálogo de código repetido. Ese es el canje
-actual.
+La consecuencia es que dos productos pueden compartir código, y la app lo resuelve
+en el momento con el diálogo de código repetido.
 
-Pasar a índice único obligaría a que **todos** los productos tengan código. Para
-un local que venda piezas sin código, por ejemplo, es una pérdida y no una mejora.
+Pasar a índice único obligaría a que **todos** los productos tengan código. Para un
+local que venda piezas sin código, por ejemplo, es una pérdida y no una mejora.
 Se deja así salvo que el usuario pida lo contrario.
 
 ---
 
 ## Falta probar en un teléfono
 
-Casi nada de esto se puede comprobar desde el escritorio. La lista se anotó
-cuando se cambió y nadie lo miró en un aparato; lo que ya se comprobó no está acá.
+Casi nada de esto se puede comprobar desde el escritorio. La lista se anotó cuando
+se cambió y nadie lo miró en un aparato; lo que ya se comprobó no está acá.
 
+- [ ] **La lista con muchos productos.** Es el cambio más grande de los últimos
+      tiempos: el filtro, el orden y los contadores pasaron a la base, la búsqueda
+      espera 250ms, y `this.productos` pasó a ser la página que se pinta. Con dos
+      o trescientos productos hay que ver que la lista abre rápido, que "cargar
+      más" sigue andando, que los tres paneles muestran los números correctos, y
+      que al filtrar y después borrar un producto que quedó fuera de la pantalla,
+      el borrado igual ocurre.
 - [ ] **El lector de códigos.** La zona de escaneo estaba en 0,8 píxeles y la
       cámara se veía pero no se leía nada; ya está en una función que mide sobre el
       visor real. Falta escanear un EAN de verdad y confirmar que lo detecta.
 - [ ] **La tarjeta de actualización.** Va con `autoUpdate`: la versión nueva se
-      activa sola en segundo plano y la tarjeta avisa arriba, con un botón que
-      recarga. Falta provocar una versión nueva y ver que aparece la tarjeta y que
-      el botón trae la versión nueva.
-- [ ] **El buscar de la app.** Escribir dos letras en el buscador de proveedores y
-      ver si la lista sale, si no queda cortada abajo con muchos, y si al elegir
-      uno se escribe el nombre tal cual.
-- [ ] **La búsqueda sin tildes.** `limon` tiene que encontrar `Limón`.
+      activa sola en segundo plano y la tarjeta avisa arriba. Falta provocar una
+      versión nueva y ver que aparece y que el botón trae la versión nueva.
+- [ ] **El buscar.** Escribir dos letras en el buscador de proveedores y ver si la
+      lista sale, si no queda cortada abajo con muchos, y si al elegir uno se
+      escribe el nombre tal cual.
+- [ ] **La búsqueda sin tildes.** `limon` tiene que encontrar `Limón`. Y tiene que
+      seguir encontrando los códigos de barras y los nombres de proveedor, que
+      ahora viven en un solo campo normalizado.
 - [ ] **Notas con varios renglones.** Escribirlas con enters, guardar, y abrirlas
       otra vez en la hoja del producto: los saltos tienen que estar.
 - [ ] **El ajuste de stock en la hoja.** El + y el −, y que el número del centro
-      cambie al tocarlos.
+      cambie al tocarlos. Y con dos pestañas abiertas: abrir la misma app en el
+      teléfono y en la computer, cambiar el stock en una, y ver que la otra se
+      actualiza sola al volver al frente.
 - [ ] **El formulario con todo a la vez.** Confirmar que se llega bien al final con
-      las veinte filas y que "Agregar otro precio" sigue agregando.
+      todas las filas y que "Agregar otro precio" sigue agregando.
 - [ ] **El pedido por proveedor.** Que los grupos salgan bien, que copiar un
       proveedor copie sólo el suyo, y que "copiar los que no tienen proveedor" no
       mezcle los otros.
@@ -108,22 +118,22 @@ cuando se cambió y nadie lo miró en un aparato; lo que ya se comprobó no est�
 - [ ] **Los accesos directos** de la pantalla de inicio abren el escáner y el
       formulario.
 - [ ] **La app funciona sin conexión**, con la app ya abierta y con la app cerrada.
+- [ ] **La copia de seguridad.** Exportar, cambiar algo, importar el archivo, y
+      confirmar que vuelve todo. Y que el diálogo de importación diga con claridad
+      que no se puede deshacer.
 
 ### Lo que cambió de verdad y hay que volver a mirar
 
-No son cambios de traducción, son de aspecto. Cada vez que se cambia uno hay que
-mirarlo en un teléfono:
+No son cambios de traducción, son de aspecto o de comportamiento:
 
-- El estándar de estilo nuevo: tarjeta, cabecera, buscador, formularios, diálogos
-  y las listas de categorías, estados y proveedores.
-- La tarjeta del inventario pasó a tres columnas en todo lo que no es escritorio:
-  foto, información y los botones de editar y borrar en un solo renglón.
+- El estándar de estilo: tarjeta, cabecera, buscador, formularios, diálogos y las
+  listas de categorías, estados y proveedores.
+- La tarjeta del inventario pasó a tres columnas en todo lo que no es escritorio.
 - El mínimo táctil bajó de 52px a 40px. Hay que comprobar que ningún ícono queda
-  desproporcionado dentro de su botón y que el botón del escáner, que va pegado
-  al campo del buscador, sigue del mismo alto que el campo.
-- La cabecera es verde claro y el ícono de la app también. Hay que ver si la
-  PWA instalada, que usa ese ícono y ese color de barra, se ve bien en el
-  lanzador del teléfono.
+  desproporcionado dentro de su botón.
+- La cabecera es verde claro y el ícono también. Ver si la PWA instalada se ve
+  bien en el lanzador.
+- La cabecera es más clara en escritorio, con más aire arriba del nombre.
 
 ### El diálogo de código repetido
 
@@ -132,9 +142,8 @@ que más se ha probado:
 
 - [ ] Que los dos overlays se lean bien y que los botones no se pisen con la lista
       de conflictos en un teléfono angosto.
-- [ ] Las cuatro salidas: sufijo, sin código, borrar el viejo, cancelar. Y que
-      borrar deje punto de restauración y se pueda deshacer.
-- [ ] "Ver en el inventario" del aviso: busca el código en el inventario.
+- [ ] Las cuatro salidas: sufijo, sin código, borrar el viejo, cancelar. Y que el
+      texto diga que no se puede deshacer, que es lo que ahora dice.
 
 ### Catálogo
 
@@ -146,8 +155,7 @@ que más se ha probado:
 
 ### La lista de proveedores
 
-Es una tabla (v7) que se arma sola con los proveedores que ya estaban en los
-productos:
+Es una tabla que se arma sola con los proveedores que ya estaban en los productos:
 
 - [ ] Agregar uno nuevo, renombrarlo y que se actualicen los productos que lo
       tienen, sacarlo de la lista, y que un producto con el mismo nombre escrito
@@ -168,16 +176,20 @@ productos:
 Cosas que se llegaron a considerar y se quitaron. No están pedidas; quedan
 anotadas para que no se vuelvan a proponer.
 
+- **El historial de puntos de restauración.** Se sacó entero. Guardaba una copia
+  completa del inventario antes de cada borrado, hasta diez copias, y "volver
+  atrás" devolvía el inventario entero de otra fecha con los productos que el
+  usuario había eliminado, más las fotos de esos productos. Lo que lo reemplaza es
+  la copia de seguridad y la pregunta antes de borrar.
 - **Botón de borrar inventario.** El inventario lo borra el usuario, producto por
-  producto, con su punto de restauración. Una herramienta para tirar todo no
-  debería estar al alcance de un toque.
+  producto. Una herramienta para tirar todo no debería estar al alcance de un
+  toque.
 - **Limpieza automática de fotos huérfanas al arrancar.** Una foto es dato del
-  usuario: la app no borra fotos sola. Hay un diálogo de limpieza manual en el
-  historial, que dice qué NO toca.
-- **Verificador de palabras en otro idioma.** Detectaba descuidos míos al
-  escribir comentarios, no errores de la app, y obligaba a mantener una lista de
-  palabras que había que ir ajustando. Se dejó sólo el chequeo de CJK y mojibake,
-  que sí detectan un archivo guardado con la codificación mal.
+  usuario: la app no borra fotos sola. Hay un diálogo de limpieza manual en la
+  copia de seguridad, que dice qué NO toca.
+- **Verificador de palabras en otro idioma.** Detectaba descuidos al escribir
+  comentarios, no errores de la app. Se dejó el chequeo de CJK y mojibake, que sí
+  detectan un archivo guardado con la codificación mal.
 
 ---
 
@@ -198,3 +210,6 @@ a tocarse:
 - **La barra del host sirve el archivo crudo, no el módulo transformado.** Una
   regla que no existe en `dist/` no aparece en `/src/App.js` aunque esté en el
   código. La prueba real es el bundle de `dist/`.
+- **Los archivos del repo están con CRLF.** Una búsqueda de varias líneas escrita
+  con `\n` no encuentra nada, y el error se lee como "el patrón no existe" cuando
+  lo que pasa es que los finales de línea son otros.
