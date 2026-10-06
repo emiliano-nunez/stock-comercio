@@ -207,9 +207,9 @@ db.version(8).stores({
  * la app sólo trae la página que va a pintar. Se agrega un campo derivado por
  * cosa que se filtra o se ordena, y se los mantiene al escribir:
  *
- *   busqueda       los cuatro textos que se buscan, normalizados y juntos, en
+ *   busqueda       los cinco textos que se buscan, normalizados y juntos, en
  *                  un solo campo, para que la búsqueda sea una consulta y no
- *                  cuatro comparaciones por producto.
+ *                  cinco comparaciones por producto.
  *   estado         'ok', 'poco' o 'vacio'. Es lo que decide el filtro por estado
  *                  y los tres números del panel. Antes se recalculaba en cada
  *                  render, y `contarProductosCategoria` lo hacía veinte veces por
@@ -265,7 +265,7 @@ db.version(9)
         sinDerivar++;
         console.warn('[db] Producto', p.id, 'sin campos derivados:', error);
         Object.assign(p, {
-          busqueda: normalizarTexto([p?.nombre, p?.codigoBarras, p?.proveedor].filter(Boolean).join(' ')),
+          busqueda: normalizarTexto([p?.nombre, p?.codigoBarras, p?.codigoProveedor, p?.proveedor].filter(Boolean).join(' ')),
           estado: estadoStock(p || {}),
           nombreOrden: normalizarTexto(p?.nombre || ''),
           precioOrden: Number(p?.precio) || 0,
@@ -303,11 +303,12 @@ export function camposDerivados(producto, categorias = []) {
   const principal = getPrecioPrincipal(producto || {});
 
   return {
-    // Los cuatro textos que la búsqueda mira, en un campo y con espacios entre
+    // Los cinco textos que la búsqueda mira, en un campo y con espacios entre
     // ellos para que un término no atraviese dos campos pegados.
     busqueda: normalizarTexto([
       producto?.nombre,
       producto?.codigoBarras,
+      producto?.codigoProveedor,
       producto?.proveedor,
       nombreCategoria
     ].filter(Boolean).join(' ')),

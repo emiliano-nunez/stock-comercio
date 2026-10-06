@@ -113,6 +113,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
     : '');
   fila('Proveedor', p.proveedor ? esc(p.proveedor) : '');
   fila('Código', p.codigoBarras ? `<span class="mono">${esc(p.codigoBarras)}</span>` : '');
+  fila('Código del proveedor', p.codigoProveedor ? `<span class="mono">${esc(p.codigoProveedor)}</span>` : '');
   fila('Fecha', p.fecha ? esc(fechaEnDia(p.fecha)) : '');
 
   const notas = (p.notas || '').trim();

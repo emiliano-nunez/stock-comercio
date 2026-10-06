@@ -272,6 +272,8 @@ export class ProductoForm {
 
         <!-- Form scrollable -->
         <form id="form-producto" class="dialogo-cuerpo apilado-3 crece">
+          <div class="etiqueta-seccion con-margen-arriba-amplia">${icono('caja')} Producto</div>
+
           <!-- Foto del producto -->
           <div class="form-cabecera">
             <div class="form-foto">
@@ -357,24 +359,21 @@ export class ProductoForm {
               </div>
 
               <div>
-                <label for="costo" class="etiqueta">${icono('dinero')} Costo (${unidadBase})</label>
-                <div class="posicionado">
-                  <span class="buscador-lupa">$</span>
-                  <input
-                    type="number"
-                    id="costo"
-                    name="costo"
-                    class="campo campo-con-icono"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    value="${escAttr(costoInicial)}"
-                    inputmode="decimal"
-                  >
-                </div>
+                <label for="codigoProveedor" class="etiqueta">${icono('etiqueta')} Código del proveedor</label>
+                <input
+                  type="text"
+                  id="codigoProveedor"
+                  name="codigoProveedor"
+                  class="campo"
+                  placeholder="Ej: PRV-0142"
+                  value="${escAttr(this.producto?.codigoProveedor || '')}"
+                  autocomplete="off"
+                >
               </div>
             </div>
           </div>
+
+          <div class="etiqueta-seccion con-margen-arriba-amplia">${icono('dinero')} Precio</div>
 
           <!-- Tipo de venta -->
           <div>
@@ -414,6 +413,106 @@ export class ProductoForm {
               <input type="hidden" id="tipoVenta" name="tipoVenta" value="${escAttr(this.tipoVenta || "")}">
             </div>
           </div>
+
+          <!-- Calculadora de Precio -->
+          <div id="calculadora-precio" class="recuadro recuadro-marca">
+            <div class="etiqueta-seccion">${icono('calculadora')} Calculadora de Precio</div>
+
+            <div class="con-margen-abajo">
+              <label for="costo" class="etiqueta">${icono('dinero')} Costo (${unidadBase})</label>
+              <div class="posicionado">
+                <span class="buscador-lupa">$</span>
+                <input
+                  type="number"
+                  id="costo"
+                  name="costo"
+                  class="campo campo-con-icono"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value="${escAttr(costoInicial)}"
+                  inputmode="decimal"
+                >
+              </div>
+            </div>
+
+            <div class="cuadricula-apilada con-margen-abajo">
+              <div>
+                <label for="ivaPorcentaje" class="etiqueta">${icono('porcentaje')} IVA %</label>
+                <div class="posicionado">
+                  <input
+                    type="number"
+                    id="ivaPorcentaje"
+                    name="ivaPorcentaje"
+                    class="campo centro-texto"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    placeholder="21"
+                    value="${escAttr(this.producto?.ivaPorcentaje ?? 0)}"
+                    inputmode="decimal"
+                  >
+                  <span class="sufijo-campo">%</span>
+                </div>
+              </div>
+
+              <div>
+                <label for="margenPorcentaje" class="etiqueta">${icono('porcentaje')} Margen %</label>
+                <div class="posicionado">
+                  <input
+                    type="number"
+                    id="margenPorcentaje"
+                    name="margenPorcentaje"
+                    class="campo centro-texto"
+                    step="0.01"
+                    min="0"
+                    placeholder="30"
+                    value="${escAttr(this.producto?.margenPorcentaje ?? 50)}"
+                    inputmode="decimal"
+                  >
+                  <span class="sufijo-campo">%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="recuadro">
+              <div class="fila fila-separada detalle">
+                <span class="con-medio">Precio calculado:</span>
+                <span id="precioCalculado" class="marca mediano">$0.00</span>
+              </div>
+              <div class="fila fila-separada micro apagado con-margen-arriba-chica">
+                <span>Costo: <span id="costoBase">$0.00</span></span>
+                <span>+IVA: <span id="ivaCalculado">$0.00</span></span>
+                <span>+Margen: <span id="margenCalculado">$0.00</span></span>
+              </div>
+            </div>
+
+            <p class="micro apagado con-margen-arriba-chica centro-texto">Edita el precio final abajo para redondear · Los % se guardan</p>
+          </div>
+
+          <!-- Precios por unidad (base + sub-unidades) -->
+          <div id="precios-container">
+            <div class="etiqueta">${icono('dinero')} Precios por unidad</div>
+            <div class="apilado" id="precios-lista">
+              ${this.renderPreciosHTML(unidadBase, tipoActual, tipoActual.subUnidades)}
+            </div>
+          </div>
+
+          <!--
+            El botón va FUERA del bloque de arriba a propósito. Adentro comparte
+            la grilla de dos columnas con el resto del formulario, así que
+            "ancho del modal" ahí es media pantalla y el botón quedaba en una
+            sola columna, con la mitad del ancho al lado sin usar.
+          -->
+          <button
+            type="button"
+            id="btn-agregar-precio"
+            class="btn-secundario btn-ancho detalle con-margen-arriba"
+          >
+            ${icono('mas')}<span>Agregar otro precio</span>
+          </button>
+
+          <div class="etiqueta-seccion con-margen-arriba-amplia">${icono('medida')} Inventario</div>
 
           <!-- Stock y Stock Mínimo -->
           <div class="cuadricula-apilada">
@@ -457,6 +556,20 @@ export class ProductoForm {
               </div>
             </div>
           </div>
+
+          <!-- Fecha -->
+          <div>
+            <label for="fecha" class="etiqueta">${icono('calendario')} Fecha</label>
+            <input
+              type="date"
+              id="fecha"
+              name="fecha"
+              class="campo"
+              value="${escAttr(this.producto?.fecha || new Date().toISOString().split('T')[0])}"
+            >
+          </div>
+
+          <div class="etiqueta-seccion con-margen-arriba-amplia">${icono('carpeta')} Ubicación</div>
 
 <!-- Proveedor y categorías, en dos columnas.
                Son las dos etiquetas que dicen a qué grupo pertenece el producto y se
@@ -545,103 +658,11 @@ export class ProductoForm {
           </div>
           </div>
 
-          <!-- Fecha -->
-          <div>
-            <label for="fecha" class="etiqueta">${icono('calendario')} Fecha</label>
-            <input
-              type="date"
-              id="fecha"
-              name="fecha"
-              class="campo"
-              value="${escAttr(this.producto?.fecha || new Date().toISOString().split('T')[0])}"
-            >
-          </div>
-
-          <!-- Calculadora de Precio -->
-          <div id="calculadora-precio" class="recuadro recuadro-marca">
-            <div class="etiqueta-seccion">${icono('calculadora')} Calculadora de Precio</div>
-
-            <div class="cuadricula-apilada con-margen-abajo">
-              <div>
-                <label for="ivaPorcentaje" class="etiqueta">${icono('porcentaje')} IVA %</label>
-                <div class="posicionado">
-                  <input
-                    type="number"
-                    id="ivaPorcentaje"
-                    name="ivaPorcentaje"
-                    class="campo centro-texto"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    placeholder="21"
-                    value="${escAttr(this.producto?.ivaPorcentaje ?? 0)}"
-                    inputmode="decimal"
-                  >
-                  <span class="sufijo-campo">%</span>
-                </div>
-              </div>
-
-              <div>
-                <label for="margenPorcentaje" class="etiqueta">${icono('porcentaje')} Margen %</label>
-                <div class="posicionado">
-                  <input
-                    type="number"
-                    id="margenPorcentaje"
-                    name="margenPorcentaje"
-                    class="campo centro-texto"
-                    step="0.01"
-                    min="0"
-                    placeholder="30"
-                    value="${escAttr(this.producto?.margenPorcentaje ?? 50)}"
-                    inputmode="decimal"
-                  >
-                  <span class="sufijo-campo">%</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="recuadro">
-              <div class="fila fila-separada detalle">
-                <span class="con-medio">Precio calculado:</span>
-                <span id="precioCalculado" class="marca mediano">$0.00</span>
-              </div>
-              <div class="fila fila-separada micro apagado con-margen-arriba-chica">
-                <span>Costo: <span id="costoBase">$0.00</span></span>
-                <span>+IVA: <span id="ivaCalculado">$0.00</span></span>
-                <span>+Margen: <span id="margenCalculado">$0.00</span></span>
-              </div>
-            </div>
-
-            <p class="micro apagado con-margen-arriba-chica centro-texto">Edita el precio final abajo para redondear · Los % se guardan</p>
-          </div>
-
-          <!-- Precios por unidad (base + sub-unidades) -->
-          <div id="precios-container">
-            <div class="etiqueta">${icono('dinero')} Precios por unidad</div>
-            <div class="apilado" id="precios-lista">
-              ${this.renderPreciosHTML(unidadBase, tipoActual, tipoActual.subUnidades)}
-            </div>
-          </div>
-
-          <!--
-            El botón va FUERA del bloque de arriba a propósito. Adentro comparte
-            la grilla de dos columnas con el resto del formulario, así que
-            "ancho del modal" ahí es media pantalla y el botón quedaba en una
-            sola columna, con la mitad del ancho al lado sin usar.
-          -->
-          <button
-            type="button"
-            id="btn-agregar-precio"
-            class="btn-secundario btn-ancho detalle con-margen-arriba"
-          >
-            ${icono('mas')}<span>Agregar otro precio</span>
-          </button>
-
           <!--
             Proveedor y notas van al final del formulario, no antes de los
             precios. Las notas son texto libre del usuario, un papel aparte:
-            metidas en medio de los campos se perdían entre el costo y la
-            calculadora, y no era el último dato que completaba.
+            metidas en medio de los campos se perdían en el medio del
+            formulario, y no era el último dato que completaba.
           -->
           <div class="pos-it">
             <label for="notas" class="etiqueta-seccion">📝 Notas de este producto</label>
@@ -1374,6 +1395,7 @@ export class ProductoForm {
     const precioPrincipal = precioDePrincipal.valor;
 
     let codigoBarras = formData.get('codigoBarras')?.toString().trim() || null;
+    const codigoProveedor = formData.get('codigoProveedor')?.toString().trim() || null;
 
     // limpian los ids vacíos, porque un id con espacios alrededor rompería
 
@@ -1441,6 +1463,7 @@ export class ProductoForm {
       proveedor,
       notas,
       codigoBarras,
+      codigoProveedor,
       imagenId: this.imagenId,
       // Registro silencioso de "este producto está sin foto y el usuario lo
       // sabe". No se muestra en ninguna parte a propósito: el usuario lo pidió

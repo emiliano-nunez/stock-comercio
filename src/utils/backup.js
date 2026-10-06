@@ -85,6 +85,7 @@ function normalizarProducto(p) {
     proveedor: normalizarProveedor(resto.proveedor),
     notas: texto(resto.notas),
     codigoBarras: resto.codigoBarras ? texto(resto.codigoBarras, { largo: 64 }) : null,
+    codigoProveedor: resto.codigoProveedor ? texto(resto.codigoProveedor, { largo: 64 }) : null,
     tipoVenta: texto(resto.tipoVenta, { largo: 60 }),
     unidadPrincipal: texto(resto.unidadPrincipal, { largo: 60 }),
     stock: Math.max(0, numero(resto.stock)),

@@ -43,25 +43,26 @@
  * ================================================================= */
 
 /*
- * La cabecera del formulario de producto: la foto en una columna de ancho fijo
- * a la izquierda, y a la derecha el nombre y el código de barras.
+ * Las parejas del formulario son grillas con el mismo quiebre: apiladas por
+ * defecto y en dos columnas desde 360px, que es donde le entra a cada fila lo
+ * que pide —128px de controles táctiles, o el ancho del texto sin cortarse—
+ * sin tener que un número distinto por pareja.
  *
- * La columna de la foto no se encoge porque tiene que quedar cuadrada, y la de
- * los campos sí, porque es la que tiene el campo de texto: en un teléfono de
- * 390px el campo queda con unos 240px, que es lo justo para escribir un nombre
- * sin que el cursor se vaya de la pantalla.
+ * La cabecera lleva una columna fija para la foto y la otra repartida con
+ * minmax(0, …), para que la de los campos no agrande sola el ancho si algo se
+ * desborda: con flex eso se evitaba a mano, con flex-shrink y min-width.
  *
- * En 320px, donde ya no entran los dos lados, se apilan: la foto arriba y los
- * campos abajo, que es como estaba antes.
+ * La foto se queda en su ancho también apilada: es un cuadrado de ancho 100%,
+ * y a todo el ancho de una pantalla chica comería una pantalla entera.
  */
 .form-cabecera {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--espacio-4);
+  align-items: start;
 }
 
 .form-foto {
-  flex-shrink: 0;
   width: 8.5rem;
 }
 
@@ -75,36 +76,19 @@
  * largo ("Empezá a escribir y elegí") y con el mismo ancho se cortaba antes.
  */
 .form-par {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--espacio-4);
+  align-items: start;
 }
 
-.form-par > * {
-  min-width: 0;
-}
-
-.form-par > *:first-child {
-  flex: 1.2;
-}
-
-.form-par > *:last-child {
-  flex: 1;
-}
-
-/* En 340px, donde no entran dos campos de lado, se apilan. */
-@media (max-width: 340px) {
-  .form-par {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 340px) {
+@media (min-width: 360px) {
   .form-cabecera {
-    flex-direction: column;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
   }
-  .form-foto {
-    width: 100%;
+
+  .form-par {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   }
 }
 
@@ -129,22 +113,19 @@
  * acordarse de cuál era cuál. Ahora la elección y su campo están juntos, que es
  * lo único que se necesita para escribir el precio que se ve.
  *
- * En 340px, donde no entran dos campos de lado, se apilan.
+ * En el celular se apila y en dos columnas desde 360px, con el mismo quiebre
+ * que el resto del formulario.
  */
 .precios-cabecera {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--espacio-4);
+  align-items: start;
 }
 
-.precios-cabecera > * {
-  flex: 1;
-  min-width: 0;
-}
-
-@media (max-width: 340px) {
+@media (min-width: 360px) {
   .precios-cabecera {
-    flex-direction: column;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -849,12 +830,14 @@
 /*
  * La misma cuadrícula, pero de una sola columna en el teléfono.
  *
- * El corte está en 480px y no en 768px porque la medida no la da la pantalla sino
- * la fila de controles que tiene que entrar adentro. La fila de stock es un
- * botón de 40px, un campo y otro botón de 40px, y el campo no baja de 36px
- * aunque le quede el ancho justo: 40 + 6 + 36 + 6 + 40 son 128px, más los 32px
- * de relleno del diálogo. En dos columnas a 320px de pantalla cada una quedaba
- * de 124px y el botón de sumar se salía de la caja.
+ * El corte no lo da la pantalla sino la fila de controles que tiene que entrar
+ * adentro: la de stock es un botón de 40px, un campo y otro botón de 40px, y el
+ * campo no baja de 36px aunque le quede el ancho justo —40 + 6 + 36 + 6 + 40 son
+ * 128px. A 360px de pantalla a cada columna le quedan 156px con los rellenos del
+ * diálogo, y por debajo de eso se apila.
+ *
+ * El corte es el mismo que el de las demás parejas del formulario, así que hay
+ * una sola línea que decide cuándo el celular pasa a dos columnas.
  *
  * Por eso las dos cuadrículas del formulario usan esta y no la de arriba: la del
  * catálogo sí aguanta dos columnas en un teléfono angosto, porque cada hijo es un
@@ -866,7 +849,7 @@
   gap: var(--espacio-2);
 }
 
-@media (min-width: 480px) {
+@media (min-width: 360px) {
   .cuadricula-apilada {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -914,6 +897,19 @@
 
 .posicionado {
   position: relative;
+}
+
+/*
+ * El sufijo de un campo (%) se pone sobre el renglón del input y no en uno
+ * propio debajo: el input es de ancho completo, así que el texto suelto se bajaba
+ * una línea y la caja quedaba más alta que lo que contiene.
+ */
+.posicionado > .sufijo-campo {
+  position: absolute;
+  right: var(--espacio-3);
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
 }
 
 .capa-centrada {
