@@ -22,8 +22,7 @@ export class CamaraModal {
     try {
       await this.iniciarCamara();
     } catch (error) {
-      this.cerrar();
-      throw error;
+      this.mostrarAviso(error);
     }
   }
 
@@ -69,6 +68,15 @@ export class CamaraModal {
           </div>
         </div>
 
+        <!-- Aviso cuando la cámara no arranca -->
+        <div id="aviso-camara" class="dialogo-cuerpo apilado oculto" role="alert">
+          <p class="nota-atencion centro-texto" id="aviso-camara-texto"></p>
+          <div class="fila">
+            <button id="reintentar-camara" class="btn-principal btn-crece">🔄 Reintentar</button>
+            <button id="cerrar-aviso-camara" class="btn-secundario btn-crece">Cerrar</button>
+          </div>
+        </div>
+
         <!-- Indicador de ayuda -->
         <div class="dialogo-pie centro-texto detalle apagado pie-suave">
           Apunta al producto y toca <strong>Capturar</strong>
@@ -94,6 +102,13 @@ export class CamaraModal {
         toast.error(error.message || 'No se pudo capturar la foto');
       });
     });
+
+    modal.querySelector('#reintentar-camara').addEventListener('click', () => {
+      this.ocultarAviso();
+      this.iniciarCamara().catch(error => this.mostrarAviso(error));
+    });
+
+    modal.querySelector('#cerrar-aviso-camara').addEventListener('click', () => this.cerrar());
 
     modal.addEventListener('click', (e) => {
       if (e.target === modal) this.cerrar();
@@ -136,6 +151,23 @@ export class CamaraModal {
 
       throw new Error(mensaje);
     }
+  }
+
+  /*
+   * La cámara no arrancó: el modal se queda abierto con el motivo y con la
+   * chance de reintentar, en vez de cerrarse sin explicar nada.
+   */
+  mostrarAviso(error) {
+    this.modal.querySelector('#aviso-camara-texto').textContent = error.message;
+    this.modal.querySelector('#aviso-camara').classList.remove('oculto');
+    this.modal.querySelector('.marco-video').classList.add('oculto');
+    this.modal.querySelector('.dialogo-pie').classList.add('oculto');
+  }
+
+  ocultarAviso() {
+    this.modal.querySelector('#aviso-camara').classList.add('oculto');
+    this.modal.querySelector('.marco-video').classList.remove('oculto');
+    this.modal.querySelector('.dialogo-pie').classList.remove('oculto');
   }
 
   async cambiarCamara() {
