@@ -9,7 +9,7 @@ import { normalizarTexto } from '../utils/texto.js';
 import { icono } from '../utils/iconos.js';
 
 export class ProductoForm {
-  constructor(onSave, onClose, producto = null, onBuscarCodigo = null, onBorrarProducto = null) {
+  constructor(onSave, onClose, producto = null, onBuscarCodigo = null, onBorrarProducto = null, modo = 'detallado') {
     this.onSave = onSave;
     this.onClose = onClose;
     this.producto = producto;
@@ -23,6 +23,10 @@ export class ProductoForm {
     // volvería a aparecer al cancelar el formulario.
 
     this.onBorrarProducto = onBorrarProducto;
+
+    // 'rapida' muestra sólo foto, nombre y precio final; 'detallado' es la
+    // ficha completa. Son los mismos campos: el modo sólo decide cuáles se ven.
+    this.modo = modo;
 
     this.isEditing = !!producto?.id;
     this.imagenId = producto?.imagenId || null;
@@ -78,6 +82,41 @@ export class ProductoForm {
       if (e.key === 'Escape') this.cerrar();
     };
     document.addEventListener('keydown', this.handleKeydown);
+  }
+
+  /**
+   * De carga rápida a la ficha completa, con lo escrito hasta acá.
+   *
+   * No se reabre el formulario: son los mismos campos con las secciones
+   * apagadas, así el nombre, la foto y el precio quedan donde estaban y sólo
+   * hay que levantar la clase que los escondía.
+   */
+  pasarADetallado() {
+    this.modo = 'detallado';
+    const form = this.modal.querySelector('#form-producto');
+    form.classList.remove('rapido');
+    form.scrollTop = 0;
+    const encabezado = this.modal.querySelector('.dialogo-cabecera h2');
+    if (encabezado) encabezado.innerHTML = `${icono('mas')}<span>Nuevo Producto</span>`;
+  }
+
+  /**
+   * De la ficha completa a una carga rápida en blanco.
+   *
+   * Se cierra y se abre otra vez, y lo escrito en la ficha se descarta entero:
+   * es lo que evita arrastrar datos parciales a un alta que sólo pide tres
+   * cosas.
+   */
+  async pasarARapida() {
+    await this.cerrar();
+    await abrirFormularioProducto(
+      this.onSave,
+      this.onClose,
+      null,
+      this.onBuscarCodigo,
+      this.onBorrarProducto,
+      'rapida'
+    );
   }
 
   async cargarCategorias() {
@@ -240,6 +279,7 @@ export class ProductoForm {
     modal.className = 'velo';
 
     const camaraDisponible = this.camaraDisponible;
+    const esRapida = this.modo === 'rapida';
 
     // Categorías del producto: un producto puede estar en varias. Se resuelven una
     // vez, con nombre y color, porque el botón del selector tiene que pintar las
@@ -266,13 +306,16 @@ export class ProductoForm {
       <div class="dialogo dialogo-ancho dialogo-columna">
         <!-- Header -->
         <div class="dialogo-cabecera dialogo-cabecera-fija">
-          <h2 class="titulo titulo-icono">${icono(this.isEditing ? 'editar' : 'mas')}<span>${this.isEditing ? 'Editar Producto' : 'Nuevo Producto'}</span></h2>
+          <h2 class="titulo titulo-icono">${icono(esRapida ? 'rayo' : this.isEditing ? 'editar' : 'mas')}<span>${esRapida ? 'Carga rápida' : this.isEditing ? 'Editar Producto' : 'Nuevo Producto'}</span></h2>
           <button id="cerrar-form" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
         </div>
 
         <!-- Form scrollable -->
-        <form id="form-producto" class="dialogo-cuerpo apilado-3 crece">
-          <div class="etiqueta-seccion con-margen-arriba-amplia">${icono('caja')} Producto</div>
+        <form id="form-producto" class="dialogo-cuerpo apilado-3 crece${esRapida ? ' rapido' : ''}">
+          ${!this.isEditing ? `
+          <button type="button" id="link-carga-rapida" class="btn-fantasma btn-ancho">${icono('rayo')}<span>Carga rápida</span></button>
+          ` : ''}
+          <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado">${icono('caja')} Producto</div>
 
           <!-- Foto del producto -->
           <div class="form-cabecera">
@@ -331,7 +374,7 @@ export class ProductoForm {
                 >
               </div>
 
-              <div>
+              <div class="solo-detallado">
                 <label for="codigoBarras" class="etiqueta">${icono('etiqueta')} Código de barras</label>
                 <div class="fila">
                   <input
@@ -358,7 +401,7 @@ export class ProductoForm {
                 ` : ''}
               </div>
 
-              <div>
+              <div class="solo-detallado">
                 <label for="codigoProveedor" class="etiqueta">${icono('etiqueta')} Código del proveedor</label>
                 <input
                   type="text"
@@ -373,10 +416,10 @@ export class ProductoForm {
             </div>
           </div>
 
-          <div class="etiqueta-seccion con-margen-arriba-amplia">${icono('dinero')} Precio</div>
+          <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado">${icono('dinero')} Precio</div>
 
           <!-- Tipo de venta -->
-          <div>
+          <div class="solo-detallado">
             <div class="etiqueta">⚖️ Tipo de venta</div>
             <div class="posicionado" id="tipo-venta-selector">
               <button
@@ -415,7 +458,7 @@ export class ProductoForm {
           </div>
 
           <!-- Calculadora de Precio -->
-          <div id="calculadora-precio" class="recuadro recuadro-marca">
+          <div id="calculadora-precio" class="recuadro recuadro-marca solo-detallado">
             <div class="etiqueta-seccion">${icono('calculadora')} Calculadora de Precio</div>
 
             <div class="con-margen-abajo">
@@ -492,7 +535,7 @@ export class ProductoForm {
 
           <!-- Precios por unidad (base + sub-unidades) -->
           <div id="precios-container">
-            <div class="etiqueta">${icono('dinero')} Precios por unidad</div>
+            <div class="etiqueta solo-detallado">${icono('dinero')} Precios por unidad</div>
             <div class="apilado" id="precios-lista">
               ${this.renderPreciosHTML(unidadBase, tipoActual, tipoActual.subUnidades)}
             </div>
@@ -507,15 +550,15 @@ export class ProductoForm {
           <button
             type="button"
             id="btn-agregar-precio"
-            class="btn-secundario btn-ancho detalle con-margen-arriba"
+            class="btn-secundario btn-ancho detalle con-margen-arriba solo-detallado"
           >
             ${icono('mas')}<span>Agregar otro precio</span>
           </button>
 
-          <div class="etiqueta-seccion con-margen-arriba-amplia">${icono('medida')} Inventario</div>
+          <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado">${icono('medida')} Inventario</div>
 
           <!-- Stock y Stock Mínimo -->
-          <div class="cuadricula-apilada">
+          <div class="cuadricula-apilada solo-detallado">
             <div>
               <label for="stock" class="etiqueta">
                 ${icono('medida')} Stock actual ${tipoActual.icon}
@@ -558,7 +601,7 @@ export class ProductoForm {
           </div>
 
           <!-- Fecha -->
-          <div>
+          <div class="solo-detallado">
             <label for="fecha" class="etiqueta">${icono('calendario')} Fecha</label>
             <input
               type="date"
@@ -569,14 +612,14 @@ export class ProductoForm {
             >
           </div>
 
-          <div class="etiqueta-seccion con-margen-arriba-amplia">${icono('carpeta')} Ubicación</div>
+          <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado">${icono('carpeta')} Ubicación</div>
 
 <!-- Proveedor y categorías, en dos columnas.
                Son las dos etiquetas que dicen a qué grupo pertenece el producto y se
                llenan de la misma manera, así que van juntas: el proveedor a la izquierda
                y las categorías a su derecha. Antes iban apiladas y había que bajar para
                llegar del uno al otro. -->
-          <div class="form-par">
+          <div class="form-par solo-detallado">
             <div>
               <label for="proveedor" class="etiqueta">${icono('proveedor')} Proveedor</label>
             <div class="posicionado">
@@ -664,7 +707,7 @@ export class ProductoForm {
             metidas en medio de los campos se perdían en el medio del
             formulario, y no era el último dato que completaba.
           -->
-          <div class="pos-it">
+          <div class="pos-it solo-detallado">
             <label for="notas" class="etiqueta-seccion">📝 Notas de este producto</label>
             <textarea
               id="notas"
@@ -674,6 +717,8 @@ export class ProductoForm {
               placeholder="Ej: este distribuidor me trae los productos ordenados"
             >${esc(this.producto?.notas || '')}</textarea>
           </div>
+
+          <button type="button" id="link-completar-ficha" class="btn-fantasma btn-ancho">${icono('lapiz')}<span>Completar en producto detallado</span></button>
 
           <!-- Espacio para que no se tape el botón sticky -->
           <div class="alto-foto"></div>
@@ -702,6 +747,8 @@ export class ProductoForm {
 
     modal.querySelector('#cerrar-form').addEventListener('click', () => this.cerrar());
     modal.querySelector('#btn-cancelar').addEventListener('click', () => this.cerrar());
+    modal.querySelector('#link-carga-rapida')?.addEventListener('click', () => this.pasarARapida());
+    modal.querySelector('#link-completar-ficha')?.addEventListener('click', () => this.pasarADetallado());
 
     // Cerrar al tocar fuera del contenido (pero no en inputs/botones)
     //
@@ -1531,7 +1578,7 @@ export class ProductoForm {
 
     let html = `
       <div class="precios-cabecera">
-        <div class="columna apilado-2">
+        <div class="columna apilado-2 solo-detallado">
           <div>
             <label for="unidad-principal" class="etiqueta">${icono('verificar')} Unidad que se ve en el catálogo</label>
             <select id="unidad-principal" name="unidadPrincipal" class="campo detalle">
@@ -1561,11 +1608,11 @@ export class ProductoForm {
               >
             </div>
           </div>
-          <p class="micro tenue">Se muestra como ${esc(baseLabel)} en el catálogo y en el pedido.</p>
+          <p class="micro tenue solo-detallado">Se muestra como ${esc(baseLabel)} en el catálogo y en el pedido.</p>
         </div>
       </div>
 
-      <p class="etiqueta-seccion con-margen-arriba">${icono('medida')}<span>Los otros precios</span></p>
+      <p class="etiqueta-seccion con-margen-arriba solo-detallado">${icono('medida')}<span>Los otros precios</span></p>
     `;
 
     for (const sub of subs.filter(s => s.value !== baseUnidad)) {
@@ -1576,7 +1623,7 @@ export class ProductoForm {
     const precioSub = otrosPrecios.find(p => p.unidad === sub.value);
     if (!precioSub) continue;
     html += `
-        <div class="precio-item fila" data-unidad="${escAttr(sub.value)}">
+        <div class="precio-item fila solo-detallado" data-unidad="${escAttr(sub.value)}">
           <span class="detalle medio crece">${esc(sub.label)}</span>
           <div class="posicionado crece">
             <span class="buscador-lupa">$</span>
@@ -1684,15 +1731,19 @@ export class ProductoForm {
  *                                    repetido. Si no se pasa, el formulario borra
  *                                    directo contra la base y la vista queda sin
  *                                    recargar.
+ * @param {'detallado'|'rapida'} [modo] 'rapida' sólo muestra foto, nombre y
+ *                                    precio final; 'detallado' (por defecto) es
+ *                                    la ficha completa.
  */
 export async function abrirFormularioProducto(
   onSave,
   onClose,
   producto = null,
   onBuscarCodigo = null,
-  onBorrarProducto = null
+  onBorrarProducto = null,
+  modo = 'detallado'
 ) {
-  const form = new ProductoForm(onSave, onClose, producto, onBuscarCodigo, onBorrarProducto);
+  const form = new ProductoForm(onSave, onClose, producto, onBuscarCodigo, onBorrarProducto, modo);
   await form.abrir();
   return form;
 }

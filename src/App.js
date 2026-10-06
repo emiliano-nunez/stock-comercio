@@ -501,9 +501,10 @@ export class App {
             </button>
 
             <!--
-              La segunda fila del teléfono: el buscador y, a su derecha, el botón
-              de agregar. En el escritorio esta misma fila gira a columna, así que
-              el botón queda abajo del buscador y antes de las pestañas.
+              La segunda fila del teléfono: el buscador y, a su derecha, los dos
+              botones de alta —producto detallado y carga rápida—. En el
+              escritorio esta misma fila gira a columna, así que los botones
+              quedan abajo del buscador y antes de las pestañas.
             -->
             <div class="fila-busca">
             <div class="posicionado con-margen-arriba">
@@ -547,18 +548,27 @@ export class App {
             </div>
 
               <!--
-                El botón de agregar va en el header y no flotando sobre la grilla.
-                Flotando tapaba productos, que es lo único que hay que mirar, y
-                además quedaba lejos del buscador, que es donde ya está la mano.
-                En el teléfono se ve como un botón cuadrado a la derecha del
-                buscador; en el escritorio toma todo el ancho de la barra.
+                Los dos botones de alta van en la cabecera y no flotando sobre
+                la grilla. Flotando tapaban productos, que es lo único que hay
+                que mirar, y además quedaban lejos del buscador, que es donde ya
+                está la mano. En el teléfono se ven como dos cuadrados a la
+                derecha del buscador; en el escritorio toman todo el ancho de la
+                barra.
               -->
               <button
                 id="btn-agregar-fab"
                 class="boton-agregar"
-                aria-label="Crear Producto"
+                aria-label="Producto detallado"
               >
-                ${icono('mas')}<span class="texto-agregar">Crear Producto</span>
+                ${icono('mas')}<span class="texto-agregar">Producto detallado</span>
+              </button>
+
+              <button
+                id="btn-carga-rapida"
+                class="boton-agregar"
+                aria-label="Carga rápida"
+              >
+                ${icono('rayo')}<span class="texto-agregar">Carga rápida</span>
               </button>
             </div>
 
@@ -1353,6 +1363,7 @@ export class App {
     document.getElementById('btn-copia')?.addEventListener('click', () => this.abrirCopiaSeguridad());
     document.getElementById('btn-pedido')?.addEventListener('click', () => this.abrirPedido());
     document.getElementById('btn-agregar-fab')?.addEventListener('click', () => this.nuevoProducto());
+    document.getElementById('btn-carga-rapida')?.addEventListener('click', () => this.nuevoProducto(null, 'rapida'));
   }
 
   /*
@@ -1604,7 +1615,7 @@ export class App {
     this.abrirVista('inventario');
   }
 
-  nuevoProducto(categoriaId = null) {
+  nuevoProducto(categoriaId = null, modo = 'detallado') {
     if (this._productoFormAbierto) return;
     this._productoFormAbierto = true;
     abrirFormularioProducto(
@@ -1614,7 +1625,8 @@ export class App {
 
       categoriaId ? { categoriaIds: [categoriaId] } : null,
       (codigo) => this._alBuscarCodigo(codigo),
-      (p) => this.eliminarProducto(p.id)
+      (p) => this.eliminarProducto(p.id),
+      modo
     );
   }
 

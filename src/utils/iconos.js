@@ -40,6 +40,7 @@ export const ICONOS = {
   camara: trazo('<path d="M3 8a2 2 0 0 1 2-2h2.5l1.2-2h6.6L16.5 6H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><circle cx="12" cy="12.5" r="3.2"/>'),
   escanear: trazo('<path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M3.5 12h17"/>'),
   mas: trazo('<path d="M12 5v14M5 12h14"/>'),
+  rayo: trazo('<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/>'),
   lapiz: trazo('<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
 
   // Formulario.

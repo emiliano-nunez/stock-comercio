@@ -93,6 +93,30 @@
 }
 
 /*
+ * Carga rápida: el mismo formulario con las secciones del detallado apagadas.
+ *
+ * Lo que queda a la vista es la foto, el nombre y el precio final —los tres
+ * datos que definen un producto— más el enlace a la ficha completa. Las
+ * secciones se marcan con `.solo-detallado` y se apagan desde la raíz: un sólo
+ * cambio de clase en el form cambia el formulario entero, y los campos siguen
+ * existiendo, así que lo escrito en carga rápida está tal cual cuando el
+ * usuario pasa a completar la ficha.
+ *
+ * Los dos enlaces se excluyen entre sí: el de arriba sólo existe para salir
+ * de la ficha, el de abajo sólo para completarla.
+ */
+#form-producto.rapido .solo-detallado,
+#form-producto.rapido #link-carga-rapida,
+#form-producto:not(.rapido) #link-completar-ficha {
+  display: none;
+}
+
+/* En carga rápida no hay unidad que elegir: el precio ocupa la fila entera. */
+#form-producto.rapido .precios-cabecera {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/*
  * El encabezado de los bloques de la pestaña de categorías.
  *
  * Los tres bloques —gestión de categorías, estado del stock y proveedores— usan
