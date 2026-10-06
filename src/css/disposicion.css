@@ -438,10 +438,6 @@
 
   border-radius: var(--interfaz-radio-2);
 
-  /*
-   * El azul fuerte y no el normal, por lo mismo que `.btn-principal`: la blanca
-   * sobre `#3483fa` da 3.64 y necesita 4.5. Sobre `#2968c8` da 5.37.
-   */
   background-color: var(--interfaz-azul-fuerte);
   color: var(--color-texto-invertido);
   font-size: var(--texto-lg);

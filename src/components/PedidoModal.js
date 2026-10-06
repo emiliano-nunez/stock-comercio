@@ -94,7 +94,10 @@ export class PedidoModal {
     this.modal = null;
     this.productos = [];
     this.grupos = [];
-    // Lo que el usuario pidió de cada producto. Se arma con el sugerido y se
+    // Lo que el usuario pidió de cada producto. Se arma con el sugerido y
+    // se // cambia a mano. Vive sólo en esta sesión: es un borrador del
+    // pedido de hoy, // no un dato del producto, así que no se guarda en la
+    // base.
 
     this.cantidades = new Map();
   }

@@ -208,7 +208,9 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
         </div>
       `;
 
-      // botón, para que el usuario vea el código exacto que va a quedar antes
+      // // El sufijo disponible se calcula una vez por pintado y se muestra
+      // en el // botón, para que el usuario vea el código exacto que va a
+      // quedar antes // de aceptarlo y no después.
 
       if (origen === 'formulario') prepararSufijo();
     }

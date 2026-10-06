@@ -43,7 +43,7 @@ db.version(4).stores({
 //
 //   nombre        -> buscarProductos() filtra con includes(), que es búsqueda
 //                    de subcadena y no puede aprovechar un índice. Y la
-//                    búsqueda real de la app (App.aplicarFiltroYOrden) ni
+//                    búsqueda real de la app (App.cargarProductos) ni
 //                    siquiera consulta la BD: filtra en memoria.
 //   precios       -> indexar un campo array crea UNA ENTRADA DE ÍNDICE POR
 //                    ELEMENTO: un producto con 4 precios genera 4 filas. Y no

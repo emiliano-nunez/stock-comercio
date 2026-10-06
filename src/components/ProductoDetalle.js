@@ -33,8 +33,8 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
 
   const tipo = TIPOS_VENTA.find(t => t.value === p.tipoVenta) || TIPOS_VENTA[0];
   const unidadStock = getUnidadBase(p.tipoVenta);
-  // El paso se muestra junto al número para que un stock que sube de a uno no
-
+  // Cuánto mueve cada toque el ajuste. Se muestra junto al número para que un
+  // stock que sube de a uno no parezca un error de tipeo.
   const step = tipo.step;
   const principal = getUnidadPrincipal(p);
   const precio = getPrecioPrincipal(p);

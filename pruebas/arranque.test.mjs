@@ -5,37 +5,11 @@ import { App } from '../src/App.js';
 import { importarBackup } from '../src/utils/backup.js';
 
 /*
- * La app, corriendo.
+ * La app, corriendo. Uso: npm test
  *
- * Uso: npm test
- *
- * Por que existe: cuatro bugs seguidos llegaron a la pantalla del usuario y ninguno
- * se vio leyendo el código, compilando, ni con los seis verificadores. Eran:
- *
- *   - un `icono()` al que le faltaba el import: ReferenceError al pintar.
- *   - un `groupBy()` que no existe en Dexie 4: TypeError al contar.
- *   - un `this.productosFiltrados` que la clase ya no escribía: TypeError al
- *     arrancar.
- *   - un `this.productosVisibles` (arreglo) que tapaba al método `productosVisibles`
- *     de la clase: "no es una función" al pintar el inventario.
- *   - un `conteos.get()` sobre un objeto plano: la pestaña Categorías entera tiraba
- *     `conteos.get is not a function` y no se podía abrir nunca.
- *
- * Los cinco se ven sólo cuando el código corre. Acá corre, contra una base sembrada
- * en memoria y un DOM de verdad.
- *
- * El quinto tiene una cosa para aprender: la app no deja que el error salga. Lo
- * atrapa, lo escribe en la consola y pone un cartel de "Algo falló" en pantalla. O
- * sea que una prueba que sólo mira si algo se tiró lo pasa sin ver nada. Por eso
- * estas pruebas cuentan también los `console.error`: el cartel es el síntoma, y
- * aca se lee el síntoma.
- *
- * Lo que este archivo NO es: una suite completa. Es una prueba de que la app levanta
- * y de que las consultas de la base responden lo que la pantalla espera. Lo que
- * tiene de valor es que es la que hubiera atrapado los cuatro.
- *
- * Para eso hacen falta dos paquetes de desarrollo, que no van a la app: `jsdom`
- * para el DOM y `fake-indexeddb` para la base.
+ * Corre el código contra un DOM de verdad (`jsdom`) y una base en memoria
+ * (`fake-indexeddb`): es lo que agarra los errores que compilan y pasan los
+ * verificadores, pero revientan al pintar.
  */
 
 /** Productos sembrados antes de arrancar. Los nombres llevan tilde a propósito. */
@@ -91,15 +65,9 @@ test('la app arranca y dibuja el inventario', async () => {
 });
 
 /*
- * Las tres pestañas pintan enteras.
- *
- * La prueba de arriba arrancaba la app pero se quedaba en Inventario. Como la
- * tarjeta de "Estado del stock" sólo se pinta en Categorías, un error de ahí no
- * se veía: la app lo atrapaba, escribía en la consola y ponía el cartel de
- * "Algo falló", y la prueba pasaba igual mirando el HTML del inventario.
- *
- * Por eso esta prueba recorre las tres y cuenta los errores de consola. Si alguna
- * vez se rompe un panel que sólo aparece en otra pestaña, se entera.
+ * Recorre las tres pestañas y cuenta los `console.error`. La app traga los errores
+ * y muestra un cartel, así que hay que leer la consola: un panel que sólo se pinta
+ * en otra pestaña puede estar roto sin que la prueba lo note.
  */
 test('las tres pestañas pintan enteras y sin quejarse', async () => {
   const errores = [];

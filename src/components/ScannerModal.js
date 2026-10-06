@@ -269,7 +269,9 @@ export class ScannerModal {
     const campo = statusEl.querySelector('#campo-codigo-manual');
     const aviso = statusEl.querySelector('#aviso-codigo-manual');
 
-    // El foco abre el teclado al toque, sin que el usuario tenga que tocar el
+    // El foco abre el teclado al toque, sin que el usuario tenga que tocar
+    // el // campo: en un teléfono es un toque menos y el teclado tapa la
+    // mitad de la // pantalla.
 
     campo.focus();
 
@@ -316,10 +318,12 @@ export class ScannerModal {
    */
   async resolverCodigo(codigo, espera = 0) {
 
+    // Se piden TODOS los que coinciden, no sólo el primero: el índice de
     // codigoBarras no es único, y con .first() el usuario veía un producto
-
+    // arbitrario sin enterarse de que había otro con el mismo código.
     //
-
+    // Se pasa la lista entera y no "el primero + cuántos hay": el diálogo de
+    // código repetido tiene que poder nombrar los productos en conflicto para
     // que el usuario elija, y con un primero + un número no hay nada que elegir.
     const coincidencias = await dbUtils.buscarPorCodigoBarras(codigo);
 
@@ -329,7 +333,9 @@ export class ScannerModal {
       await new Promise(r => setTimeout(r, espera));
     }
 
-    // Si en esos milisegundos el usuario cerró el escáner a mano (✕, Escape o
+    // Si en esos milisegundos el usuario cerró el escáner a mano (✕, Escape
+    // o // clic fuera), se respeta su decisión: no se le abre el formulario
+    // del // producto encima del escáner que acaba de descartar.
 
     if (this._cerrado) return;
 

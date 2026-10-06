@@ -21,7 +21,7 @@
 
   --verde-50:  #f0fdf4;
   --verde-100: #dcfce7;
-  --verde-200: #bbf7d0;
+  --verde-200: #8df1b0;
   --verde-500: #22c55e;
   --verde-600: #16a34a;
   --verde-700: #15803d;
@@ -56,13 +56,9 @@
   --color-superficie:      #ffffff;
   --color-texto:           var(--gris-900);
   /*
-   * Los dos grises de texto van un escalón más oscuros de lo que estaban.
-   *
-   * Sobre el fondo gris de las tarjetas, `#6b7280` da 4.06 y necesita 4.5: es lo
-   * que Lighthouse marcó en el texto de ayuda y en la versión del pie. Y `#9ca3af`
-   * daba 2.13, que no es "tenue": es invisible. Con `#4b5563` el primero da 6.34
-   * y con `#6b7280` el segundo 4.06 sobre el gris, o 4.83 sobre la caja blanca,
-   * que es donde se usan.
+   * Los dos grises de texto, un escalón más oscuros: `#9ca3af` daba 2.13 sobre el
+   * gris de las tarjetas, que es ilegible, y `#6b7280` daba 4.06 de los 4.5 que
+   * pide el estándar.
    */
   --color-texto-suave:     var(--gris-600);
   --color-texto-tenue:     var(--gris-500);
@@ -235,16 +231,9 @@
   --interfaz-borde:   #e6e6e6;
 
   /*
-   * El fondo de la página va aparte del de las tarjetas, y es el verde del
-   * manifiesto.
-   *
-   * Antes los dos eran el mismo gris, y por eso la pantalla de arranque de la PWA
-   * instalada -- que sale del `background_color` del manifiesto -- era verde y la
-   * app gris. El mismo valor en los dos lados no se puede arreglar a ojo: se
-   * arregla teniendo un solo valor, y que los dos lugares lo tomen.
-   *
-   * Las tarjetas NO cambian: siguen en su gris claro. El verde es el de la página,
-   * que es lo que se ve detrás de todo y lo que se ve un instante al abrir.
+   * El fondo de la página va aparte del de las tarjetas y es el verde del
+   * manifiesto, para que la pantalla de arranque de la PWA instalada y la app
+   * muestren el mismo color. Las tarjetas siguen en su gris claro.
    */
   --fondo-pagina:      var(--verde-50);
 
@@ -256,14 +245,9 @@
    * El azul: el del botón de acción, el del borde de foco y el del botón
    * secundario de la tarjeta, que es fondo azul al 15% con letra azul.
    *
-   * El botón de acción NO usa `--interfaz-azul` sino el fuerte, y por una razón
-   * medida: la blanca sobre `#3483fa` da 3.64 y necesita 4.5. Sobre `#2968c8` da
-   * 5.37. Es el mismo problema que el verde `#00a650` que se descartó por ilegible,
-   * y la salida es la misma: oscurecer el fondo, no aligerar la letra.
-   *
-   * El `--interfaz-azul` queda para lo que no lleva letra encima: bordes de foco,
-   * líneas y anillos. Como texto sobre el fondo azul al 15% tampoco llega a 4.5,
-   * ese caso usa el `--interfaz-azul-texto`, que sí llega.
+   * El tono claro no lleva letra encima: es para bordes, líneas y anillos. Con
+   * letra blanca hace falta el fuerte, porque sobre `#3483fa` da 3.64 y el mínimo
+   * es 4.5.
    */
   --interfaz-azul:              #3483fa;
   --interfaz-azul-fuerte:       #2968c8;
