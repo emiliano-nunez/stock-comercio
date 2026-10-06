@@ -869,6 +869,14 @@ export class ProductoForm {
         const tipoActual = TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0];
         const subUnidades = tipoActual?.subUnidades || [];
         const existentes = Array.from(container.querySelectorAll('.precio-item')).map(el => el.dataset.unidad);
+
+        // La unidad principal tiene su propio campo ("Precio final"), que no es
+        // un .precio-item: sin sumarla acá el selector la vuelve a ofrecer y
+        // quedan dos campos con el mismo nombre, de los cuales sólo se guarda
+        // el primero.
+        const principal = modal.querySelector('#unidad-principal')?.value;
+        if (principal) existentes.push(principal);
+
         const disponibles = subUnidades.filter(s => !existentes.includes(s.value));
 
         if (disponibles.length === 0) {
@@ -1066,6 +1074,24 @@ export class ProductoForm {
       return;
     }
 
+    /*
+     * Las otras unidades del producto se escalan junto a la principal. Si no,
+     * cambiar el IVA deja el producto a medio actualizar: una docena con el
+     * precio viejo al lado de una unidad con el nuevo. Se multiplica por el
+     * mismo factor que acaba de mover al principal, y sólo cuando el principal
+     * sigue a la calculadora, porque un precio escrito a mano no arrastra a los
+     * demás.
+     */
+    const escalarSubPrecios = (precioAnterior, precioCalc) => {
+      if (!(precioAnterior > 0) || !(precioCalc > 0) || precioAnterior === precioCalc) return;
+
+      const factor = precioCalc / precioAnterior;
+      modal.querySelectorAll('#precios-lista .precio-item input').forEach(input => {
+        const valor = parseFloat(input.value) || 0;
+        if (valor > 0) input.value = (Math.round(valor * factor * 100) / 100).toFixed(2);
+      });
+    };
+
     const calcular = () => {
       const costo = parseFloat(costoInput.value) || 0;
       const ivaPct = parseFloat(ivaInput.value) || 0;
@@ -1092,8 +1118,12 @@ export class ProductoForm {
       if (!precioInput) return;
 
       const precioActual = parseFloat(precioInput.value) || 0;
-      if (precioActual === 0 || Math.abs(precioActual - this.ultimoPrecioCalculado) < 0.01) {
+      const sigueAlCalculo = precioActual === 0
+        || Math.abs(precioActual - this.ultimoPrecioCalculado) < 0.01;
+
+      if (sigueAlCalculo) {
         precioInput.value = precioCalc > 0 ? precioCalc.toFixed(2) : '';
+        escalarSubPrecios(precioActual, precioCalc);
       }
       this.ultimoPrecioCalculado = precioCalc;
     };
@@ -1109,24 +1139,6 @@ export class ProductoForm {
       });
     }
 
-    const precioInput = campoPrecio();
-    if (precioInput && !precioInput.dataset.listener) {
-      precioInput.dataset.listener = '1';
-
-      // Si el usuario edita manualmente el precio final, no sobrescribir automáticamente
-      precioInput.addEventListener('focus', () => {
-        this.usuarioEditandoPrecio = true;
-      });
-
-      precioInput.addEventListener('blur', () => {
-        this.usuarioEditandoPrecio = false;
-
-        const precioManual = parseFloat(precioInput.value) || 0;
-        if (precioManual > 0) {
-          this.ultimoPrecioCalculado = precioManual;
-        }
-      });
-    }
   }
 
   ajustarStock(accion) {
