@@ -96,6 +96,9 @@ export class ProductoForm {
     const form = this.modal.querySelector('#form-producto');
     form.classList.remove('rapido');
     form.scrollTop = 0;
+    const precios = form.querySelector('#precios-container');
+    const botonPrecio = form.querySelector('#btn-agregar-precio');
+    if (precios && botonPrecio) form.insertBefore(precios, botonPrecio);
     const encabezado = this.modal.querySelector('.dialogo-cabecera h2');
     if (encabezado) encabezado.innerHTML = `${icono('mas')}<span>Nuevo Producto</span>`;
   }
@@ -302,6 +305,20 @@ export class ProductoForm {
       ?? (this.tipoVenta.startsWith('peso') ? 1 : 5);
     const costoInicial = this.producto?.costo || '';
 
+    // El bloque de precios va en distinto lugar según el modo: en carga rápida,
+    // debajo del nombre, en la columna de los campos; en la ficha completa,
+    // después de la calculadora. Es el mismo nodo en los dos casos, así que
+    // pasar a la ficha lo devuelve a su lugar sin rehacer el formulario ni
+    // perder lo que se escribió.
+    const bloquePrecios = `
+          <!-- Precios por unidad (base + sub-unidades) -->
+          <div id="precios-container">
+            <div class="etiqueta solo-detallado">${icono('dinero')} Precios por unidad</div>
+            <div class="apilado" id="precios-lista">
+              ${this.renderPreciosHTML(unidadBase, tipoActual, tipoActual.subUnidades)}
+            </div>
+          </div>`;
+
     modal.innerHTML = `
       <div class="dialogo dialogo-ancho dialogo-columna">
         <!-- Header -->
@@ -413,6 +430,8 @@ export class ProductoForm {
                   autocomplete="off"
                 >
               </div>
+
+              ${esRapida ? bloquePrecios : ''}
             </div>
           </div>
 
@@ -533,13 +552,7 @@ export class ProductoForm {
             <p class="micro apagado con-margen-arriba-chica centro-texto">Edita el precio final abajo para redondear · Los % se guardan</p>
           </div>
 
-          <!-- Precios por unidad (base + sub-unidades) -->
-          <div id="precios-container">
-            <div class="etiqueta solo-detallado">${icono('dinero')} Precios por unidad</div>
-            <div class="apilado" id="precios-lista">
-              ${this.renderPreciosHTML(unidadBase, tipoActual, tipoActual.subUnidades)}
-            </div>
-          </div>
+          ${esRapida ? '' : bloquePrecios}
 
           <!--
             El botón va FUERA del bloque de arriba a propósito. Adentro comparte
