@@ -1039,6 +1039,16 @@ export class App {
    * hasta que ya lo necesita.
    */
   renderEstadosStockHTML() {
+    /*
+     * These three are a plain object with three fixed keys, not a Map.
+     *
+     * They were being read with `conteos.get(clave)`, which is a Map method, and
+     * the tab threw `conteos.get is not a function` the moment it was opened. The
+     * fallback below was a plain object too, so both branches failed: there was no
+     * version of this line that worked.
+     *
+     * It reads by key. The keys are the three of `ESTADOS_STOCK` and nothing else.
+     */
     const conteos = this._contadores?.porEstado
       || Object.fromEntries(App.ESTADOS_STOCK.map(e => [e.clave, 0]));
 
@@ -1049,7 +1059,7 @@ export class App {
             <h3 class="etiqueta-seccion">${icono('medida')}<span>Estado del stock</span></h3>
           </div>
           ${App.ESTADOS_STOCK.map(e => {
-            const total = conteos.get(e.clave) || 0;
+            const total = conteos[e.clave] || 0;
             return `
               <div class="recuadro recuadro-suave fila fila-separada">
                 <button

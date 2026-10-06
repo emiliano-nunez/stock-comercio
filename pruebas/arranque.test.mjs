@@ -18,9 +18,17 @@ import { importarBackup } from '../src/utils/backup.js';
  *     arrancar.
  *   - un `this.productosVisibles` (arreglo) que tapaba al método `productosVisibles`
  *     de la clase: "no es una función" al pintar el inventario.
+ *   - un `conteos.get()` sobre un objeto plano: la pestaña Categorías entera tiraba
+ *     `conteos.get is not a function` y no se podía abrir nunca.
  *
- * Los cuatro se ven sólo cuando el código corre. Acá corre, contra una base sembrada
+ * Los cinco se ven sólo cuando el código corre. Acá corre, contra una base sembrada
  * en memoria y un DOM de verdad.
+ *
+ * El quinto tiene una cosa para aprender: la app no deja que el error salga. Lo
+ * atrapa, lo escribe en la consola y pone un cartel de "Algo falló" en pantalla. O
+ * sea que una prueba que sólo mira si algo se tiró lo pasa sin ver nada. Por eso
+ * estas pruebas cuentan también los `console.error`: el cartel es el síntoma, y
+ * aca se lee el síntoma.
  *
  * Lo que este archivo NO es: una suite completa. Es una prueba de que la app levanta
  * y de que las consultas de la base responden lo que la pantalla espera. Lo que
@@ -80,6 +88,43 @@ test('la app arranca y dibuja el inventario', async () => {
   // Y con los botones de la tarjeta, que es lo que no se ve leyendo el método.
   expect(html).toContain('data-action="edit"');
   expect(html).toContain('data-action="delete"');
+});
+
+/*
+ * Las tres pestañas pintan enteras.
+ *
+ * La prueba de arriba arrancaba la app pero se quedaba en Inventario. Como la
+ * tarjeta de "Estado del stock" sólo se pinta en Categorías, un error de ahí no
+ * se veía: la app lo atrapaba, escribía en la consola y ponía el cartel de
+ * "Algo falló", y la prueba pasaba igual mirando el HTML del inventario.
+ *
+ * Por eso esta prueba recorre las tres y cuenta los errores de consola. Si alguna
+ * vez se rompe un panel que sólo aparece en otra pestaña, se entera.
+ */
+test('las tres pestañas pintan enteras y sin quejarse', async () => {
+  const errores = [];
+  const antes = console.error;
+  console.error = (...args) => errores.push(args.map(String).join(' '));
+
+  let fallo = null;
+  try {
+    const app = new App();
+    await app.init();
+    for (const vista of ['inventario', 'catalogo', 'categorias']) {
+      app.vistaActual = vista;
+      app.render();
+    }
+  } catch (error) {
+    fallo = error;
+  } finally {
+    console.error = antes;
+  }
+
+  expect(fallo, 'pintar las tres pestañas sin tirar').toBeNull();
+  expect(errores, 'sin errores en consola en ninguna pestaña').toEqual([]);
+
+  const html = document.getElementById('app').innerHTML;
+  expect(html, 'llegó a la última pestaña').toContain('Estado del stock');
 });
 
 test('el filtro y el orden devuelven la página pedida', async () => {
