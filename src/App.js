@@ -594,6 +594,7 @@ export class App {
       </main>
     `;
     this.bindEvents();
+    this.bindContenido();
   }
 
   renderVistaHTML() {
@@ -853,10 +854,10 @@ export class App {
         <span class="fila fila-amplia no-crece">
           <span class="fila fila-amplia no-crece">
             <span class="punto-chico" style="background-color: ${escAttr(color)}"></span>
-            <span class="medio">${esc(nombre)}</span>
+            <span class="medio">${this.productosVisibles().length} de ${this._totalEnVista} en ${esc(nombre)}</span>
           </span>
         </span>
-        <span class="detalle apagado no-crece">${this.totalEnVista()} de ${this._totalEnVista}</span>
+        <span class="detalle apagado no-crece">de ${this._contadores?.total ?? this._totalEnVista} productos</span>
         <button id="btn-ver-catalogo-completo" class="btn-secundario detalle">
           Ver todo
         </button>
@@ -1250,14 +1251,19 @@ export class App {
   }
 
   renderVista() {
-    this._eventsBound = false;
     const container = document.getElementById('contenido-principal');
     if (container) {
       container.innerHTML = this.renderVistaHTML();
     }
-    this.bindEvents();
+    this.bindContenido();
   }
 
+  /*
+   * El encabezado se recrea entero en cada `render()`, y sólo ahí. Atarlo
+   * también desde `renderVista()` —que cambia sólo el interior de
+   * `#contenido-principal`— le sumaba un listener a cada control en cada
+   * consulta, y un clic en una pestaña terminaba navegando dos veces.
+   */
   bindEvents() {
     if (this._eventsBound) return;
     this._eventsBound = true;
@@ -1285,17 +1291,6 @@ export class App {
           this._limiteRender = App.LIMITE_RENDER;
           this.cargarProductos();
         }, App.ESPERA_BUSQUEDA);
-      });
-    }
-
-    const btnLimpiar = document.getElementById('btn-limpiar-busqueda');
-    if (btnLimpiar) {
-      btnLimpiar.addEventListener('click', () => {
-        clearTimeout(this._temporizadorBusqueda);
-        this.busqueda = '';
-        if (buscador) buscador.value = '';
-        this._limiteRender = App.LIMITE_RENDER;
-        this.cargarProductos();
       });
     }
 
@@ -1348,11 +1343,6 @@ export class App {
       }
     }
 
-    document.getElementById('btn-cargar-mas')?.addEventListener('click', () => {
-      this._limiteRender += App.LIMITE_RENDER;
-      this.cargarProductos();
-    });
-
     document.querySelectorAll('.pestana').forEach(btn => {
       btn.addEventListener('click', () => this.abrirVista(btn.dataset.vista));
     });
@@ -1361,55 +1351,73 @@ export class App {
     document.getElementById('btn-copia')?.addEventListener('click', () => this.abrirCopiaSeguridad());
     document.getElementById('btn-pedido')?.addEventListener('click', () => this.abrirPedido());
     document.getElementById('btn-agregar-fab')?.addEventListener('click', () => this.nuevoProducto());
+  }
+
+  /*
+   * Todo lo que está dentro de `#contenido-principal`: se recrea en cada
+   * `render()` y en cada consulta, así que se ata en las dos. Los selectores de
+   * fila salen del contenedor y no del documento, porque afuera vive el
+   * formulario de producto, que también usa `.fila-tocable` para elegir
+   * categoría.
+   */
+  bindContenido() {
+    const contenedor = document.getElementById('contenido-principal');
+    if (!contenedor) return;
+
+    const btnLimpiar = document.getElementById('btn-limpiar-busqueda');
+    if (btnLimpiar) {
+      btnLimpiar.addEventListener('click', () => {
+        clearTimeout(this._temporizadorBusqueda);
+        this.busqueda = '';
+        const campo = document.getElementById('buscador');
+        if (campo) campo.value = '';
+        this._limiteRender = App.LIMITE_RENDER;
+        this.cargarProductos();
+      });
+    }
+
+    document.getElementById('btn-cargar-mas')?.addEventListener('click', () => {
+      this._limiteRender += App.LIMITE_RENDER;
+      this.cargarProductos();
+    });
+
     document.getElementById('btn-actualizar-ahora')?.addEventListener('click', () => this.aplicarActualizacion());
     document.getElementById('btn-nueva-categoria')?.addEventListener('click', () => this.abrirModalCategoria());
     document.getElementById('btn-nueva-categoria-vacia')?.addEventListener('click', () => this.abrirModalCategoria());
     document.getElementById('btn-nuevo-proveedor')?.addEventListener('click', () => this.abrirModalProveedor());
 
-    document.querySelectorAll('.fila-tocable[data-proveedor]').forEach(btn => {
+    contenedor.querySelectorAll('.fila-tocable[data-proveedor]').forEach(btn => {
       const prov = this.proveedores.find(p => p.id === btn.dataset.proveedor);
       if (prov) btn.addEventListener('click', () => this.abrirProveedor(prov));
     });
-    document.querySelectorAll('.editar-proveedor').forEach(btn => {
+    contenedor.querySelectorAll('.editar-proveedor').forEach(btn => {
       btn.addEventListener('click', () => this.abrirModalProveedor(btn.dataset.id));
     });
-    document.querySelectorAll('.eliminar-proveedor').forEach(btn => {
+    contenedor.querySelectorAll('.eliminar-proveedor').forEach(btn => {
       btn.addEventListener('click', () => this.eliminarProveedor(btn.dataset.id));
     });
 
-    document.querySelectorAll('.editar-categoria').forEach(btn => {
+    contenedor.querySelectorAll('.editar-categoria').forEach(btn => {
       btn.addEventListener('click', () => this.abrirModalCategoria(btn.dataset.id));
     });
-    document.querySelectorAll('.eliminar-categoria').forEach(btn => {
+    contenedor.querySelectorAll('.eliminar-categoria').forEach(btn => {
       btn.addEventListener('click', () => this.eliminarCategoria(btn.dataset.id));
     });
-    document.querySelectorAll('.fila-tocable[data-id]').forEach(btn => {
+    contenedor.querySelectorAll('.fila-tocable[data-id]').forEach(btn => {
       btn.addEventListener('click', () => this.abrirCategoria(btn.dataset.id));
     });
-    document.querySelectorAll('.fila-tocable[data-estado]').forEach(btn => {
+    contenedor.querySelectorAll('.fila-tocable[data-estado]').forEach(btn => {
       btn.addEventListener('click', () => this.abrirEstado(btn.dataset.estado));
     });
     document.getElementById('btn-ver-catalogo-completo')?.addEventListener('click', () => this.verCatalogoCompleto());
     document.getElementById('btn-agregar-en-categoria')?.addEventListener('click', () => this.nuevoProducto(this.valorFiltro('categoria')));
 
     /*
-    * Los dos listeners de abajo van por delegación sobre `#contenido-principal`,
-    * y por eso se atan UNA sola vez.
-    *
-    * El resto de bindEvents() ata listeners a elementos que están DENTRO del
-    * contenedor y que se recrean en cada render, así que hay que volver a
-    * atarlos. Este elemento no: `render()` lo recrea (hace `app.innerHTML = ...`)
-    * pero `renderVista()` sólo le cambia el contenido interior, así que el
-    * elemento sigue siendo el mismo.
-    *
-    * Con `_eventsBound` reiniciado en cada render, cada llamada a `renderVista()`
-    * —que es lo que hace "Cargar más"— sumaba un listener nuevo sobre el mismo
-    * elemento. Un clic en "Eliminar" disparaba el borrado N veces y con él N
-    * avisos de "eliminado". Por eso el flag se guarda acá y no en `_eventsBound`:
-    * si el elemento es el mismo, los listeners ya están.
-    */
-    const contenedor = document.getElementById('contenido-principal');
-    if (!contenedor || contenedor === this._contenidoConDelegacion) return;
+     * Estos dos van por delegación sobre `#contenido-principal`, que
+     * `renderVista()` sólo cambia por dentro: el elemento sigue siendo el mismo,
+     * así que se atan una sola vez y no se vuelven a sumar en cada consulta.
+     */
+    if (contenedor === this._contenidoConDelegacion) return;
     this._contenidoConDelegacion = contenedor;
 
     contenedor.addEventListener('click', (e) => {
@@ -1441,7 +1449,7 @@ export class App {
       }
     }, { passive: true });
 
-    // role="button" sería una mentira para quien navega con el teclado: tendría
+    // Enter y Espacio hacen lo mismo que el clic, para quien navega con teclado.
 
     contenedor.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
