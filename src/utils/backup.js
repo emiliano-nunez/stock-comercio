@@ -88,6 +88,7 @@ function normalizarProducto(p) {
     codigoProveedor: resto.codigoProveedor ? texto(resto.codigoProveedor, { largo: 64 }) : null,
     tipoVenta: texto(resto.tipoVenta, { largo: 60 }),
     unidadPrincipal: texto(resto.unidadPrincipal, { largo: 60 }),
+    unidadStock: texto(resto.unidadStock, { largo: 40 }),
     stock: Math.max(0, numero(resto.stock)),
     stockMinimo: Math.max(0, numero(resto.stockMinimo)),
     costo: Math.max(0, numero(resto.costo)),

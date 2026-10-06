@@ -1,4 +1,4 @@
-import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, getUnidadBase, getPrecioPrincipal, categoriasDe, tieneCategoria } from './db.js';
+import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe, tieneCategoria } from './db.js';
 import { abrirFormularioProducto } from './components/ProductoForm.js';
 import { abrirCopiaSeguridad } from './components/CopiaSeguridadModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
@@ -479,7 +479,7 @@ export class App {
 
   getStockLabel(producto) {
     const stock = producto.stock || 0;
-    const unidad = getUnidadBase(producto.tipoVenta);
+    const unidad = unidadStockTexto(producto, stock);
     // El "Poco" sale de estadoStock() y no de comparar acá otra vez, para
     // que el // badge no pueda decir "Poco" mientras el grupo del catálogo
     // dice "Con stock".
@@ -488,10 +488,6 @@ export class App {
     if (estado === 'vacio') return 'Agotado';
     if (estado === 'poco') return `Poco (${stock} ${unidad})`;
     return `${stock} ${unidad}`;
-  }
-
-  getUnidadBase(tipoVenta) {
-    return getUnidadBase(tipoVenta);
   }
 
   render() {
@@ -996,7 +992,7 @@ export class App {
                 `).join('')}
               </div>
             ` : (p.precio ? `<p class="marca fuerte detalle">$${fmtPrecio(p.precio)}/${esc(unidad)}</p>` : '<p class="micro tenue">Sin precio</p>')}
-            <p class="micro apagado">Stock: ${p.stock || 0} ${esc(unidad)}</p>
+            <p class="micro apagado">Stock: ${p.stock || 0} ${esc(unidadStockTexto(p, p.stock || 0))}</p>
             ${p.costo ? `<p class="micro apagado">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</p>` : ''}
             ${p.fechaCompra ? `<p class="micro tenue">📅 ${new Date(p.fechaCompra).toLocaleDateString('es-ES')}</p>` : ''}
           </div>
@@ -1190,11 +1186,10 @@ export class App {
     const stockClass = this.getStockClass(p);
     const stock = p.stock || 0;
     const tipo = TIPOS_VENTA.find(t => t.value === p.tipoVenta) || TIPOS_VENTA[0];
-    const step = tipo.step;
-    // Unidad del STOCK: siempre la base del tipo de venta. No se convierte a la
-    // unidad principal porque entre sub-unidades no hay factores de conversión
-    // definidos (no se sabe cuántas unidades tiene una caja), y un stock
-
+    // La única unidad de esta tarjeta es la del costo, y el costo va siempre
+    // en la unidad de la venta: costo y precio tienen que estar en la misma
+    // unidad para que cierre la calculadora de margen. El stock ni se muestra
+    // en unidad acá (el badge es sólo el número).
     const unidad = tipo.unidadBase || 'unid';
 
     const precio = getPrecioPrincipal(p);
@@ -1574,8 +1569,9 @@ export class App {
     const producto = await this.productoPorId(id);
     if (!producto) { this._ajustandoStock[id] = false; return; }
 
-    const tipo = TIPOS_VENTA.find(t => t.value === producto.tipoVenta) || TIPOS_VENTA[0];
-    const step = tipo.step;
+    // El paso lo manda la unidad del stock si el producto tiene una propia
+    // ("1 caja por toque"), y si no, la del tipo de venta como siempre.
+    const step = pasoUnidadStock(producto.unidadStock, producto.tipoVenta);
     const cambioReal = delta * step;
 
     try {
@@ -1593,7 +1589,7 @@ export class App {
       this.actualizarTarjetaStock(producto);
 
       if (nuevoStock > 0 && nuevoStock <= (producto.stockMinimo || 0)) {
-        toast.warning(`⚠️ ${producto.nombre}: Stock bajo (${nuevoStock} ${this.getUnidadBase(producto.tipoVenta)})`);
+        toast.warning(`⚠️ ${producto.nombre}: Stock bajo (${nuevoStock} ${unidadStockTexto(producto, nuevoStock)})`);
       } else if (nuevoStock === 0) {
         toast.error(`❌ ${producto.nombre}: Agotado`);
       }

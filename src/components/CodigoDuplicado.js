@@ -1,4 +1,4 @@
-import { db, dbUtils, estadoStock, getUnidadBase } from '../db.js';
+import { db, dbUtils, estadoStock, unidadStockTexto } from '../db.js';
 import { esc, escAttr, fmtPrecio } from '../utils/html.js';
 import { icono } from '../utils/iconos.js';
 
@@ -101,7 +101,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
             <div class="ancho-cero">
               <p class="subtitulo cortado">${esc(p.nombre)}</p>
               <p class="detalle apagado con-margen-arriba-mini">
-                ${esc(getUnidadBase(p.tipoVenta))} · Stock ${stock}
+                Stock ${stock} ${esc(unidadStockTexto(p, stock))}
                 ${minimo > 0 ? ` / mínimo ${minimo}` : ''} · ${esc(fmtPrecio(p.precio))}
               </p>
             </div>

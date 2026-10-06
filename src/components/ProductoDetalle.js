@@ -1,4 +1,4 @@
-import { TIPOS_VENTA, estadoStock, getPrecioPrincipal, getUnidadPrincipal, getUnidadBase, categoriasDe, COLORES_CATEGORIAS } from '../db.js';
+import { TIPOS_VENTA, estadoStock, getPrecioPrincipal, getUnidadPrincipal, getUnidadBase, unidadStockTexto, pasoUnidadStock, categoriasDe, COLORES_CATEGORIAS } from '../db.js';
 import { esc, escAttr, fmtPrecio } from '../utils/html.js';
 import { fechaEnDia } from '../utils/texto.js';
 import { icono } from '../utils/iconos.js';
@@ -32,10 +32,13 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   abierta?.cerrar();
 
   const tipo = TIPOS_VENTA.find(t => t.value === p.tipoVenta) || TIPOS_VENTA[0];
-  const unidadStock = getUnidadBase(p.tipoVenta);
+  // El stock se cuenta en la unidad propia del producto si la tiene; el costo
+  // sigue en la unidad de venta porque costo y precio tienen que estar en la
+  // misma unidad para que cierre la calculadora de margen.
+  const unidadBase = getUnidadBase(p.tipoVenta);
   // Cuánto mueve cada toque el ajuste. Se muestra junto al número para que un
   // stock que sube de a uno no parezca un error de tipeo.
-  const step = tipo.step;
+  const step = pasoUnidadStock(p.unidadStock, p.tipoVenta);
   const principal = getUnidadPrincipal(p);
   const precio = getPrecioPrincipal(p);
   const stock = p.stock || 0;
@@ -77,8 +80,8 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
 
   // Estado va con stock: es el mismo dato dicho de otra forma, y ver el uno sin
   // el otro en la misma planilla invita a desconfiar.
-  fila('Stock', `${stock} <span class="tenue">${esc(unidadStock)}</span>`, 'js-detalle-stock', 'stock');
-  fila('Mínimo', `${stockMinimo} <span class="tenue">${esc(unidadStock)}</span>`, '', 'stock-minimo');
+  fila('Stock', `${stock} <span class="tenue">${esc(unidadStockTexto(p, stock))}</span>`, 'js-detalle-stock', 'stock');
+  fila('Mínimo', `${stockMinimo} <span class="tenue">${esc(unidadStockTexto(p, stockMinimo))}</span>`, '', 'stock-minimo');
   fila('Estado', `<span class="insignia ${claseEstado}">${textoEstado}</span>`, 'js-detalle-estado', 'stock');
 
   /*
@@ -101,7 +104,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
     fila(`Precio ${otro.unidad}`, `$${fmtPrecio(otro.valor)}`);
   }
 
-  fila('Costo', p.costo ? `$${fmtPrecio(p.costo)}<span class="tenue">/${esc(unidadStock)}</span>` : '', '', 'calculadora');
+  fila('Costo', p.costo ? `$${fmtPrecio(p.costo)}<span class="tenue">/${esc(unidadBase)}</span>` : '', '', 'calculadora');
 
   /*
    * La unidad principal y el tipo de venta no van siempre en renglón propio. Son
@@ -139,13 +142,13 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
    */
   const ajustarHTML = `
     <div class="apilado-chico con-margen-abajo-chica campo-stock">
-      <span class="micro medio tenue ancho-entero">Ajuste de stock · ${esc(unidadStock)} · ${esc(step)} por toque</span>
+      <span class="micro medio tenue ancho-entero">Ajuste de stock · ${esc(unidadStockTexto(p, step))} · ${esc(step)} por toque</span>
       <div class="fila fila-centro">
         <button type="button" class="btn-resta" id="detalle-resta"
-          aria-label="Quitar ${escAttr(step)} ${escAttr(unidadStock)}">−</button>
+          aria-label="Quitar ${escAttr(step)} ${escAttr(unidadStockTexto(p, step))}">−</button>
         <span class="campo-numero" id="detalle-stock">${stock}</span>
         <button type="button" class="btn-suma" id="detalle-suma"
-          aria-label="Agregar ${escAttr(step)} ${escAttr(unidadStock)}">+</button>
+          aria-label="Agregar ${escAttr(step)} ${escAttr(unidadStockTexto(p, step))}">+</button>
       </div>
     </div>
   `;
@@ -243,7 +246,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
     celdaEstado.innerHTML = `<span class="insignia ${clases}">${texto}</span>`;
 
     const celdaStock = modal.querySelector('.js-detalle-stock');
-    if (celdaStock) celdaStock.innerHTML = `${nuevo} <span class="tenue">${esc(unidadStock)}</span>`;
+    if (celdaStock) celdaStock.innerHTML = `${nuevo} <span class="tenue">${esc(unidadStockTexto(p, nuevo))}</span>`;
   };
 
   const ajustar = async (delta) => {

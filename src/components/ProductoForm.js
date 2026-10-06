@@ -1,4 +1,4 @@
-import { db, dbUtils, TIPOS_VENTA, categoriasDe, normalizarProveedor } from '../db.js';
+import { db, dbUtils, TIPOS_VENTA, UNIDADES_STOCK, pasoUnidadStock, categoriasDe, normalizarProveedor } from '../db.js';
 import { imagenUtils } from '../utils/imagen.js';
 import { abrirCamara } from './CamaraModal.js';
 import { abrirScanner } from './ScannerModal.js';
@@ -297,8 +297,12 @@ export class ProductoForm {
     const MAXIMO_EN_EL_BOTON = 3;
 
     const tipoActual = TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0];
-    const step = tipoActual.step;
+    const unidadStockElegida = this.producto?.unidadStock || '';
+    const step = pasoUnidadStock(unidadStockElegida, this.tipoVenta);
     const unidadBase = tipoActual.unidadBase || 'unid';
+    // El ícono del rótulo de stock sigue a la unidad: cajas si cuenta en
+    // cajas, la balanza si cuenta en kilos.
+    const iconoStock = UNIDADES_STOCK.find(u => u.value === unidadStockElegida)?.icon || tipoActual.icon;
     const stockInicial = this.producto?.stock || 0;
 
     const stockMinInicial = this.producto?.stockMinimo
@@ -574,7 +578,7 @@ export class ProductoForm {
           <div class="cuadricula-apilada solo-detallado">
             <div class="campo-stock">
               <label for="stock" class="etiqueta">
-                ${icono('medida')} Stock actual ${tipoActual.icon}
+                ${icono('medida')} Stock actual ${iconoStock}
               </label>
               <div class="fila fila-corta">
                 <button type="button" class="btn-secundario btn-cuadro" data-stock-action="decrement" aria-label="Disminuir stock">−</button>
@@ -611,6 +615,16 @@ export class ProductoForm {
                 <button type="button" class="btn-secundario btn-cuadro" data-stockmin-action="increment" aria-label="Aumentar stock mínimo">+</button>
               </div>
             </div>
+          </div>
+
+          <!-- Unidad en que se cuenta el stock: la de la venta o una propia -->
+          <div class="solo-detallado campo-stock">
+            <label for="unidad-stock" class="etiqueta">${icono('medida')} Mide el stock en</label>
+            <select id="unidad-stock" name="unidadStock" class="campo">
+              ${UNIDADES_STOCK.map(op => `
+                <option value="${escAttr(op.value)}" ${unidadStockElegida === op.value ? 'selected' : ''}>${esc(op.label)}</option>
+              `).join('')}
+            </select>
           </div>
 
           <!-- Fecha -->
@@ -783,6 +797,10 @@ export class ProductoForm {
     modal.querySelectorAll('[data-stockmin-action]').forEach(btn => {
       btn.addEventListener('click', () => this.ajustarStockMin(btn.dataset.stockminAction));
     });
+
+    // Cambiar la unidad del stock mueve el paso de los +/- y el ícono del
+    // rótulo; no el número guardado, que queda como estaba.
+    modal.querySelector('#unidad-stock')?.addEventListener('change', () => this.actualizarPasoStock(modal));
 
     modal.querySelector('#btn-camara').addEventListener('click', () => this.abrirCamara());
 
@@ -1087,18 +1105,33 @@ export class ProductoForm {
     });
   }
 
-  actualizarPorTipoVenta(modal, tipoActual) {
-    const step = tipoActual.step;
-    const unidadBase = tipoActual.unidadBase || 'unid';
-    const subUnidades = tipoActual.subUnidades || [];
+  /**
+   * Recalcula el paso de los botones de stock y el ícono del rótulo a partir
+   * de la unidad elegida en el select. Comparten lógica con el cambio de tipo
+   * de venta porque los dos deciden lo mismo: de a cuánto salta el stock.
+   */
+  actualizarPasoStock(modal) {
+    const tipoActual = TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0];
+    const unidad = modal.querySelector('#unidad-stock')?.value || '';
+    const paso = pasoUnidadStock(unidad, this.tipoVenta);
 
     const stockInput = modal.querySelector('#stock');
     const stockMinInput = modal.querySelector('#stockMinimo');
-    stockInput.step = step;
-    stockMinInput.step = step;
+    if (stockInput) stockInput.step = paso;
+    if (stockMinInput) stockMinInput.step = paso;
 
     const stockLabel = modal.querySelector('label[for="stock"]');
-    stockLabel.innerHTML = `${icono('medida')} Stock actual ${tipoActual.icon}`;
+    if (stockLabel) {
+      const simbolo = UNIDADES_STOCK.find(u => u.value === unidad)?.icon || tipoActual.icon;
+      stockLabel.innerHTML = `${icono('medida')} Stock actual ${simbolo}`;
+    }
+  }
+
+  actualizarPorTipoVenta(modal, tipoActual) {
+    const unidadBase = tipoActual.unidadBase || 'unid';
+    const subUnidades = tipoActual.subUnidades || [];
+
+    this.actualizarPasoStock(modal);
 
     const costoLabel = modal.querySelector('label[for="costo"]');
     if (costoLabel) {
@@ -1517,6 +1550,7 @@ export class ProductoForm {
       ivaPorcentaje,
       margenPorcentaje,
       tipoVenta: this.tipoVenta,
+      unidadStock: formData.get('unidadStock') || '',
       stock,
       stockMinimo,
       categoriaIds,

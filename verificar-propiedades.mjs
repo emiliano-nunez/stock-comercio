@@ -61,10 +61,16 @@ const GETTER = /^[ \t]{2}(?:static\s+)?get\s+([A-Za-z_$][\w$]*)\s*\(/gm;
  * Los comentarios se cambian por espacios en vez de por nada, y los saltos de
  * línea se dejan: así el texto tiene los mismos índices y las mismas líneas que el
  * original, y los números que se reportan son los del archivo de verdad.
+ *
+ * Un /* precedido de letra, número o comilla no abre un comentario: es texto
+ * de la app, como el accept="image/*" del input de galería. Contarlo como
+ * apertura dejaba en blanco desde ese punto hasta el primer * / siguiente, o
+ * sea media clase sin verificar, y cualquier comentario nuevo metido en el
+ * medio movía ese borde y hacía saltar avisos falsos.
  */
 function sinComentarios(texto) {
   return texto
-    .replace(/\/\*[\s\S]*?\*\//g, (bloque) => bloque.replace(/[^\n]/g, ' '))
+    .replace(/(?<![\w$"'`])\/\*[\s\S]*?\*\//g, (bloque) => bloque.replace(/[^\n]/g, ' '))
     .replace(/(^|[^:])\/\/[^\n]*/g, (linea, previo) => previo + ' '.repeat(linea.length - previo.length));
 }
 

@@ -1102,6 +1102,80 @@ export function getUnidadBase(tipoVenta) {
   return tipo.unidadBase || 'unid';
 }
 
+/*
+ * Unidades en que se puede contar el stock, aparte de la unidad de venta.
+ *
+ * Un negocio vende por kilo pero guarda la mercadería en cajas enteras: el
+ * precio vive en la unidad de venta y el stock, en la que el usuario elige
+ * acá. No hay conversión entre las dos a propósito — contar cajas no dice
+ * cuántos kilos hay sin un factor que sólo el usuario conoce.
+ *
+ * `value` vacío es "Igual que la venta": el comportamiento anterior y el de
+ * todo producto que nunca tocó este campo.
+ */
+export const UNIDADES_STOCK = [
+  { value: '', label: 'Igual que la venta', icon: '' },
+  { value: 'unidad', label: 'Unidad', icon: '📦' },
+  { value: 'caja', label: 'Caja', icon: '📦' },
+  { value: 'bolsa', label: 'Bolsa', icon: '🛍️' },
+  { value: 'pack', label: 'Pack', icon: '📦' },
+  { value: 'docena', label: 'Docena', icon: '📦' },
+  { value: 'kg', label: 'Kilo (kg)', icon: '⚖️' },
+  { value: 'L', label: 'Litro (L)', icon: '🥛' },
+  { value: 'm', label: 'Metro (m)', icon: '📏' }
+];
+
+// Unidades que sólo se cuentan enteras: el stock salta de a una, nunca de a
+// media caja. Los plurales hacen que "Tenés 3 cajas" no diga "3 caja".
+const UNIDADES_ENTERAS = ['unidad', 'caja', 'bolsa', 'pack', 'docena'];
+const PLURALES_UNIDAD = { unidad: 'unidades', caja: 'cajas', bolsa: 'bolsas', pack: 'packs', docena: 'docenas' };
+
+/**
+ * La unidad en que está contado el stock de un producto: la que eligió el
+ * usuario, o si no eligió ninguna, la unidad base de su tipo de venta.
+ *
+ * @param {{unidadStock?: string, tipoVenta?: string}} producto
+ * @returns {string} clave de UNIDADES_STOCK o unidad base
+ */
+export function getUnidadStock(producto) {
+  const elegida = producto?.unidadStock || '';
+  return elegida || getUnidadBase(producto?.tipoVenta);
+}
+
+/**
+ * La palabra de la unidad para escribir junto a una cantidad: singular si la
+ * cantidad es uno y plural si no ("1 caja", "3 cajas"). Lo que no tiene
+ * plural queda como está ("3 kg").
+ *
+ * @param {{unidadStock?: string, tipoVenta?: string}} producto
+ * @param {number} cantidad
+ * @returns {string}
+ */
+export function unidadStockTexto(producto, cantidad) {
+  const unidad = getUnidadStock(producto);
+  if (Number(cantidad) !== 1) return PLURALES_UNIDAD[unidad] || unidad;
+  return unidad;
+}
+
+/**
+ * Cuánto mueve cada toque de los botones de más y menos del stock.
+ *
+ * Sin unidad propia manda la de la venta, como siempre: el paso es el del
+ * tipo de venta. Una unidad propia enteras avanza de a una; kg, L y m se
+ * miden con decimales.
+ *
+ * @param {string} unidadStock vacío para "Igual que la venta"
+ * @param {string} tipoVenta
+ * @returns {number}
+ */
+export function pasoUnidadStock(unidadStock, tipoVenta) {
+  if (!unidadStock) {
+    const tipo = TIPOS_VENTA.find(t => t.value === tipoVenta) || TIPOS_VENTA[0];
+    return tipo.step;
+  }
+  return UNIDADES_ENTERAS.includes(unidadStock) ? 1 : 0.5;
+}
+
 /**
  * Estado de stock de un producto: 'ok', 'poco' o 'vacio'.
  *
@@ -1129,9 +1203,10 @@ export function estadoStock(producto) {
  * existe en su tipo de venta.
  *
  * OJO con el alcance: esto define la unidad del PRECIO, no la del stock.
- * El stock (stock y stockMinimo) está siempre expresado en la unidad base del
- * tipo de venta y no se convierte, porque entre sub-unidades no hay factores
- * de conversión definidos: no se sabe cuántas unidades tiene una caja, ni
+ * El stock se cuenta en `unidadStock` (la que eligió el usuario para este
+ * producto, ver getUnidadStock) o, si no eligió, en la unidad base del tipo
+ * de venta. Tampoco se convierte: entre sub-unidades no hay factores de
+ * conversión definidos — no se sabe cuántas unidades tiene una caja, ni
  * cuántos gramos tiene un rollo. Convertir exigiría inventarse una tabla que
  * sería falsa para la mayoría de los productos.
  */

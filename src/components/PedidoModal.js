@@ -1,4 +1,4 @@
-import { dbUtils, getUnidadBase, claveProveedor } from '../db.js';
+import { dbUtils, unidadStockTexto, claveProveedor } from '../db.js';
 import { toast } from '../utils/toast.js';
 import { esc, escAttr } from '../utils/html.js';
 import { icono } from '../utils/iconos.js';
@@ -34,7 +34,7 @@ function sugerido(p) {
  * saltara sola mientras el usuario está escribiendo el mensaje al proveedor.
  */
 function lineaPedido(p, cantidad) {
-  const unidad = getUnidadBase(p.tipoVenta);
+  const unidad = unidadStockTexto(p, cantidad);
   return `- ${p.nombre}: ${cantidad} ${unidad}`;
 }
 
@@ -258,8 +258,8 @@ export class PedidoModal {
    * a uno hay que tocar treinta veces.
    */
   renderFilaHTML(p) {
-    const unidad = getUnidadBase(p.tipoVenta);
     const stock = p.stock || 0;
+    const unidad = unidadStockTexto(p, stock);
     const minimo = p.stockMinimo || 0;
     const cantidad = this.cantidades.get(p.id) ?? sugerido(p);
     const estadoStock = stock === 0 ? 'texto-peligro' : stock <= minimo ? 'texto-aviso' : 'texto-marca';
