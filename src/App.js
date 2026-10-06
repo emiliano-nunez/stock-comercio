@@ -1253,7 +1253,9 @@ export class App {
   renderVista() {
     const container = document.getElementById('contenido-principal');
     if (container) {
-      container.innerHTML = this.renderVistaHTML();
+      // Mismo contenido que `<main>` en `render()`, banner incluido. Si no, el
+      // aviso de actualización se cae en cada consulta.
+      container.innerHTML = this.renderTarjetaActualizacionHTML() + this.renderVistaHTML();
     }
     this.bindContenido();
   }
@@ -2122,7 +2124,16 @@ export class App {
    * de Escape se quitara sólo en su propia rama, cada diálogo dejaría uno vivo en
    * document.
    */
+  /*
+   * Nunca dos confirmaciones a la vez.
+   *
+   * `eliminarCategoria` consulta la base antes de preguntar, y mientras espera
+   * el foco sigue en el botón de borrar: un Enter dispara otro clic y abría un
+   * segundo diálogo encima del primero.
+   */
   mostrarConfirmacion(mensaje, titulo = 'Confirmar', icono = '❓') {
+    if (this._confirmacionAbierta) return Promise.resolve(false);
+    this._confirmacionAbierta = true;
     return new Promise((resolve) => {
       const modal = document.createElement('div');
       modal.className = 'velo';
@@ -2150,6 +2161,7 @@ export class App {
       const cerrar = (valor) => {
         if (cerrado) return;
         cerrado = true;
+        this._confirmacionAbierta = false;
         modal.remove();
         document.removeEventListener('keydown', onEscape);
         resolve(valor);
