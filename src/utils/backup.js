@@ -116,15 +116,38 @@ function normalizarFilaProveedor(p) {
   };
 }
 
+/*
+ * Los ajustes de la app (hoy, los campos del formulario).
+ *
+ * Van en tolerante y no en estricto, como los proveedores: son configuración y
+ * un archivo con una fila rara no debe poder frenar la importación entera. Lo
+ * que no tenga la forma simple { id, apagados[] } se descarta y se queda lo que
+ * había.
+ */
+function normalizarFilaAjuste(a) {
+  if (!a || typeof a !== 'object' || typeof a.id !== 'string' || !a.id.trim()) {
+    return null;
+  }
+  return {
+    id: a.id.slice(0, 60),
+    apagados: (Array.isArray(a.apagados) ? a.apagados : [])
+      .filter(clave => typeof clave === 'string')
+      .slice(0, 200)
+  };
+}
+
 export async function exportarBackup() {
-  const [productos, categorias, proveedores, imagenes] = await Promise.all([
+  const [productos, categorias, proveedores, imagenes, ajustes] = await Promise.all([
     db.productos.toArray(),
     db.categorias.toArray(),
     // La lista de proveedores también es del usuario. Si no viaja en el backup,
     // importarlo en otro aparato deja la lista vacía: los productos seguirían
     // teniendo su proveedor en el texto, pero no se verían en la pestaña.
     db.proveedores.toArray(),
-    db.imagenes.toArray()
+    db.imagenes.toArray(),
+    // Los ajustes (qué campos del formulario se usan) viajan por el mismo
+    // motivo: son una decisión del usuario, no un detalle del aparato.
+    db.ajustes.toArray()
   ]);
 
   const imagenesBase64 = await Promise.all(
@@ -143,6 +166,7 @@ export async function exportarBackup() {
     productos,
     categorias,
     proveedores,
+    ajustes,
     imagenes: imagenesBase64
   };
 
@@ -208,11 +232,27 @@ export async function importarBackup(jsonStr) {
     );
   }
 
-  await db.transaction('rw', [db.productos, db.categorias, db.proveedores, db.imagenes], async () => {
+  /*
+   * Una copia vieja no conoce la tabla de ajustes, y eso no es un error: se
+   * importa igual y la configuración de campos del aparato se conserva como
+   * estaba. Sólo si el archivo trae la lista es que la copia habla de ella, y
+   * ahí sí manda lo que dice el archivo, entero.
+   */
+  const traeAjustes = Array.isArray(backup.ajustes);
+  const ajustes = traeAjustes
+    ? backup.ajustes.slice(0, 50).map(normalizarFilaAjuste).filter(Boolean)
+    : [];
+
+  await db.transaction('rw', [db.productos, db.categorias, db.proveedores, db.imagenes, db.ajustes], async () => {
     await db.imagenes.clear();
     await db.categorias.clear();
     await db.proveedores.clear();
     await db.productos.clear();
+
+    if (traeAjustes) {
+      await db.ajustes.clear();
+      if (ajustes.length) await db.ajustes.bulkPut(ajustes);
+    }
 
     if (imagenesBlobs.length) await db.imagenes.bulkPut(imagenesBlobs);
     if (categorias.length) await db.categorias.bulkPut(categorias);

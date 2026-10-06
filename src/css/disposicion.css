@@ -117,6 +117,43 @@
 }
 
 /*
+ * Campos que el usuario apagó desde Ajustes (o desde la encuesta del primer
+ * arranque).
+ *
+ * El apagado no toca el formulario: el campo sigue en el DOM con su valor por
+ * defecto y se esconde desde el body con `sin-<campo>`, así guardar no cambió
+ * nunca. Cada bloque visible —en el formulario y en la ficha de detalle— se
+ * marca con `.campo-<campo>`, y una sola regla apaga los dos lugares: son las
+ * mismas claves en los tres lados.
+ */
+body.sin-foto .campo-foto,
+body.sin-codigo-barras .campo-codigo-barras,
+body.sin-codigo-proveedor .campo-codigo-proveedor,
+body.sin-tipo-venta .campo-tipo-venta,
+body.sin-calculadora .campo-calculadora,
+body.sin-stock .campo-stock,
+body.sin-stock-minimo .campo-stock-minimo,
+body.sin-fecha .campo-fecha,
+body.sin-proveedor .campo-proveedor,
+body.sin-categorias .campo-categorias,
+body.sin-notas .campo-notas {
+  display: none;
+}
+
+/* Sin foto, la cabecera del formulario queda en una sola columna: si no, la
+   columna del cuadrado sigue abierta vacía. */
+body.sin-foto .form-cabecera {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* El título de una sección sin campos adentro sobra. Sólo desaparece si se
+   apagaron todos los suyos: con uno solo visible, la sección sigue. */
+body.sin-stock.sin-stock-minimo.sin-fecha .seccion-inventario,
+body.sin-proveedor.sin-categorias .seccion-ubicacion {
+  display: none;
+}
+
+/*
  * El encabezado de los bloques de la pestaña de categorías.
  *
  * Los tres bloques —gestión de categorías, estado del stock y proveedores— usan
@@ -210,10 +247,11 @@
   margin-inline-end: auto;
 }
 
-/* Los dos botones no se encogen: si el nombre es largo, el que cede es el
+/* Los tres botones no se encogen: si el nombre es largo, el que cede es el
    nombre. Sin esto los botones perdían ancho hasta desaparecer. */
 .cabecera-cuerpo > #btn-copia,
-.cabecera-cuerpo > #btn-pedido {
+.cabecera-cuerpo > #btn-pedido,
+.cabecera-cuerpo > #btn-ajustes {
   flex-shrink: 0;
 }
 
@@ -223,6 +261,10 @@
 
 .cabecera-cuerpo > #btn-pedido {
   order: 3;
+}
+
+.cabecera-cuerpo > #btn-ajustes {
+  order: 4;
 }
 
 .cabecera-titulo {
@@ -329,7 +371,7 @@
   display: flex;
   overflow-x: hidden;
   /* Las pestañas ocupan su propio renglón, abajo del buscador. */
-  order: 5;
+  order: 6;
   flex: 1 0 100%;
 }
 
@@ -409,7 +451,7 @@
   align-items: flex-start;
   gap: var(--espacio-2);
   /* Pide el ancho entero, así que salta a su propio renglón en el teléfono. */
-  order: 4;
+  order: 5;
   flex: 1 0 100%;
 }
 
@@ -526,9 +568,9 @@
 
   /*
  * La cabecera pasa a ser una columna: nombre, buscador, botón de agregar,
- * pestañas, historial y pedido.
+ * pestañas, copia, pedido y ajustes.
  *
- * Las seis piezas son hijas directas de `.cabecera-cuerpo`. No usar `display:
+ * Las siete piezas son hijas directas de `.cabecera-cuerpo`. No usar `display:
  * contents` para desarmar las filas del teléfono: borra la caja pero no saca el
  * elemento del árbol, así que los selectores del `order` tendrían que pasar por
  * la fila intermedia y uno mal escrito deja de matchear sin avisar.
@@ -595,6 +637,10 @@
 
   .cabecera-cuerpo > #btn-pedido {
     order: 6;
+  }
+
+  .cabecera-cuerpo > #btn-ajustes {
+    order: 7;
   }
 
   /* El color no se escribe acá: lo toma `.btn-texto`, que ya lo pone en el color de

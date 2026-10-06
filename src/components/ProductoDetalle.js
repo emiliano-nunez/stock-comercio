@@ -60,17 +60,26 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   const filas = [];
   const SIN_LLENAR = '<span class="sin-llenar">sin llenar</span>';
 
-  const fila = (dato, valor, extra = '') => {
+  /*
+   * El cuarto parámetro es el campo de los Ajustes al que pertenece el renglón.
+   * Con `campo`, la fila se marca con `.campo-<nombre>` y la regla del body la
+   * apaga igual que al bloque equivalente del formulario: lo que el usuario
+   * escondió no se muestra en ninguna de las dos vistas.
+   */
+  const fila = (dato, valor, extra = '', campo = '') => {
     const vacio = valor === null || valor === undefined || valor === '';
     const celda = vacio ? SIN_LLENAR : valor;
+    const clase = campo ? ` class="campo-${campo}"` : '';
     filas.push(
-      `<tr><th scope="row">${esc(dato)}</th><td class="planilla-valor ${extra}">${celda}</td></tr>`
+      `<tr${clase}><th scope="row">${esc(dato)}</th><td class="planilla-valor ${extra}">${celda}</td></tr>`
     );
   };
 
-  fila('Stock', `${stock} <span class="tenue">${esc(unidadStock)}</span>`, 'js-detalle-stock');
-  fila('Mínimo', `${stockMinimo} <span class="tenue">${esc(unidadStock)}</span>`);
-  fila('Estado', `<span class="insignia ${claseEstado}">${textoEstado}</span>`, 'js-detalle-estado');
+  // Estado va con stock: es el mismo dato dicho de otra forma, y ver el uno sin
+  // el otro en la misma planilla invita a desconfiar.
+  fila('Stock', `${stock} <span class="tenue">${esc(unidadStock)}</span>`, 'js-detalle-stock', 'stock');
+  fila('Mínimo', `${stockMinimo} <span class="tenue">${esc(unidadStock)}</span>`, '', 'stock-minimo');
+  fila('Estado', `<span class="insignia ${claseEstado}">${textoEstado}</span>`, 'js-detalle-estado', 'stock');
 
   /*
    * El precio sale en la unidad corta (unidad, kg, 500g) y no en el nombre largo
@@ -92,7 +101,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
     fila(`Precio ${otro.unidad}`, `$${fmtPrecio(otro.valor)}`);
   }
 
-  fila('Costo', p.costo ? `$${fmtPrecio(p.costo)}<span class="tenue">/${esc(unidadStock)}</span>` : '');
+  fila('Costo', p.costo ? `$${fmtPrecio(p.costo)}<span class="tenue">/${esc(unidadStock)}</span>` : '', '', 'calculadora');
 
   /*
    * La unidad principal y el tipo de venta no van siempre en renglón propio. Son
@@ -102,19 +111,19 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
    * caso en que ocultarlas haría pensar una cosa y se vería otra.
    */
   if (principal.value !== precio.unidad) {
-    fila('Unidad principal', esc(principal.label));
+    fila('Unidad principal', esc(principal.label), '', 'tipo-venta');
   }
   if (tipo.value !== principal.value) {
-    fila('Venta por', esc(tipo.label));
+    fila('Venta por', esc(tipo.label), '', 'tipo-venta');
   }
 
   fila('Categorías', cats.length
     ? cats.map(c => `<span class="ficha-categoria"><span class="punto-chico" style="background-color: ${escAttr(c.color || COLORES_CATEGORIAS[0])}"></span><span>${esc(c.nombre)}</span></span>`).join(' ')
-    : '');
-  fila('Proveedor', p.proveedor ? esc(p.proveedor) : '');
-  fila('Código', p.codigoBarras ? `<span class="mono">${esc(p.codigoBarras)}</span>` : '');
-  fila('Código del proveedor', p.codigoProveedor ? `<span class="mono">${esc(p.codigoProveedor)}</span>` : '');
-  fila('Fecha', p.fecha ? esc(fechaEnDia(p.fecha)) : '');
+    : '', '', 'categorias');
+  fila('Proveedor', p.proveedor ? esc(p.proveedor) : '', '', 'proveedor');
+  fila('Código', p.codigoBarras ? `<span class="mono">${esc(p.codigoBarras)}</span>` : '', '', 'codigo-barras');
+  fila('Código del proveedor', p.codigoProveedor ? `<span class="mono">${esc(p.codigoProveedor)}</span>` : '', '', 'codigo-proveedor');
+  fila('Fecha', p.fecha ? esc(fechaEnDia(p.fecha)) : '', '', 'fecha');
 
   const notas = (p.notas || '').trim();
 
@@ -129,7 +138,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
    * entero o pasa a dos líneas, pero nunca se corta.
    */
   const ajustarHTML = `
-    <div class="apilado-chico con-margen-abajo-chica">
+    <div class="apilado-chico con-margen-abajo-chica campo-stock">
       <span class="micro medio tenue ancho-entero">Ajuste de stock · ${esc(unidadStock)} · ${esc(step)} por toque</span>
       <div class="fila fila-centro">
         <button type="button" class="btn-resta" id="detalle-resta"
@@ -153,12 +162,12 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
       <div class="dialogo-cuerpo apilado-3">
         ${
           p.fotoPerdida
-            ? `<p class="nota-atencion fila-corta"><span class="no-crece">${icono('alerta')}</span><span>Falta la foto: no se encuentra en el dispositivo</span></p>`
+            ? `<p class="nota-atencion fila-corta campo-foto"><span class="no-crece">${icono('alerta')}</span><span>Falta la foto: no se encuentra en el dispositivo</span></p>`
             : ''
         }
 
         ${p.imagenUrl ? `
-          <div class="marco-foto marco-foto-centrado">
+          <div class="marco-foto marco-foto-centrado campo-foto">
             <img src="${escAttr(p.imagenUrl)}" class="foto-llena" alt="${escAttr(p.nombre)}">
           </div>
         ` : ''}
@@ -168,7 +177,7 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
         </table>
 
         ${notas ? `
-          <div class="pos-it">
+          <div class="pos-it campo-notas">
             <div class="etiqueta-seccion">📝 Notas</div>
             <p class="detalle texto-libre">${esc(notas)}</p>
           </div>

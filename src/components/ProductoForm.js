@@ -336,7 +336,7 @@ export class ProductoForm {
 
           <!-- Foto del producto -->
           <div class="form-cabecera">
-            <div class="form-foto">
+            <div class="form-foto campo-foto">
               <div class="etiqueta">${icono('camara')} Foto</div>
               <div class="posicionado">
                 <div id="preview-container" class="marco-foto marco-foto-vacio">
@@ -391,7 +391,7 @@ export class ProductoForm {
                 >
               </div>
 
-              <div class="solo-detallado">
+              <div class="solo-detallado campo-codigo-barras">
                 <label for="codigoBarras" class="etiqueta">${icono('etiqueta')} Código de barras</label>
                 <div class="fila">
                   <input
@@ -418,7 +418,7 @@ export class ProductoForm {
                 ` : ''}
               </div>
 
-              <div class="solo-detallado">
+              <div class="solo-detallado campo-codigo-proveedor">
                 <label for="codigoProveedor" class="etiqueta">${icono('etiqueta')} Código del proveedor</label>
                 <input
                   type="text"
@@ -438,7 +438,7 @@ export class ProductoForm {
           <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado">${icono('dinero')} Precio</div>
 
           <!-- Tipo de venta -->
-          <div class="solo-detallado">
+          <div class="solo-detallado campo-tipo-venta">
             <div class="etiqueta">⚖️ Tipo de venta</div>
             <div class="posicionado" id="tipo-venta-selector">
               <button
@@ -477,7 +477,7 @@ export class ProductoForm {
           </div>
 
           <!-- Calculadora de Precio -->
-          <div id="calculadora-precio" class="recuadro recuadro-marca solo-detallado">
+          <div id="calculadora-precio" class="recuadro recuadro-marca solo-detallado campo-calculadora">
             <div class="etiqueta-seccion">${icono('calculadora')} Calculadora de Precio</div>
 
             <div class="con-margen-abajo">
@@ -568,11 +568,11 @@ export class ProductoForm {
             ${icono('mas')}<span>Agregar otro precio</span>
           </button>
 
-          <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado">${icono('medida')} Inventario</div>
+          <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado seccion-inventario">${icono('medida')} Inventario</div>
 
           <!-- Stock y Stock Mínimo -->
           <div class="cuadricula-apilada solo-detallado">
-            <div>
+            <div class="campo-stock">
               <label for="stock" class="etiqueta">
                 ${icono('medida')} Stock actual ${tipoActual.icon}
               </label>
@@ -592,7 +592,7 @@ export class ProductoForm {
               </div>
             </div>
 
-            <div>
+            <div class="campo-stock-minimo">
               <label for="stockMinimo" class="etiqueta">
                 ${icono('alerta')} Stock mínimo
               </label>
@@ -614,7 +614,7 @@ export class ProductoForm {
           </div>
 
           <!-- Fecha -->
-          <div class="solo-detallado">
+          <div class="solo-detallado campo-fecha">
             <label for="fecha" class="etiqueta">${icono('calendario')} Fecha</label>
             <input
               type="date"
@@ -625,7 +625,7 @@ export class ProductoForm {
             >
           </div>
 
-          <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado">${icono('carpeta')} Ubicación</div>
+          <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado seccion-ubicacion">${icono('carpeta')} Ubicación</div>
 
 <!-- Proveedor y categorías, en dos columnas.
                Son las dos etiquetas que dicen a qué grupo pertenece el producto y se
@@ -633,7 +633,7 @@ export class ProductoForm {
                y las categorías a su derecha. Antes iban apiladas y había que bajar para
                llegar del uno al otro. -->
           <div class="form-par solo-detallado">
-            <div>
+            <div class="campo-proveedor">
               <label for="proveedor" class="etiqueta">${icono('proveedor')} Proveedor</label>
             <div class="posicionado">
               <input
@@ -653,7 +653,7 @@ export class ProductoForm {
             </div>
           </div>
 <!-- Categorías -->
-          <div>
+          <div class="campo-categorias">
             <div class="etiqueta">📂 Categorías</div>
             <div class="posicionado" id="categoria-selector">
               <button
@@ -720,7 +720,7 @@ export class ProductoForm {
             metidas en medio de los campos se perdían en el medio del
             formulario, y no era el último dato que completaba.
           -->
-          <div class="pos-it solo-detallado">
+          <div class="pos-it solo-detallado campo-notas">
             <label for="notas" class="etiqueta-seccion">📝 Notas de este producto</label>
             <textarea
               id="notas"

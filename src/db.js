@@ -283,6 +283,26 @@ db.version(9)
     }
   });
 
+/*
+ * v10: los ajustes del usuario, empezando por los campos del formulario.
+ *
+ * Es una tabla de una sola fila (id fijo) porque no son datos con índice que
+ * consultar: es la configuración de la app, leída una vez al arrancar. Al
+ * viajar en la misma base que los productos, la copia de seguridad la lleva y
+ * la restauración la devuelve, que es lo que se eligió al diseñarla.
+ *
+ * Sólo se guarda qué campos están APAGADOS. Un campo que aparezca en una
+ * versión futura no está en esa lista y se muestra, que es lo esperado de algo
+ * que nadie pidió esconder.
+ */
+db.version(10).stores({
+  productos: 'id, codigoBarras, tipoVenta, costo, fechaCompra, estado, nombreOrden, precioOrden, categoriaOrden, proveedorClave, busqueda, *categoriaIds',
+  categorias: 'id, nombre, color',
+  proveedores: 'id, nombre',
+  imagenes: 'id',
+  ajustes: 'id'
+});
+
 /**
  * Los campos que se calculan a partir de otros y se guardan ya resueltos.
  *
@@ -927,6 +947,33 @@ export const dbUtils = {
       await db.productos.put(actualizado);
 
       return { ...producto, stock: nuevoStock };
+    });
+  },
+
+  /**
+   * El registro de campos del formulario, o null si el usuario todavía no
+   * eligió.
+   *
+   * Null es la primera vez que se abre la app: es lo que dispara la encuesta.
+   * Elegir todos los campos también deja registro (una lista vacía de
+   * apagados), así la encuesta no vuelve a aparecer.
+   *
+   * @returns {Promise<{id: string, apagados: string[]}|null>}
+   */
+  async leerCamposFormulario() {
+    const registro = await db.ajustes.get('camposFormulario');
+    return registro ?? null;
+  },
+
+  /**
+   * Guarda qué campos quedaron apagados en el formulario y en la ficha.
+   *
+   * @param {string[]} apagados las claves de los campos que no se quieren ver
+   */
+  async guardarCamposFormulario(apagados) {
+    await db.ajustes.put({
+      id: 'camposFormulario',
+      apagados: [...new Set(Array.isArray(apagados) ? apagados : [])]
     });
   }
 };

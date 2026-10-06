@@ -97,6 +97,8 @@ test('el esquema es la versión que espera el código', async () => {
    * La migración se dispara sola al abrir. Si el número del código y el de Dexie no
    * coinciden, la migración no corre y los campos derivados quedan sin escribir:
    * el filtro por texto devuelve vacío y no dice por qué.
+   *
+   * v10: se agrega la tabla de ajustes (los campos del formulario).
    */
-  expect(db.verno).toBe(9);
+  expect(db.verno).toBe(10);
 });

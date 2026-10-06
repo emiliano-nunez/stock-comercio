@@ -5,10 +5,12 @@ import { abrirPedido } from './components/PedidoModal.js';
 import { abrirScanner } from './components/ScannerModal.js';
 import { abrirCodigoDuplicado } from './components/CodigoDuplicado.js';
 import { abrirDetalleProducto } from './components/ProductoDetalle.js';
+import { abrirAjustes } from './components/AjustesModal.js';
 import { toast } from './utils/toast.js';
 import { esc, escAttr, fmtPrecio } from './utils/html.js';
 import { normalizarTexto, fechaEnDia, fechaYHora } from './utils/texto.js';
 import { icono } from './utils/iconos.js';
+import { aplicarCampos } from './utils/campos.js';
 
 // Clave interna para ordenar los productos sin categoría al final.
 // Se usa '\uFFFF' (el último código Unicode) en vez de un texto legible: antes
@@ -109,6 +111,10 @@ export class App {
 
       await this.cargarTodo();
 
+      // Los campos apagados se marcan en el body antes de pintar: el
+      // formulario y la ficha se enteran por la clase, no por la base.
+      await this.refrescarCampos();
+
       this.render();
       this.bindEvents();
       this.registrarServiceWorker();
@@ -117,6 +123,10 @@ export class App {
       this.vigilarErroresGlobales();
       this.pedirEspacioPersistente();
       this.refrescarAlVolver();
+
+      // Sin await y con su propio catch adentro: la encuesta es una pregunta
+      // para el usuario y el arranque no espera la respuesta.
+      this.encuestaInicial();
 
     } catch (error) {
 
@@ -498,6 +508,9 @@ export class App {
             </button>
             <button id="btn-pedido" class="btn-texto" aria-label="Pedido de faltantes">
               ${icono('etiqueta')}<span class="texto-boton">Pedido</span>
+            </button>
+            <button id="btn-ajustes" class="btn-texto" aria-label="Ajustes de campos">
+              ${icono('ajuste')}<span class="texto-boton">Ajustes</span>
             </button>
 
             <!--
@@ -1362,6 +1375,7 @@ export class App {
     document.getElementById('btn-escanear-header')?.addEventListener('click', () => this.escanearCodigo());
     document.getElementById('btn-copia')?.addEventListener('click', () => this.abrirCopiaSeguridad());
     document.getElementById('btn-pedido')?.addEventListener('click', () => this.abrirPedido());
+    document.getElementById('btn-ajustes')?.addEventListener('click', () => this.mostrarAjustes());
     document.getElementById('btn-agregar-fab')?.addEventListener('click', () => this.nuevoProducto());
     document.getElementById('btn-carga-rapida')?.addEventListener('click', () => this.nuevoProducto(null, 'rapida'));
   }
@@ -1841,7 +1855,9 @@ export class App {
     this._copiaAbierta = true;
 
     abrirCopiaSeguridad(
-      () => { this.recargarYAvisar(); },
+      // Después de importar, la copia puede traer otros campos apagados:
+      // refrescar los dos lados, los datos y el body.
+      () => { this.recargarYAvisar(); this.refrescarCampos(); },
       () => { this._copiaAbierta = false; }
     );
   }
@@ -1852,6 +1868,52 @@ export class App {
     abrirPedido(() => {
       this._pedidoAbierto = false;
     });
+  }
+
+  /**
+   * El panel de campos, desde el botón de la cabecera.
+   *
+   * El panel guarda y refresca él mismo al cerrar: no hay nada que propagar
+   * desde acá, sólo pedir que se abra.
+   */
+  async mostrarAjustes() {
+    try {
+      await abrirAjustes({ modo: 'ajustes' });
+    } catch (error) {
+      console.error('[App] No se pudieron abrir los ajustes de campos:', error);
+    }
+  }
+
+  /**
+   * Marca en el body qué campos del formulario están apagados.
+   *
+   * Si todavía no hay registro, se pinta todo: es el primer arranque, y lo que
+   * falta elegir es lo que después pregunta la encuesta.
+   */
+  async refrescarCampos() {
+    try {
+      const registro = await dbUtils.leerCamposFormulario();
+      aplicarCampos(registro?.apagados || []);
+    } catch (error) {
+      console.error('[App] No se pudieron leer los campos del formulario:', error);
+    }
+  }
+
+  /**
+   * La encuesta del primer arranque.
+   *
+   * Sólo se abre si nunca se guardó una selección; después de eso, la única
+   * puerta es el botón de ajustes. El método no se espera en `init()`: la app
+   * tiene que servir aunque el usuario no responda.
+   */
+  async encuestaInicial() {
+    try {
+      const registro = await dbUtils.leerCamposFormulario();
+      if (registro) return;
+      await abrirAjustes({ modo: 'encuesta' });
+    } catch (error) {
+      console.error('[App] No se pudo abrir la encuesta de campos:', error);
+    }
   }
 
   async abrirModalCategoria(categoriaId = null) {
