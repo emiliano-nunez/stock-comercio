@@ -65,14 +65,21 @@
   flex: 1;
 }
 
+/*
+ * El botón de acción usa el azul fuerte y no el azul normal.
+ *
+ * Es por contraste, medido: la blanca sobre `#3483fa` da 3.64 y necesita 4.5. Con
+ * `#2968c8` da 5.37. El azul claro queda para bordes de foco y líneas, que no
+ * llevan letra encima.
+ */
 .btn-principal {
-  background-color: var(--interfaz-azul);
+  background-color: var(--interfaz-azul-fuerte);
   color: var(--color-texto-invertido);
   box-shadow: var(--interfaz-sombra);
 }
 
 .btn-principal:active:not(:disabled) {
-  background-color: var(--interfaz-azul-fuerte);
+  background-color: var(--interfaz-azul-mas-fuerte);
 }
 
 .btn-secundario {

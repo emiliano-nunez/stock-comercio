@@ -52,8 +52,12 @@ body {
    * este color es lo que se ve a los costados. Sin él, el borde de la columna no
    * se distingue del fondo y la app parece cortada. En el teléfono, que ocupa
    * todo el ancho, nunca se ve.
+   *
+   * Es el verde del manifiesto y no un gris a propósito: es el mismo valor que
+   * carga la pantalla de arranque de la PWA instalada, así que la app no cambia de
+   * color en el instante entre que se abre y que aparece.
    */
-  background-color: var(--gris-200);
+  background-color: var(--fondo-pagina);
   overflow-x: hidden;
   max-width: 100vw;
 }
