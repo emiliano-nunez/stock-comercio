@@ -1310,6 +1310,33 @@ export class App {
        */
       buscador.addEventListener('input', (e) => {
         const valor = e.target.value;
+
+        /*
+         * Escribir desde Categorías salta a Inventario.
+         *
+         * La vista de categorías pinta categorías y no productos, así que el
+         * resultado no tendría dónde aparecer: el buscador siempre busca
+         * productos, y ése es el lugar donde se muestran. Se cambia de vista de
+         * inmediato y no dentro de la espera, para que la primera tecla ya
+         * tenga efecto.
+         *
+         * render() reconstruye el header entero, así que el input donde se
+         * estaba escribiendo desaparece: sin devolverle el foco y poner el
+         * cursor al final, la tecla siguiente se perdería en la nada.
+         */
+        if (valor && this.vistaActual === 'categorias') {
+          this.busqueda = valor;
+          this._limiteRender = App.LIMITE_RENDER;
+          this.abrirVista('inventario');
+
+          const campo = document.getElementById('buscador');
+          if (campo) {
+            campo.focus();
+            campo.setSelectionRange(campo.value.length, campo.value.length);
+          }
+          return;
+        }
+
         clearTimeout(this._temporizadorBusqueda);
         this._temporizadorBusqueda = setTimeout(() => {
           this.busqueda = valor;
