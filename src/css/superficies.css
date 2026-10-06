@@ -267,6 +267,15 @@
   object-fit: contain;
 }
 
+/*
+ * El cuadro de la foto del formulario es un botón: con o sin foto, el toque
+ * saca una nueva o cambia la que hay (ver ProductoForm). El cursor es la única
+ * pista en la PC; en el teléfono el toque ya funciona solo.
+ */
+#preview-container {
+  cursor: pointer;
+}
+
 .marco-foto-centrado {
   max-width: var(--tope-foto);
   margin-inline: auto;

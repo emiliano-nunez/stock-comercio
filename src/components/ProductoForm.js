@@ -343,13 +343,13 @@ export class ProductoForm {
             <div class="form-foto campo-foto">
               <div class="etiqueta">${icono('camara')} Foto</div>
               <div class="posicionado">
-                <div id="preview-container" class="marco-foto marco-foto-vacio">
+                <div id="preview-container" class="marco-foto marco-foto-vacio" role="button" tabindex="0" aria-label="Sacar o cambiar la foto">
                   ${this.imagenUrl ? `
                     <img src="${this.imagenUrl}" class="foto-llena" alt="Foto del producto">
                     <button type="button" id="quitar-foto" class="boton-cerrar-foto" aria-label="Quitar foto">✕</button>
                   ` : `
                     <div class="vacio">
-                      <span class="vacio-icono">${icono('camara')}</span>
+                      <span class="vacio-icono">${icono('galeria')}</span>
                     </div>
                   `}
                 </div>
@@ -804,6 +804,24 @@ export class ProductoForm {
 
     modal.querySelector('#btn-camara').addEventListener('click', () => this.abrirCamara());
 
+    /*
+     * Tocar el cuadro de la foto hace lo mismo que el botón Cámara, con o sin
+     * foto: sirve tanto para sacarla como para rehacerla. Sin cámara (red local
+     * sin HTTPS) el toque abre la galería, que siempre está disponible.
+     */
+    const preview = modal.querySelector('#preview-container');
+    const toqueFoto = () => {
+      if (this.camaraDisponible) this.abrirCamara();
+      else modal.querySelector('#input-galeria')?.click();
+    };
+    preview?.addEventListener('click', toqueFoto);
+    preview?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toqueFoto();
+      }
+    });
+
     modal.querySelector('#btn-galeria').addEventListener('click', () => {
       modal.querySelector('#input-galeria').click();
     });
@@ -815,7 +833,12 @@ export class ProductoForm {
 
     const btnQuitar = modal.querySelector('#quitar-foto');
     if (btnQuitar) {
-      btnQuitar.addEventListener('click', () => this.quitarFoto());
+      // stopPropagation: el cuadro entero es tachable y abre la cámara; sin
+      // frenar acá, quitar la foto abriría la cámara en el mismo toque.
+      btnQuitar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.quitarFoto();
+      });
     }
 
     const btnEscanear = modal.querySelector('#btn-escanear');
@@ -1370,11 +1393,16 @@ export class ProductoForm {
         <img src="${url}" class="foto-llena" alt="Foto del producto">
         <button type="button" id="quitar-foto" class="boton-cerrar-foto" aria-label="Quitar foto">✕</button>
       `;
-      container.querySelector('#quitar-foto').addEventListener('click', () => this.quitarFoto());
+      // stopPropagation: sin eso el toque en la ✕ sube al contenedor y además
+      // abre la cámara, que es justo lo que el usuario no pidió.
+      container.querySelector('#quitar-foto').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.quitarFoto();
+      });
     } else {
       container.innerHTML = `
         <div class="vacio">
-          <span class="vacio-icono">${icono('camara')}</span>
+          <span class="vacio-icono">${icono('galeria')}</span>
           <p class="detalle con-margen-arriba-chica">Sin foto</p>
         </div>
       `;
