@@ -1010,12 +1010,10 @@ export class ProductoForm {
         const subUnidades = tipoActual?.subUnidades || [];
         const existentes = Array.from(container.querySelectorAll('.precio-item')).map(el => el.dataset.unidad);
 
-        // La unidad principal tiene su propio campo ("Precio final"), que no es
-        // un .precio-item: sin sumarla acá el selector la vuelve a ofrecer y
-        // quedan dos campos con el mismo nombre, de los cuales sólo se guarda
-        // el primero.
-        const principal = modal.querySelector('#unidad-principal')?.value;
-        if (principal) existentes.push(principal);
+        // La unidad base tiene su propio campo ("Precio final"), que no es un
+        // .precio-item: sin sumarla acá el selector la vuelve a ofrecer y quedan
+        // dos campos con el mismo nombre, de los cuales sólo se guarda el primero.
+        if (subUnidades[0]) existentes.push(subUnidades[0].value);
 
         const disponibles = subUnidades.filter(s => !existentes.includes(s.value));
 
@@ -1039,39 +1037,6 @@ export class ProductoForm {
         if (btnEliminar) {
           btnEliminar.closest('.precio-item')?.remove();
         }
-      });
-    }
-
-    const unidadPrincipalSelect = modal.querySelector('#unidad-principal');
-    if (unidadPrincipalSelect && !unidadPrincipalSelect.dataset.listener) {
-      unidadPrincipalSelect.dataset.listener = '1';
-      unidadPrincipalSelect.addEventListener('change', () => {
-        const nuevaPrincipal = unidadPrincipalSelect.value;
-        const tipoActual = TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0];
-
-        const preciosActuales = {};
-        container.querySelectorAll('.precio-item input[name^="precio_"]').forEach(input => {
-          const unidad = input.name.replace('precio_', '');
-          preciosActuales[unidad] = parseFloat(input.value) || 0;
-        });
-
-        // // Actualizar en el producto temporal. // label e icon se
-        // reconstruyen desde los descriptores del tipo de venta //
-        // (subUnidades) y no desde las entradas de precios, porque al pasar
-        // por // el form esas entradas los pierden y guardar() compara esta
-        // lista con // la suya.
-
-        const descripcion = new Map((tipoActual.subUnidades || []).map(s => [s.value, s]));
-        this.producto = this.producto || {};
-        this.producto.unidadPrincipal = nuevaPrincipal;
-        this.producto.precios = Object.entries(preciosActuales).map(([unidad, valor]) => {
-          const d = descripcion.get(unidad) || {};
-          return { unidad, valor, label: d.label || unidad, icon: d.icon || '' };
-        });
-
-        container.innerHTML = this.renderPreciosHTML(tipoActual.unidadBase, tipoActual, tipoActual.subUnidades);
-        this.configurarEventosPrecios(modal);
-        this.inicializarCalculadoraPrecio(modal);
       });
     }
   }
@@ -1488,9 +1453,9 @@ export class ProductoForm {
     const nombre = modal.querySelector('#nombre');
     if (!nombre || !nombre.value.trim()) faltan.push('Nombre del producto');
 
-    const unidadPrincipal = modal.querySelector('[name="unidadPrincipal"]')?.value
-      || (TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0]).subUnidades?.[0]?.value;
-    const precio = unidadPrincipal ? modal.querySelector(`[name="precio_${unidadPrincipal}"]`) : null;
+    // La unidad principal es la base del tipo de venta (ya no hay selector).
+    const subs = (TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0]).subUnidades || [];
+    const precio = subs[0] ? modal.querySelector(`[name="precio_${subs[0].value}"]`) : null;
     if (!precio || !(parseFloat(precio.value) > 0)) faltan.push('Precio final');
 
     return faltan;
@@ -1550,9 +1515,8 @@ export class ProductoForm {
       }
     }
 
-    const unidadPrincipal = formData.get('unidadPrincipal')
-      || subUnidades[0]?.value
-      || tipoActual.unidadBase;
+    // Sin selector de unidad: la principal es siempre la base del tipo de venta.
+    const unidadPrincipal = subUnidades[0]?.value || tipoActual.unidadBase;
 
     // // El precio que se guarda en producto.precio tiene que ser el de la
     // unidad // PRINCIPAL elegida, no el de la primera sub-unidad. Antes
@@ -1703,51 +1667,39 @@ export class ProductoForm {
       ? subUnidades
       : [{ value: unidadBase || tipoActual.unidadBase || 'unid', label: tipoActual.label, icon: tipoActual.icon }];
 
-    const unidadPrincipalGuardada = this.producto?.unidadPrincipal || subs[0].value;
-    const principal = subs.find(s => s.value === unidadPrincipalGuardada) || subs[0];
-    const baseUnidad = principal.value;
-    const baseLabel = principal.label;
+    // Sin selector de unidad principal: el precio final es siempre el de la
+    // unidad base del tipo de venta, la misma que usa la calculadora para el
+    // costo. Elegir y escribir iban juntos en dos columnas; con la elección
+    // fuera, sólo queda el campo con su micro.
+    const baseUnidad = subs[0].value;
 
     const precioBase = precios.find(p => p.unidad === baseUnidad) || { valor: this.producto?.precio || 0 };
     const otrosPrecios = precios.filter(p => p.unidad !== baseUnidad);
 
     let html = `
       <div class="precios-cabecera">
-        <div class="columna apilado-2 solo-detallado">
-          <div>
-            <label for="unidad-principal" class="etiqueta">${icono('verificar')} Unidad que se ve en el catálogo</label>
-            <select id="unidad-principal" name="unidadPrincipal" class="campo detalle">
-              ${subs.map(s => `
-                <option value="${escAttr(s.value)}" ${s.value === baseUnidad ? 'selected' : ''}>${esc(s.label)}</option>
-              `).join('')}
-            </select>
+        <div>
+          <label for="precio_${escAttr(baseUnidad)}" class="etiqueta">${icono('dinero')} Precio final</label>
+          <div class="posicionado">
+            <span class="buscador-lupa">$</span>
+            <input
+              type="number"
+              id="precio_${escAttr(baseUnidad)}"
+              name="precio_${baseUnidad}"
+              class="campo campo-con-icono fuerte"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              value="${escAttr(precioBase.valor ?? '')}"
+              inputmode="decimal"
+            >
           </div>
-          <p class="micro tenue">El stock siempre se lleva en ${esc(tipoActual.unidadBase)}, sin convertir.</p>
         </div>
-
-        <div class="columna apilado-2">
-          <div>
-            <label for="precio_${escAttr(baseUnidad)}" class="etiqueta">${icono('dinero')} Precio final</label>
-            <div class="posicionado">
-              <span class="buscador-lupa">$</span>
-              <input
-                type="number"
-                id="precio_${escAttr(baseUnidad)}"
-                name="precio_${baseUnidad}"
-                class="campo campo-con-icono fuerte"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value="${escAttr(precioBase.valor ?? '')}"
-                inputmode="decimal"
-              >
-            </div>
-          </div>
-          <p class="micro tenue solo-detallado">Se muestra como ${esc(baseLabel)} en el catálogo y en el pedido.</p>
-        </div>
+        <p class="micro tenue solo-detallado">Se muestra en el catálogo y en el pedido (${esc(baseUnidad)}).</p>
       </div>
 
-      <p class="etiqueta-seccion con-margen-arriba solo-detallado">${icono('medida')}<span>Los otros precios</span></p>
+      <p class="etiqueta-seccion con-margen-arriba solo-detallado">${icono('medida')}<span>Otros precios por unidad</span></p>
+      <p class="micro tenue solo-detallado con-margen-arriba-chica">Precios de referencia para otras unidades de venta (docena, caja, pack…). Se ven en la ficha y como chips en el catálogo.</p>
     `;
 
     for (const sub of subs.filter(s => s.value !== baseUnidad)) {

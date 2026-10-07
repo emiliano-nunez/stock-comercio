@@ -111,11 +111,6 @@
   display: none;
 }
 
-/* En carga rápida no hay unidad que elegir: el precio ocupa la fila entera. */
-#form-producto.rapido .precios-cabecera {
-  grid-template-columns: minmax(0, 1fr);
-}
-
 /*
  * Campos que el usuario apagó desde Ajustes (o desde la encuesta del primer
  * arranque).
@@ -166,28 +161,18 @@ body.sin-proveedor.sin-categorias .seccion-ubicacion {
  * botón no quede descentrado respecto de la palabra.
  */
 /*
- * Los dos precios de arriba del formulario: a la izquierda la unidad que se ve
- * en el catálogo, a la derecha el precio final de esa unidad.
+ * El precio final y su aclaración, juntos en una sola columna.
  *
- * Antes era una lista vertical donde la unidad elegida y el campo de su precio
- * quedaban separados por los precios de las demás unidades, y había que
- * acordarse de cuál era cuál. Ahora la elección y su campo están juntos, que es
- * lo único que se necesita para escribir el precio que se ve.
- *
- * En el celular se apila y en dos columnas desde 360px, con el mismo quiebre
- * que el resto del formulario.
+ * Antes había arriba un selector de la unidad que se ve en el catálogo y esto
+ * eran dos columnas: la elegida, a la izquierda, y su precio, a la derecha. Con
+ * el selector fuera, la unidad la define el tipo de venta y sólo queda el
+ * campo, con su micro debajo.
  */
 .precios-cabecera {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--espacio-4);
   align-items: start;
-}
-
-@media (min-width: 360px) {
-  .precios-cabecera {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 .bloque-cabecera {
