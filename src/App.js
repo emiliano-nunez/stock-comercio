@@ -480,13 +480,14 @@ export class App {
   getStockLabel(producto) {
     const stock = producto.stock || 0;
     const unidad = unidadStockTexto(producto, stock);
-    // El "Poco" sale de estadoStock() y no de comparar acá otra vez, para
-    // que el // badge no pueda decir "Poco" mientras el grupo del catálogo
-    // dice "Con stock".
-
+    // El "Poco" sale de estadoStock() y no de comparar acá otra vez, para que
+    // el badge no pueda decir "Poco" mientras el grupo del catálogo dice
+    // "Con stock".
     const estado = estadoStock(producto);
     if (estado === 'vacio') return 'Agotado';
-    if (estado === 'poco') return `Poco (${stock} ${unidad})`;
+    // Corto: el badge va sobre la foto y con "Poco (3 cajas)" se pasaba del
+    // cuadro. El número con su unidad ya está en la línea de stock de abajo.
+    if (estado === 'poco') return `Poco: ${stock}`;
     return `${stock} ${unidad}`;
   }
 
