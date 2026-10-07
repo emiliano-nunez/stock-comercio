@@ -1279,11 +1279,13 @@
   pointer-events: none;
 }
 
-/* Todos los avisos son la misma caja: fondo blanco, la misma sombra y la misma
-   forma. Lo único que cambia es el color del riel de la izquierda y el del
-   texto, que es lo que dice si la operación salió bien o salió mal. Antes cada
-   tipo tenía su propio fondo de color y con cuatro avisos juntos se leía como
-   cuatro pantallas distintas.
+/* Todos los avisos son la misma caja: la misma forma, la sombra y el mismo
+   rellón, un poco más holgado que antes —el texto va en la medida normal y no
+   en la chica—. No llevan ningún borde: el color del fondo, tinteado hacia el
+   tipo del aviso (rojo casi blanco, verde muy claro, ámbar pálido), es el que
+   dice si salió bien o mal. Con el riel de la izquierda los cuatro tipos se
+   leían como cuatro cajas distintas apiladas; el fondo tinteado diferencia
+   igual y sin partir el aviso en dos.
 
    El ancho lo toma el texto y no el de la pila. Con `width: 100%` cada aviso
    ocupaba de borde a borde, y `align-items: center` no centrába nada porque una
@@ -1291,21 +1293,26 @@
    borde y se leía como una banda, no como un aviso. */
 .aviso {
   width: fit-content;
-  max-width: 24rem;
-  padding: var(--espacio-3) var(--espacio-4);
+  max-width: 26rem;
+  padding: var(--espacio-4) var(--espacio-5);
   border-radius: var(--radio-lg);
-  border: 1px solid var(--color-borde);
-  border-left: 4px solid var(--gris-300);
   box-shadow: var(--sombra-lg);
   background-color: var(--color-superficie);
   color: var(--color-texto);
   pointer-events: auto;
 }
 
-.aviso-ok     { border-left-color: var(--verde-600); color: var(--verde-800); }
-.aviso-error  { border-left-color: var(--rojo-500);  color: var(--rojo-700); }
-.aviso-alerta { border-left-color: var(--ambar-600); color: var(--ambar-700); }
-.aviso-info   { border-left-color: var(--gris-400);  color: var(--gris-700); }
+/* El mensaje es lo único que se lee de un vistazo mientras la pantalla hace
+   otra cosa: va un paso más grande que el texto corriente de la app. */
+.aviso .detalle {
+  font-size: var(--texto-base);
+  line-height: var(--texto-base-al);
+}
+
+.aviso-ok     { background-color: var(--verde-50); color: var(--verde-800); }
+.aviso-error  { background-color: var(--rojo-50);  color: var(--rojo-700); }
+.aviso-alerta { background-color: var(--ambar-50); color: var(--ambar-700); }
+.aviso-info   { background-color: var(--gris-50);  color: var(--gris-700); }
 
 .aviso-con-boton {
   display: flex;
