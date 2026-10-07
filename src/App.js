@@ -1955,7 +1955,8 @@ export class App {
           <h2 class="titulo">${esEdicion ? '✏️ Editar' : '➕ Nueva'} Categoría</h2>
           <button id="cerrar-cat-modal" class="btn-fantasma btn-icono">✕</button>
         </div>
-        <form id="form-categoria" class="dialogo-cuerpo apilado-4">
+        <!-- La validación la manda la app (el botón avisa qué falta) -->
+        <form id="form-categoria" class="dialogo-cuerpo apilado-4" novalidate>
           <div>
             <label class="etiqueta">Nombre</label>
             <input type="text" id="cat-nombre" class="campo" value="${escAttr(cat?.nombre || '')}" required autocomplete="off" placeholder="Ej: Verduras">
@@ -2003,12 +2004,34 @@ export class App {
       });
     });
 
+    /*
+     * El botón Crear se apaga sin nombre, pero sigue tappable: el toque avisa
+     * qué falta en vez de pasar sin más (ni la burbuja del navegador, que no
+     * dice el nombre del campo).
+     */
+    const botonGuardar = modal.querySelector('button[type="submit"]');
+    const campoNombre = modal.querySelector('#cat-nombre');
+    const faltaNombre = () => !campoNombre.value.trim();
+    const actualizarBotonGuardar = () => {
+      botonGuardar.classList.toggle('btn-apagado', faltaNombre());
+      if (faltaNombre()) botonGuardar.setAttribute('aria-disabled', 'true');
+      else botonGuardar.removeAttribute('aria-disabled');
+    };
+    actualizarBotonGuardar();
+    campoNombre.addEventListener('input', actualizarBotonGuardar);
+    botonGuardar.addEventListener('click', (e) => {
+      if (faltaNombre()) {
+        e.preventDefault();
+        toast.warning('Te faltan campos: Nombre');
+      }
+    });
+
     modal.querySelector('#form-categoria').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nombre = modal.querySelector('#cat-nombre').value.trim();
       const color = modal.querySelector('#cat-color').value;
 
-      if (!nombre) return toast.error('El nombre es obligatorio');
+      if (!nombre) return toast.warning('Te faltan campos: Nombre');
 
       try {
         /*
@@ -2115,7 +2138,8 @@ export class App {
           <h2 class="titulo">${esEdicion ? `${icono('editar')} Renombrar` : `${icono('mas')} Nuevo`} Proveedor</h2>
           <button id="cerrar-prov-modal" class="btn-fantasma btn-icono" aria-label="Cerrar">✕</button>
         </div>
-        <form id="form-proveedor" class="dialogo-cuerpo apilado-3">
+        <!-- La validación la manda la app (el botón avisa qué falta) -->
+        <form id="form-proveedor" class="dialogo-cuerpo apilado-3" novalidate>
           <div>
             <label for="prov-nombre" class="etiqueta">Nombre</label>
             <input
@@ -2153,12 +2177,31 @@ export class App {
     modal.querySelector('#btn-prov-cancelar').addEventListener('click', cerrar);
     modal.addEventListener('click', (e) => { if (e.target === modal) cerrar(); });
 
+    // Mismo tratamiento que en la categoría: botón apagado sin nombre y
+    // tappable, con aviso de qué falta.
+    const botonGuardarProv = modal.querySelector('button[type="submit"]');
+    const campoNombreProv = modal.querySelector('#prov-nombre');
+    const faltaNombreProv = () => !campoNombreProv.value.trim();
+    const actualizarBotonGuardarProv = () => {
+      botonGuardarProv.classList.toggle('btn-apagado', faltaNombreProv());
+      if (faltaNombreProv()) botonGuardarProv.setAttribute('aria-disabled', 'true');
+      else botonGuardarProv.removeAttribute('aria-disabled');
+    };
+    actualizarBotonGuardarProv();
+    campoNombreProv.addEventListener('input', actualizarBotonGuardarProv);
+    botonGuardarProv.addEventListener('click', (e) => {
+      if (faltaNombreProv()) {
+        e.preventDefault();
+        toast.warning('Te faltan campos: Nombre');
+      }
+    });
+
     modal.querySelector('#form-proveedor').addEventListener('submit', async (e) => {
       e.preventDefault();
       const nombre = modal.querySelector('#prov-nombre').value;
 
       if (!nombre.trim()) {
-        toast.error('El nombre es obligatorio');
+        toast.warning('Te faltan campos: Nombre');
         return;
       }
 

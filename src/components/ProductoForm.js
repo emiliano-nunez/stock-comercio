@@ -332,7 +332,9 @@ export class ProductoForm {
         </div>
 
         <!-- Form scrollable -->
-        <form id="form-producto" class="dialogo-cuerpo apilado-3 crece${esRapida ? ' rapido' : ''}">
+        <!-- La validación la manda la app: el botón guardar avisa qué falta y
+             con novalidate el navegador no se adelanta con su burbuja. -->
+        <form id="form-producto" class="dialogo-cuerpo apilado-3 crece${esRapida ? ' rapido' : ''}" novalidate>
           ${!this.isEditing ? `
           <button type="button" id="link-carga-rapida" class="btn-fantasma btn-ancho">${icono('rayo')}<span>Carga rápida</span></button>
           ` : ''}
@@ -855,6 +857,22 @@ export class ProductoForm {
     this.inicializarCalculadoraPrecio(modal);
 
     this.configurarEventosPrecios(modal);
+
+    /*
+     * El botón guardar se ve apagado mientras falte un campo obligatorio, pero
+     * sigue tappable: el toque contesta con "Te faltan campos: ..." en vez de
+     * un botón mudo o la burbuja del navegador.
+     */
+    this.actualizarBotonGuardar(modal);
+    form.addEventListener('input', () => this.actualizarBotonGuardar(modal));
+    form.addEventListener('change', () => this.actualizarBotonGuardar(modal));
+    modal.querySelector('button[type="submit"][form="form-producto"]').addEventListener('click', (e) => {
+      const faltan = this.camposFaltantes(modal);
+      if (faltan.length) {
+        e.preventDefault();
+        toast.warning(`Te faltan campos: ${faltan.join(', ')}`);
+      }
+    });
 
     form.addEventListener('submit', (e) => this.guardar(e));
 
@@ -1456,14 +1474,56 @@ export class ProductoForm {
     }
   }
 
+  /**
+   * Los campos obligatorios que todavía no tienen nada, con el rótulo tal como
+   * se ve en el formulario. Mira lo mismo que aborta guardar(): el nombre y el
+   * precio de la unidad principal.
+   *
+   * @param {HTMLElement} modal el contenedor del formulario
+   * @returns {string[]} los rótulos de lo que falta, en orden de aparición
+   */
+  camposFaltantes(modal) {
+    const faltan = [];
+
+    const nombre = modal.querySelector('#nombre');
+    if (!nombre || !nombre.value.trim()) faltan.push('Nombre del producto');
+
+    const unidadPrincipal = modal.querySelector('[name="unidadPrincipal"]')?.value
+      || (TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0]).subUnidades?.[0]?.value;
+    const precio = unidadPrincipal ? modal.querySelector(`[name="precio_${unidadPrincipal}"]`) : null;
+    if (!precio || !(parseFloat(precio.value) > 0)) faltan.push('Precio final');
+
+    return faltan;
+  }
+
+  /**
+   * Apaga o prende el botón guardar según camposFaltantes(). No se le pone el
+   * atributo `disabled`: con eso el toque ni llega y el usuario no se entera
+   * de qué falta. El apagado es sólo cara (btn-apagado + aria-disabled); el
+   * click, en bindEvents, se frena y contesta.
+   *
+   * @param {HTMLElement} modal el contenedor del formulario
+   */
+  actualizarBotonGuardar(modal) {
+    const boton = modal.querySelector('button[type="submit"][form="form-producto"]');
+    if (!boton) return;
+    const falta = this.camposFaltantes(modal).length > 0;
+    boton.classList.toggle('btn-apagado', falta);
+    if (falta) boton.setAttribute('aria-disabled', 'true');
+    else boton.removeAttribute('aria-disabled');
+  }
+
   async guardar(e) {
     e.preventDefault();
 
     const formData = new FormData(e.target);
     const nombre = formData.get('nombre')?.toString().trim();
 
-    if (!nombre) {
-      toast.error('El nombre es obligatorio');
+    // Lo mismo que mira el botón: si falta algo se dice qué y no se guarda.
+    // Sin este corte, el Enter del teclado mandaría el form igual.
+    const faltan = this.camposFaltantes(e.target);
+    if (faltan.length) {
+      toast.warning(`Te faltan campos: ${faltan.join(', ')}`);
       return;
     }
 
