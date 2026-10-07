@@ -745,6 +745,30 @@ svg {
   flex-shrink: 0;
 }
 
+/*
+ * La referencia al valor anterior del campo, flotando en la esquina de arriba
+ * a la derecha del rótulo: la etiqueta queda a la izquierda y el chip se apoya
+ * en la misma línea, sin ocupar renglón propio. Se genera sólo cuando el
+ * producto tiene historial (ProductoForm).
+ */
+.dato-anterior {
+  position: absolute;
+  top: -2px;
+  right: 0;
+  max-width: 65%;
+  padding: 2px var(--interfaz-espacio-1);
+  border: 1px solid var(--interfaz-borde);
+  border-radius: var(--radio-full);
+  background-color: var(--color-marca-tenue);
+  color: var(--interfaz-texto-2);
+  font-size: var(--interfaz-texto-xs);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
 .etiqueta-seccion {
   display: flex;
   align-items: center;

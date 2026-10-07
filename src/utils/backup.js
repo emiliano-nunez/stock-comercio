@@ -72,6 +72,16 @@ function preciosSeguros(lista) {
   })).filter(p => p.unidad);
 }
 
+/** El historial de precio y costo: los mismos campos que escribe el formulario. */
+function historialSeguro(lista) {
+  if (!Array.isArray(lista)) return [];
+  return lista.slice(0, 100).map(h => ({
+    fecha: texto(h?.fecha, { largo: 40 }),
+    precio: Math.max(0, numero(h?.precio)),
+    costo: Math.max(0, numero(h?.costo))
+  })).filter(h => h.fecha);
+}
+
 function normalizarProducto(p) {
   const { categoriaId, categoriaIds, ...resto } = p || {};
 
@@ -94,6 +104,7 @@ function normalizarProducto(p) {
     costo: Math.max(0, numero(resto.costo)),
     precio: Math.max(0, numero(resto.precio)),
     precios: preciosSeguros(resto.precios),
+    historialPrecios: historialSeguro(resto.historialPrecios),
     imagenId: resto.imagenId ? texto(resto.imagenId, { largo: 120 }) : null,
     fechaCompra: texto(resto.fechaCompra, { largo: 40 }),
     fecha: texto(resto.fecha, { largo: 40 }),

@@ -107,6 +107,23 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   fila('Costo', p.costo ? `$${fmtPrecio(p.costo)}<span class="tenue">/${esc(unidadBase)}</span>` : '', '', 'calculadora');
 
   /*
+   * La línea de cambios guardados: cada entrada es lo que valía antes de un
+   * cambio, de la más reciente a la más vieja. Sólo aparece cuando hay
+   * historial: un producto recién creado no tiene nada que contar todavía.
+   */
+  const historial = (Array.isArray(p.historialPrecios) ? p.historialPrecios : [])
+    .filter(h => h && typeof h === 'object');
+  if (historial.length) {
+    const lineas = [...historial].reverse().map(h => {
+      const partes = [];
+      if (h.precio > 0) partes.push(`precio $${fmtPrecio(h.precio)}`);
+      if (h.costo > 0) partes.push(`costo $${fmtPrecio(h.costo)}`);
+      return `${fechaEnDia(h.fecha)} · ${partes.join(' · ') || '—'}`;
+    }).join('<br>');
+    fila('Historial de precios', `<span class="micro apagado">${lineas}</span>`);
+  }
+
+  /*
    * La unidad principal y el tipo de venta no van siempre en renglón propio. Son
    * datos que el renglón del precio ya está diciendo, y en la planilla cada
    * renglón de más es un renglón que hay que bajar. Sólo aparecen cuando la

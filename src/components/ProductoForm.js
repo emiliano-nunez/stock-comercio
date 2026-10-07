@@ -1,10 +1,10 @@
-import { db, dbUtils, TIPOS_VENTA, UNIDADES_STOCK, pasoUnidadStock, categoriasDe, normalizarProveedor } from '../db.js';
+import { db, dbUtils, TIPOS_VENTA, UNIDADES_STOCK, pasoUnidadStock, categoriasDe, normalizarProveedor, construirHistorialPrecios } from '../db.js';
 import { imagenUtils } from '../utils/imagen.js';
 import { abrirCamara } from './CamaraModal.js';
 import { abrirScanner } from './ScannerModal.js';
 import { abrirCodigoDuplicado } from './CodigoDuplicado.js';
 import { toast } from '../utils/toast.js';
-import { esc, escAttr } from '../utils/html.js';
+import { esc, escAttr, fmtPrecio } from '../utils/html.js';
 import { normalizarTexto } from '../utils/texto.js';
 import { icono } from '../utils/iconos.js';
 
@@ -309,6 +309,16 @@ export class ProductoForm {
       ?? (this.tipoVenta.startsWith('peso') ? 1 : 5);
     const costoInicial = this.producto?.costo || '';
 
+    // La referencia al último cambio guardado flota en el rótulo del costo:
+    // sólo si el producto tiene historial, y sólo si el valor de esa entrada
+    // difiere del actual —si cambió sólo el precio, el costo del registro es el
+    // mismo que el del campo y "costo anterior" no diría nada nuevo.
+    const ultimoCambio = this.ultimoCambioHistorial();
+    const chipCosto = ultimoCambio && ultimoCambio.costo > 0
+      && ultimoCambio.costo !== (Number(this.producto?.costo) || 0)
+      ? `<span class="dato-anterior">Costo anterior: $${fmtPrecio(ultimoCambio.costo)}</span>`
+      : '';
+
     // El bloque de precios va en distinto lugar según el modo: en carga rápida,
     // debajo del nombre, en la columna de los campos; en la ficha completa,
     // después de la calculadora. Es el mismo nodo en los dos casos, así que
@@ -486,8 +496,9 @@ export class ProductoForm {
           <div id="calculadora-precio" class="recuadro recuadro-marca solo-detallado campo-calculadora">
             <div class="etiqueta-seccion">${icono('calculadora')} Calculadora de Precio</div>
 
-            <div class="con-margen-abajo">
+            <div class="con-margen-abajo posicionado">
               <label for="costo" class="etiqueta">${icono('dinero')} Costo (${unidadBase})</label>
+              ${chipCosto}
               <div class="posicionado">
                 <span class="buscador-lupa">$</span>
                 <input
@@ -1593,11 +1604,25 @@ export class ProductoForm {
     const margenPorcentaje = margenNum.valor;
     const fecha = formData.get('fecha') || new Date().toISOString().split('T')[0];
 
+    /*
+     * El historial de precio y costo: si esta confirmación trae valores
+     * distintos a los guardados, la referencia de lo que valía antes queda en
+     * el producto. Al crear no hay referencia previa, y sin cambio no se
+     * agrega entrada —tocar el nombre ni el stock no es un cambio de precio.
+     */
+    const historialPrecios = construirHistorialPrecios(
+      this.isEditing ? this.producto : null,
+      precioPrincipal,
+      costo,
+      new Date().toISOString().split('T')[0]
+    );
+
     const datosProducto = {
       nombre,
       precio: precioPrincipal,
       precios,
       costo,
+      historialPrecios,
       ivaPorcentaje,
       margenPorcentaje,
       tipoVenta: this.tipoVenta,
@@ -1659,8 +1684,31 @@ export class ProductoForm {
     }
   }
 
+  /**
+   * La última entrada del historial de precio y costo, o null si no hay.
+   *
+   * Cada entrada guarda los valores que se dejaron de usar el día del cambio,
+   * así que la última es "lo anterior": es lo que se muestra como label
+   * flotante en el formulario.
+   */
+  ultimoCambioHistorial() {
+    const historial = Array.isArray(this.producto?.historialPrecios)
+      ? this.producto.historialPrecios.filter(e => e && typeof e === 'object')
+      : [];
+    return historial[historial.length - 1] || null;
+  }
+
   renderPreciosHTML(unidadBase, tipoActual, subUnidades = []) {
     const precios = this.producto?.precios || [];
+
+    // El precio anterior flota en el rótulo del precio final: sólo si la última
+    // entrada registra un precio distinto del actual, porque si lo que cambió
+    // fue sólo el costo, la entrada trae el precio vigente.
+    const ultimoCambio = this.ultimoCambioHistorial();
+    const chipPrecio = ultimoCambio && ultimoCambio.precio > 0
+      && ultimoCambio.precio !== (Number(this.producto?.precio) || 0)
+      ? `<span class="dato-anterior">Precio anterior: $${fmtPrecio(ultimoCambio.precio)}</span>`
+      : '';
 
     const subs = subUnidades.length > 0
       ? subUnidades
@@ -1677,8 +1725,9 @@ export class ProductoForm {
 
     let html = `
       <div class="precios-cabecera">
-        <div>
+        <div class="posicionado">
           <label for="precio_${escAttr(baseUnidad)}" class="etiqueta">${icono('dinero')} Precio final</label>
+          ${chipPrecio}
           <div class="posicionado">
             <span class="buscador-lupa">$</span>
             <input

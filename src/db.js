@@ -1267,6 +1267,41 @@ export function getPrecioPrincipal(producto) {
   };
 }
 
+/**
+ * El historial de precio y costo: qué valía el producto antes de este cambio.
+ *
+ * Se arma al guardar, y sólo cuando el precio o el costo nuevos difieren de los
+ * guardados y alguno de los dos viejos tenía valor: fijar un precio por primera
+ * vez no es un cambio sino la primera confirmación, y de un producto que no
+ * valía nada no queda referencia que guardar.
+ *
+ * La entrada guarda los valores VIEJOS con la fecha del cambio, a propósito:
+ * la última entrada es siempre "lo anterior" —que es lo que muestra el
+ * formulario— y la lista entera lee como la línea de precios del producto.
+ *
+ * @param {object|null} productoViejo producto tal como está guardado (null al crear)
+ * @param {number} precioNuevo  precio principal después del cambio
+ * @param {number} costoNuevo   costo después del cambio
+ * @param {string} fecha        día del cambio (YYYY-MM-DD)
+ * @returns {Array<{fecha: string, precio: number, costo: number}>} el historial
+ *   viejo con la entrada nueva al final, o el historial sin tocar.
+ */
+export function construirHistorialPrecios(productoViejo, precioNuevo, costoNuevo, fecha) {
+  const historial = Array.isArray(productoViejo?.historialPrecios)
+    ? productoViejo.historialPrecios.filter(e => e && typeof e === 'object')
+    : [];
+
+  if (!productoViejo) return historial;
+
+  const precioViejo = Number(productoViejo.precio) || 0;
+  const costoViejo = Number(productoViejo.costo) || 0;
+  const huboCambio = precioViejo !== Number(precioNuevo) || costoViejo !== Number(costoNuevo);
+
+  if (!huboCambio || (precioViejo <= 0 && costoViejo <= 0)) return historial;
+
+  return [...historial, { fecha, precio: precioViejo, costo: costoViejo }];
+}
+
 // Inicializar categorías - NO crear por defecto, el usuario crea las suyas
 export async function inicializarCategorias() {
   // No crear categorías por defecto - el usuario define las suyas
