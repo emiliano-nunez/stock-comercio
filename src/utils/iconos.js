@@ -67,19 +67,14 @@ export const ICONOS = {
   subir: trazo('<path d="M12 15V4"/><path d="M7.5 8 12 3.5 16.5 8"/><path d="M4 18.5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1"/>'),
   refrescar: trazo('<path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 4v4.5H16"/>'),
   ordenar: trazo('<path d="M4 6h13M4 12h9M4 18h5"/><path d="M17 4v16"/><path d="m14 17 3 3 3-3"/>'),
-  lupa: trazo('<circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.6-3.6"/>'),
-  fotoPerdida: trazo('<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m4 17 5-4.5 3.5 3 3-2.5L20 17"/><path d="m4 4 16 16"/>'),
 };
 
 /**
  * Devuelve el SVG de un ícono por su nombre.
  *
  * @param {string} nombre  la clave en `ICONOS`
- * @param {string} [clase] clase extra para el <svg>, si hace falta
  * @returns {string} el SVG, o cadena vacía si el nombre no existe
  */
-export function icono(nombre, clase = '') {
-  const svg = ICONOS[nombre];
-  if (!svg) return '';
-  return clase ? svg.replace('<svg ', `<svg class="${clase}" `) : svg;
+export function icono(nombre) {
+  return ICONOS[nombre] || '';
 }

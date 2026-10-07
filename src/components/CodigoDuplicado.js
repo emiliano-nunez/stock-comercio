@@ -1,5 +1,5 @@
-import { db, dbUtils, estadoStock, unidadStockTexto } from '../db.js';
-import { esc, escAttr, fmtPrecio } from '../utils/html.js';
+import { db, estadoStock, unidadStockTexto } from '../db.js';
+import { esc, fmtPrecio } from '../utils/html.js';
 import { icono } from '../utils/iconos.js';
 
 /**

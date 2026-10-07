@@ -1,4 +1,4 @@
-import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe, tieneCategoria } from './db.js';
+import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe } from './db.js';
 import { abrirFormularioProducto } from './components/ProductoForm.js';
 import { abrirCopiaSeguridad } from './components/CopiaSeguridadModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
@@ -11,12 +11,6 @@ import { esc, escAttr, fmtPrecio } from './utils/html.js';
 import { normalizarTexto, fechaEnDia, fechaYHora } from './utils/texto.js';
 import { icono } from './utils/iconos.js';
 import { aplicarCampos } from './utils/campos.js';
-
-// Clave interna para ordenar los productos sin categoría al final.
-// Se usa '\uFFFF' (el último código Unicode) en vez de un texto legible: antes
-// se usaba el string 'zzz_sin_categoria' también como etiqueta y se veía
-// literalmente en el Catálogo. El escape evita depender de la codificación.
-const SIN_CATEGORIA_ORDEN = '\uFFFF';
 
 export class App {
 
@@ -454,23 +448,6 @@ export class App {
       // El producto apunta a una foto que ya no está en el dispositivo.
       return { ...p, fotoPerdida: true };
     });
-  }
-  // // Clave de ordenación: empuja los productos sin categoría al final. //
-  // NO es una etiqueta para mostrar en la UI. El catálogo agrupa por estado
-  // de // stock, así que la categoría sólo se muestra en el chip de cada
-  // tarjeta, y // las categorías sueltas usan su propio nombre. // // Con
-  // varias categorías por producto manda la que alfabéticamente viene //
-  // primera, y no la primera que eligió el usuario: si mandara esa, dos //
-  // productos con las mismas dos categorías en distinto orden quedarían //
-  // separados, y el resultado dependería del orden en que el usuario las
-  // fue // marcando.
-
-  getCategoriaOrden(producto) {
-    const nombres = categoriasDe(producto)
-      .map(id => this.categorias.find(c => c.id === id)?.nombre)
-      .filter(Boolean);
-    if (nombres.length === 0) return SIN_CATEGORIA_ORDEN;
-    return nombres.sort((a, b) => a.localeCompare(b))[0];
   }
 
   getStockClass(producto) {

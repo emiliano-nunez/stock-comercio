@@ -1165,14 +1165,6 @@ export class ProductoForm {
     });
   }
 
-  getCategoriaIcono(nombre) {
-    const iconos = {
-      'Verduras': '🥬', 'Frutas': '🍎', 'Limpieza': '🧽',
-      'Almacén': '🏪', 'Bebidas': '🥤', 'Otros': '📦'
-    };
-    return iconos[nombre] || '📦';
-  }
-
   inicializarCalculadoraPrecio(modal) {
     const costoInput = modal.querySelector('#costo');
 

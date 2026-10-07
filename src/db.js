@@ -357,11 +357,6 @@ export function categoriasDe(producto) {
   return [];
 }
 
-export function tieneCategoria(producto, categoriaId) {
-  if (!categoriaId) return false;
-  return categoriasDe(producto).includes(categoriaId);
-}
-
 /**
  * Deja el nombre del proveedor como lo escribió el usuario, pero parejo.
  *
@@ -759,22 +754,6 @@ export const dbUtils = {
   },
 
   /*
-   * Liberar las URLs de objeto de una tanda de productos.
-   *
-   * Hay que llamarlo ANTES de reemplazarla: una URL de objeto es una referencia
-   * viva al blob, y sin revocar se quedan todas apuntando a la memoria del
-   * proceso aunque la foto ya no se muestre.
-   */
-  revocarImagenes(productos) {
-    if (!Array.isArray(productos)) return;
-    for (const p of productos) {
-      if (p?.imagenUrl) {
-        try { URL.revokeObjectURL(p.imagenUrl); } catch {  }
-      }
-    }
-  },
-
-  /*
    * Los productos con un código de barras exacto.
    *
    * El índice de `codigoBarras` NO es único a propósito (está escrito en la nota
@@ -893,18 +872,6 @@ export const dbUtils = {
     return producto;
   },
 
-  async buscarProductos(query) {
-    const lowerQuery = query.toLowerCase().trim();
-    if (!lowerQuery) return [];
-
-    return db.productos
-      .filter(p =>
-        p.nombre.toLowerCase().includes(lowerQuery) ||
-        (p.codigoBarras && p.codigoBarras.includes(lowerQuery))
-      )
-      .toArray();
-  },
-
   async getProductosStockBajo() {
     return db.productos
       .filter(p => p.stock <= p.stockMinimo)
@@ -1000,9 +967,6 @@ export const COLORES_CATEGORIAS = [
   '#64748B',
   '#1F2937',
 ];
-
-// Categorías por defecto - VACÍO (el usuario crea las suyas)
-export const CATEGORIAS_DEFAULT = [];
 
 export const TIPOS_VENTA = [
   {
