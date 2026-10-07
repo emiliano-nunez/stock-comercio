@@ -324,7 +324,7 @@ export class ProductoForm {
           </div>`;
 
     modal.innerHTML = `
-      <div class="dialogo dialogo-ancho dialogo-columna">
+      <div class="dialogo dialogo-ancho dialogo-columna dialogo-formulario">
         <!-- Header -->
         <div class="dialogo-cabecera dialogo-cabecera-fija">
           <h2 class="titulo titulo-icono">${icono(esRapida ? 'rayo' : this.isEditing ? 'editar' : 'mas')}<span>${esRapida ? 'Carga rápida' : this.isEditing ? 'Editar Producto' : 'Nuevo Producto'}</span></h2>
@@ -441,7 +441,7 @@ export class ProductoForm {
             </div>
           </div>
 
-          <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado">${icono('dinero')} Precio</div>
+          <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado seccion-precio">${icono('dinero')} Precio</div>
 
           <!-- Tipo de venta -->
           <div class="solo-detallado campo-tipo-venta">
@@ -577,7 +577,7 @@ export class ProductoForm {
           <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado seccion-inventario">${icono('medida')} Inventario</div>
 
           <!-- Stock y Stock Mínimo -->
-          <div class="cuadricula-apilada solo-detallado">
+          <div class="cuadricula-apilada cuadricula-stock solo-detallado">
             <div class="campo-stock">
               <label for="stock" class="etiqueta">
                 ${icono('medida')} Stock actual ${iconoStock}
@@ -619,26 +619,28 @@ export class ProductoForm {
             </div>
           </div>
 
-          <!-- Unidad en que se cuenta el stock: la de la venta o una propia -->
-          <div class="solo-detallado campo-stock">
-            <label for="unidad-stock" class="etiqueta">${icono('medida')} Mide el stock en</label>
-            <select id="unidad-stock" name="unidadStock" class="campo">
-              ${UNIDADES_STOCK.map(op => `
-                <option value="${escAttr(op.value)}" ${unidadStockElegida === op.value ? 'selected' : ''}>${esc(op.label)}</option>
-              `).join('')}
-            </select>
-          </div>
+          <!-- Unidad de stock y fecha: son los dos campos sueltos del inventario
+               y van uno al lado del otro para no sumar dos filas enteras. -->
+          <div class="cuadricula-apilada par-inventario solo-detallado">
+            <div class="campo-stock">
+              <label for="unidad-stock" class="etiqueta">${icono('medida')} Mide el stock en</label>
+              <select id="unidad-stock" name="unidadStock" class="campo">
+                ${UNIDADES_STOCK.map(op => `
+                  <option value="${escAttr(op.value)}" ${unidadStockElegida === op.value ? 'selected' : ''}>${esc(op.label)}</option>
+                `).join('')}
+              </select>
+            </div>
 
-          <!-- Fecha -->
-          <div class="solo-detallado campo-fecha">
-            <label for="fecha" class="etiqueta">${icono('calendario')} Fecha</label>
-            <input
-              type="date"
-              id="fecha"
-              name="fecha"
-              class="campo"
-              value="${escAttr(this.producto?.fecha || new Date().toISOString().split('T')[0])}"
-            >
+            <div class="campo-fecha">
+              <label for="fecha" class="etiqueta">${icono('calendario')} Fecha</label>
+              <input
+                type="date"
+                id="fecha"
+                name="fecha"
+                class="campo"
+                value="${escAttr(this.producto?.fecha || new Date().toISOString().split('T')[0])}"
+              >
+            </div>
           </div>
 
           <div class="etiqueta-seccion con-margen-arriba-amplia solo-detallado seccion-ubicacion">${icono('carpeta')} Ubicación</div>
@@ -748,9 +750,6 @@ export class ProductoForm {
           </div>
 
           <button type="button" id="link-completar-ficha" class="btn-fantasma btn-ancho">${icono('lapiz')}<span>Completar en producto detallado</span></button>
-
-          <!-- Espacio para que no se tape el botón sticky -->
-          <div class="alto-foto"></div>
         </form>
 
         <!-- Botones sticky al fondo -->

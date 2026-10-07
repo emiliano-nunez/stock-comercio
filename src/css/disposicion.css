@@ -144,8 +144,55 @@ body.sin-foto .form-cabecera {
 /* El título de una sección sin campos adentro sobra. Sólo desaparece si se
    apagaron todos los suyos: con uno solo visible, la sección sigue. */
 body.sin-stock.sin-stock-minimo.sin-fecha .seccion-inventario,
-body.sin-proveedor.sin-categorias .seccion-ubicacion {
+body.sin-proveedor.sin-categorias .seccion-ubicacion,
+body.sin-tipo-venta.sin-calculadora .seccion-precio {
   display: none;
+}
+
+/* Un campo apagado no deja media grilla vacía: su pareja entera baja a una
+   sola columna y el que sigue queda al ancho completo. */
+body.sin-stock #form-producto .cuadricula-stock,
+body.sin-stock-minimo #form-producto .cuadricula-stock,
+body.sin-stock #form-producto .par-inventario,
+body.sin-fecha #form-producto .par-inventario,
+body.sin-proveedor #form-producto .form-par,
+body.sin-categorias #form-producto .form-par {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* =================================================================
+ * El formulario de producto, apretado.
+ *
+ * Con veinte campos y el aire del diálogo estándar el contenido pasaba los
+ * 1600px y eran tres pantallas de scroll. Acá se aprieta el aire entre bloques
+ * y los rellenos sin bajar ningún control del mínimo táctil: los inputs siguen
+ * en 40px y los rótulos donde están.
+ * ================================================================= */
+#form-producto.apilado-3 > * + *,
+#form-producto .apilado-3 > * + * {
+  margin-block-start: var(--espacio-2);
+}
+
+/* El título de sección trae su margen amplio propio, que le gana al apilado
+   del padre por igual especificidad: se achica de una vez acá. */
+#form-producto .etiqueta-seccion.con-margen-arriba-amplia {
+  margin-block-start: var(--espacio-2);
+}
+
+/* El rótulo se pega a su campo: 4px y no 6. */
+#form-producto .etiqueta {
+  margin-bottom: 4px;
+}
+
+/* Las columnas de la cabecera y de las parejas: 8px y no 13. */
+#form-producto .form-cabecera,
+#form-producto .form-par {
+  gap: var(--interfaz-espacio-2);
+}
+
+/* La calculadora, con relleno chico. */
+#form-producto .recuadro {
+  padding: var(--interfaz-espacio-2);
 }
 
 /*
@@ -1015,10 +1062,6 @@ body.sin-proveedor.sin-categorias .seccion-ubicacion {
 
 .alto-max-medio {
   max-height: 12rem;
-}
-
-.alto-foto {
-  height: 4rem;
 }
 
 /* =================================================================

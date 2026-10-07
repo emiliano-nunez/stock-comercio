@@ -988,6 +988,18 @@
 }
 
 /*
+ * El diálogo del formulario de producto va con los rellenos en 12px —el paso
+ * chico del estándar— en los tres cabeceros: cabecera, cuerpo y pie. Es el
+ * diálogo más alto de la app y cada píxel de aire es uno menos de formulario
+ * a la vista. Los controles no se tocan: siguen en el mínimo táctil.
+ */
+.dialogo-formulario .dialogo-cabecera,
+.dialogo-formulario .dialogo-cuerpo,
+.dialogo-formulario .dialogo-pie-fija {
+  padding: var(--interfaz-espacio-3);
+}
+
+/*
  * El pie de la hoja del producto va en columna: primero el ajuste de stock y
  * debajo la fila de botones.
  *
