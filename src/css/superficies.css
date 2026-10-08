@@ -639,6 +639,21 @@
   flex-shrink: 0;
 }
 
+/*
+ * El punto de color de una variante, junto al nombre en las tarjetas del
+ * inventario y del catálogo. Va en em y no en rem para crecer con el texto
+ * del título: al lado de un nombre de 16px, un círculo fijo de 20px pesaba
+ * más que la palabra. Sin margen quedaba pegado a la primera letra.
+ */
+.punto-variante {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: var(--interfaz-espacio-1);
+  border-radius: var(--radio-full);
+  vertical-align: -0.1em;
+}
+
 .flecha,
 .flecha-medio {
   display: inline-block;

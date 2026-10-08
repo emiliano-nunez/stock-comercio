@@ -940,6 +940,13 @@ export class App {
     const tipo = TIPOS_VENTA.find(t => t.value === p.tipoVenta) || TIPOS_VENTA[0];
     const unidad = tipo.unidadBase || 'unid';
 
+    // Igual que en la tarjeta del inventario: el punto de color de una
+    // variante junto al nombre. Acá la foto ya lleva el punto de la
+    // categoría, pero éste va con el texto y no sobre la imagen.
+    const chipVariante = p.varianteColor
+      ? `<span class="punto-variante" style="background-color: ${escAttr(p.varianteColor)}" aria-hidden="true"></span>`
+      : '';
+
     return `
       <article class="tarjeta" data-id="${escAttr(p.id)}" data-action="detalle" role="button" tabindex="0"
         aria-label="Ver la hoja de ${escAttr(p.nombre)}">
@@ -958,7 +965,7 @@ export class App {
             ` : ''}
           </div>
           <div class="crece ancho-cero columna apilado">
-            <h4 class="detalle fuerte cortado">${esc(p.nombre)}</h4>
+            <h4 class="detalle fuerte cortado">${chipVariante}${esc(p.nombre)}</h4>
             ${p.codigoBarras ? `<p class="micro tenue mono cortado">${esc(p.codigoBarras)}</p>` : ''}
             ${avisoFotoPerdida}
             ${p.precios && p.precios.length > 1 ? `
@@ -1189,6 +1196,13 @@ export class App {
         ? 'insignia-poco'
         : 'insignia-ok';
 
+    // El punto de color de una variante, pegado al nombre: es la marca con la
+    // que se la distingue de un vistazo en la lista. Sin color no hay punto,
+    // y es decorativo porque el color ya está dicho en la etiqueta.
+    const chipVariante = p.varianteColor
+      ? `<span class="punto-variante" style="background-color: ${escAttr(p.varianteColor)}" aria-hidden="true"></span>`
+      : '';
+
     return `
       <article class="tarjeta tarjeta-alta" data-id="${escAttr(p.id)}" data-action="detalle"
         role="button" tabindex="0" aria-label="Ver la hoja de ${escAttr(p.nombre)}">
@@ -1200,7 +1214,7 @@ export class App {
           ${p.fecha ? `<span class="micro stock-fecha">${esc(fechaEnDia(p.fecha))}</span>` : ''}
         </div>
         <div class="tarjeta-info">
-          <h3 class="fuerte cortado">${esc(p.nombre)}</h3>
+          <h3 class="fuerte cortado">${chipVariante}${esc(p.nombre)}</h3>
           <div class="datos-producto">
             ${precio.valor ? `<span class="detalle medio texto-marca">$${fmtPrecio(precio.valor)}/${esc(precio.unidad)}</span>` : '<span class="etiqueta-tenue">Sin precio</span>'}
             ${p.costo ? `<span class="etiqueta-tenue">Costo: $${fmtPrecio(p.costo)}/${esc(unidad)}</span>` : ''}
