@@ -801,7 +801,7 @@ export class ProductoForm {
     });
 
     modal.querySelectorAll('[data-stockmin-action]').forEach(btn => {
-      btn.addEventListener('click', () => this.ajustarStockMin(btn.dataset.stockminAction));
+      btn.addEventListener('click', () => this.ajustarStock(btn.dataset.stockminAction, 'stockMinimo'));
     });
 
     // Cambiar la unidad del stock mueve el paso de los +/- y el ícono del
@@ -1258,24 +1258,12 @@ export class ProductoForm {
 
   }
 
-  ajustarStock(accion) {
-    const input = this.modal.querySelector('#stock');
-    const step = parseFloat(input.step) || 1;
-    let valor = parseFloat(input.value) || 0;
-
-    if (accion === 'increment') {
-      valor += step;
-    } else {
-      valor = Math.max(0, valor - step);
-    }
-
-    // Redondear para evitar problemas de punto flotante
-    valor = Math.round(valor * 1000) / 1000;
-    input.value = valor;
-  }
-
-  ajustarStockMin(accion) {
-    const input = this.modal.querySelector('#stockMinimo');
+  // Lo mismo para el stock y el stock mínimo: los dos juegos de botones +/-
+  // hacen idéntico trabajo y sólo cambia el campo que mueven. Nunca baja de
+  // cero, y el resultado se redondea a tres decimales para que sumar pasos de
+  // fracciones no deje residuos de punto flotante.
+  ajustarStock(accion, idCampo = 'stock') {
+    const input = this.modal.querySelector(`#${idCampo}`);
     const step = parseFloat(input.step) || 1;
     let valor = parseFloat(input.value) || 0;
 
