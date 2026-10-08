@@ -477,22 +477,16 @@ export class App {
         <header class="cabecera">
           <div class="cabecera-cuerpo">
             <h1 class="titulo fila fila-centro fila-amplia">${icono('caja')}<span>DepoApp</span></h1>
-            <button id="btn-copia" class="btn-texto" aria-label="Copia de seguridad">
+            <button id="btn-copia" class="btn-texto cabecera-accion" aria-label="Copia de seguridad">
               ${icono('descargar')}<span class="texto-boton">Copia</span>
             </button>
-            <button id="btn-pedido" class="btn-texto" aria-label="Pedido de faltantes">
+            <button id="btn-pedido" class="btn-texto cabecera-accion" aria-label="Pedido de faltantes">
               ${icono('etiqueta')}<span class="texto-boton">Pedido</span>
             </button>
-            <button id="btn-ajustes" class="btn-texto" aria-label="Ajustes de campos">
+            <button id="btn-ajustes" class="btn-texto cabecera-accion" aria-label="Ajustes de campos">
               ${icono('ajuste')}<span class="texto-boton">Ajustes</span>
             </button>
 
-            <!--
-              La segunda fila del teléfono: el buscador y, a su derecha, los dos
-              botones de alta —producto detallado y carga rápida—. En el
-              escritorio esta misma fila gira a columna, así que los botones
-              quedan abajo del buscador y antes de las pestañas.
-            -->
             <div class="fila-busca">
             <div class="posicionado con-margen-arriba">
               <label for="buscador" class="solo-lector">Buscar productos</label>
@@ -534,17 +528,10 @@ export class App {
               </ul>
             </div>
 
-              <!--
-                Los dos botones de alta van en la cabecera y no flotando sobre
-                la grilla. Flotando tapaban productos, que es lo único que hay
-                que mirar, y además quedaban lejos del buscador, que es donde ya
-                está la mano. En el teléfono se ven como dos cuadrados a la
-                derecha del buscador; en el escritorio toman todo el ancho de la
-                barra.
-              -->
+              <!-- Botones de alta: en escritorio van en la cabecera; en móvil van al bottom-nav -->
               <button
                 id="btn-agregar-fab"
-                class="boton-agregar"
+                class="boton-agregar cabecera-accion"
                 aria-label="Producto detallado"
               >
                 ${icono('mas')}<span class="texto-agregar">Producto detallado</span>
@@ -552,7 +539,7 @@ export class App {
 
               <button
                 id="btn-carga-rapida"
-                class="boton-agregar"
+                class="boton-agregar cabecera-accion"
                 aria-label="Carga rápida"
               >
                 ${icono('rayo')}<span class="texto-agregar">Carga rápida</span>
@@ -584,6 +571,25 @@ export class App {
           </div>
         </div>
       </header>
+
+      <!-- Bottom-nav móvil: 4 acciones principales -->
+      <nav class="bottom-nav" aria-label="Navegación principal">
+        <button class="bottom-nav-item ${this.vistaActual === 'inventario' ? 'activo' : ''}" data-vista="inventario" aria-label="Inventario">
+          ${icono('caja')}<span>Inventario</span>
+        </button>
+        <button class="bottom-nav-item ${this.vistaActual === 'catalogo' ? 'activo' : ''}" data-vista="catalogo" aria-label="Catálogo">
+          ${icono('etiqueta')}<span>Catálogo</span>
+        </button>
+        <button class="bottom-nav-item bottom-nav-principal" data-accion="agregar" aria-label="Agregar producto">
+          ${icono('mas')}<span>Agregar</span>
+        </button>
+        <button class="bottom-nav-item ${this.vistaActual === 'categorias' ? 'activo' : ''}" data-vista="categorias" aria-label="Categorías">
+          ${icono('carpeta')}<span>Categorías</span>
+        </button>
+        <button class="bottom-nav-item" data-accion="ajustes" aria-label="Ajustes">
+          ${icono('ajuste')}<span>Ajustes</span>
+        </button>
+      </nav>
 
       <main class="contenido" id="contenido-principal">
         ${this.renderTarjetaActualizacionHTML()}
@@ -1376,6 +1382,17 @@ export class App {
 
     document.querySelectorAll('.pestana').forEach(btn => {
       btn.addEventListener('click', () => this.abrirVista(btn.dataset.vista));
+    });
+
+    // Bottom-nav móvil
+    document.querySelectorAll('.bottom-nav-item[data-vista]').forEach(btn => {
+      btn.addEventListener('click', () => this.abrirVista(btn.dataset.vista));
+    });
+    document.querySelectorAll('.bottom-nav-item[data-accion="agregar"]').forEach(btn => {
+      btn.addEventListener('click', () => this.nuevoProducto());
+    });
+    document.querySelectorAll('.bottom-nav-item[data-accion="ajustes"]').forEach(btn => {
+      btn.addEventListener('click', () => this.mostrarAjustes());
     });
 
     document.getElementById('btn-escanear-header')?.addEventListener('click', () => this.escanearCodigo());

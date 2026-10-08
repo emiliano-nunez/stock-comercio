@@ -39,7 +39,7 @@
 /*
  * El nombre del producto, en el inventario y en el catálogo.
  *
- * Va en 14px y sin negrita: el estándar de la tarjeta dice que el precio es lo
+ * Va en 13px y sin negrita: el estándar de la tarjeta dice que el precio es lo
  * único que tiene peso visual, y un título en negrita compite con él. Se corta en
  * dos renglones con puntitos en vez de en uno, que es lo que hace el resto de las
  * tarjetas y lo que aprovecha una columna de 130px.
@@ -56,7 +56,7 @@
   overflow: hidden;
   white-space: normal;
 
-  font-size: var(--interfaz-texto-sm);
+  font-size: var(--interfaz-texto-sm);   /* 13px */
   line-height: var(--tarjeta-interlinea-2);
   font-weight: var(--grosor-normal);
   color: var(--interfaz-texto);
@@ -113,30 +113,20 @@
 }
 
 /*
- * La foto de la tarjeta de inventario.
- *
- * Es de 5rem en todas las pantallas. Antes tenía dos medidas, 40px en el teléfono
- * y 80px en la PC, y con la tarjeta en tres columnas esa medida chica dejaba la
- * columna de la foto con un ícono de producto en el medio de un cuadrado vacío.
- *
- * La del historial es otra cosa y tiene la suya: 3rem en pantalla ancha y 2.5rem
- * en el teléfono, porque ahí no es una columna con su propio ancho sino un
- * detalle de una fila.
+ * La foto de la tarjeta de inventario (compacta: 4rem = 64px).
  */
 .miniatura {
   flex-shrink: 0;
-  /* Para que la insignia de stock se ubique contra la foto y no contra la
-     tarjeta entera, igual que hace .marco-foto en el catálogo. */
   position: relative;
-  width: 5rem;
-  height: 5rem;
+  width: 4rem;
+  height: 4rem;
   background-color: var(--gris-100);
   border-radius: var(--interfaz-radio);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
 }
 
 @media (max-width: 839px) {
@@ -270,7 +260,7 @@
  */
 .catalogo-foto {
   flex-shrink: 0;
-  width: 6rem;
+  width: 5rem;
 }
 
 /*
@@ -1088,6 +1078,84 @@
   color: var(--verde-800);
   font-size: var(--texto-xs);
   font-weight: var(--grosor-medio);
+}
+
+/* =================================================================
+ * Componentes estilo Meli (precios, descuentos, tarjetas de sección)
+ * ================================================================= */
+
+/* Contenedor de precios: precio actual + original + badge descuento */
+.price-container {
+  display: flex;
+  align-items: center;
+  gap: var(--interfaz-espacio-1);
+  flex-wrap: wrap;
+}
+
+/* Precio actual: 16px, peso normal, color principal */
+.price-current {
+  font-size: var(--tarjeta-texto-precio);
+  font-weight: var(--grosor-normal);
+  color: var(--interfaz-texto);
+  line-height: var(--tarjeta-interlinea-1);
+}
+
+/* Precio original tachado: 11px, gris atenuado */
+.price-original {
+  font-size: var(--interfaz-texto-xs);
+  color: var(--interfaz-texto-3);
+  text-decoration: line-through;
+}
+
+/* Badge de descuento: verde sobre fondo verde pálido */
+.discount-badge {
+  font-size: var(--interfaz-texto-xs);
+  font-weight: var(--grosor-fuerte);
+  color: var(--color-accent-green);
+  background-color: var(--color-bg-green-badge);
+  padding: 2px var(--interfaz-espacio-1);
+  border-radius: var(--interfaz-radio-3);
+}
+
+/* Tarjeta de sección (banner promocional) */
+.section-card {
+  background-color: var(--color-superficie);
+  border-radius: var(--interfaz-radio);
+  padding: var(--interfaz-espacio-4);
+  margin: var(--interfaz-espacio-3);
+  box-shadow: var(--interfaz-sombra);
+}
+
+.section-title {
+  font-size: var(--texto-lg);
+  font-weight: var(--grosor-fuerte);
+  color: var(--interfaz-texto);
+  margin-bottom: var(--interfaz-espacio-2);
+}
+
+/* Botón secundario claro (estilo Meli: fondo azul 15% + texto azul) */
+.btn-secondary-light {
+  width: 100%;
+  background-color: var(--interfaz-azul-tenue);
+  color: var(--interfaz-azul);
+  font-size: var(--interfaz-texto-sm);
+  font-weight: var(--grosor-fuerte);
+  padding: var(--interfaz-espacio-3) var(--interfaz-espacio-4);
+  border: none;
+  border-radius: var(--interfaz-radio-2);
+  text-align: center;
+  cursor: pointer;
+  min-height: var(--toque-min);
+}
+
+.btn-secondary-light:hover {
+  background-color: var(--interfaz-azul-tenue-fuerte);
+}
+
+/* Tokens de color para los componentes Meli (valores de la plantilla) */
+:root {
+  --color-accent-green: #00a650;
+  --color-bg-green-badge: #e6f7ee;
 }
 
 /* =================================================================

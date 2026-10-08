@@ -81,27 +81,22 @@
   --color-aviso-tenue:     var(--ambar-50);
 
   /* -----------------------------------------------------------------
-   * Tipografía
+   * Tipografía (escala compacta estilo Meli Mobile)
    *
-   * El cuerpo del texto está en 16px, que es el piso que impone el navegador en
-   * los campos: por debajo de 16px, iOS agranda la página al enfocarlos. Con 18
-   * se leía comfortable pero la tarjeta ocupaba tanta pantalla que sólo se veían
-   * cuatro productos, y en un teléfono eso es una sola tanda.
-   *
-   * Lo que no se toca es `--toque-min`, más abajo: el área que se toca con el
-   * dedo sigue siendo de 40px aunque la letra sea un punto más chica.
+   * Base 14px: iOS no hace zoom en campos a 14px (solo <16px), y gana
+   * dos líneas por tarjeta. Los controles siguen en 40px (--toque-min).
    * ----------------------------------------------------------------- */
   --fuente: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  --texto-xs:    0.6875rem;
+  --texto-xs:    0.6875rem;   /* 11px */
   --texto-xs-al: 0.9375rem;
-  --texto-sm:    0.8125rem;
-  --texto-sm-al: 1.125rem;
-  --texto-base:  1rem;
-  --texto-base-al: 1.375rem;
-  --texto-lg:    1.125rem;
-  --texto-lg-al: 1.5rem;
-  --texto-xl:    1.25rem;
+  --texto-sm:    0.75rem;     /* 12px */
+  --texto-sm-al: 1rem;
+  --texto-base:  0.875rem;    /* 14px */
+  --texto-base-al: 1.25rem;
+  --texto-lg:    1rem;        /* 16px */
+  --texto-lg-al: 1.375rem;
+  --texto-xl:    1.125rem;    /* 18px */
 
   --grosor-normal: 400;
   --grosor-medio:  500;
@@ -203,11 +198,10 @@
    * ================================================================= */
 
   /* -----------------------------------------------------------------
-   * Lo que comparten todos los componentes
+   * Lo que comparten todos los componentes (escala estándar compacta)
    * ----------------------------------------------------------------- */
 
-  /* El espaciado del estándar: 4 / 8 / 12 / 16. Es escala propia y no la general
-     de la app, que está corrida un paso y sirve para el resto de las pantallas. */
+  /* El espaciado del estándar: 4 / 8 / 12 / 16. */
   --interfaz-espacio-1: 4px;
   --interfaz-espacio-2: 8px;
   --interfaz-espacio-3: 12px;
@@ -228,8 +222,8 @@
   --fondo-pagina:      var(--verde-50);
 
   /* Las dos medidas de texto que el estándar repite en todos lados. */
-  --interfaz-texto-xs: 12px;
-  --interfaz-texto-sm: 14px;
+  --interfaz-texto-xs: 11px;
+  --interfaz-texto-sm: 13px;
 
   /*
    * El azul: el del botón de acción, el del borde de foco y el del botón
@@ -260,17 +254,17 @@
   --interfaz-sombra: 0 1px 2px 0 rgb(0 0 0 / 12%);
 
   /* -----------------------------------------------------------------
-   * La tarjeta de producto
+   * La tarjeta de producto (compacta)
    * ----------------------------------------------------------------- */
 
   /* El relleno de la tarjeta. En el formato de lista horizontal va uno más grande,
      que es lo que dice el estándar. */
-  --tarjeta-relleno:      var(--interfaz-espacio-3);
-  --tarjeta-relleno-fila: var(--interfaz-espacio-4);
+  --tarjeta-relleno:      var(--interfaz-espacio-2);   /* 8px */
+  --tarjeta-relleno-fila: var(--interfaz-espacio-3);   /* 12px */
 
-  /* El precio es lo único grande de la tarjeta: 20px, sin negrita y con la línea
+  /* El precio es lo único grande de la tarjeta: 16px, sin negrita y con la línea
      apretada. */
-  --tarjeta-texto-precio: 20px;
+  --tarjeta-texto-precio: 16px;
   --tarjeta-interlinea-1: 1.1;
   --tarjeta-interlinea-2: 1.3;
 
@@ -300,25 +294,25 @@
   --buscador-radio:  2px;
 
   /* -----------------------------------------------------------------
-   * Los formularios
+   * Los formularios (compactos)
    * ----------------------------------------------------------------- */
 
   /* El alto sale del mínimo táctil y no se escribe otra vez: si bajan los
      controles, los campos bajan con ellos. */
   --campo-alto: var(--toque-min);
   --campo-borde:        #cccccc;
-  --campo-relleno:      var(--interfaz-espacio-3);
-  --campo-grupo-hueco:  6px;
-  --campo-grupo-margen: var(--interfaz-espacio-4);
+  --campo-relleno:      var(--interfaz-espacio-2);   /* 8px */
+  --campo-grupo-hueco:  4px;
+  --campo-grupo-margen: var(--interfaz-espacio-3);   /* 12px */
 
   /* -----------------------------------------------------------------
-   * Los diálogos
+   * Los diálogos (compactos)
    * ----------------------------------------------------------------- */
 
   --velo-fondo:          rgb(0 0 0 / 60%);
   --dialogo-ancho:       500px;
   --dialogo-sombra:      0 10px 25px rgb(0 0 0 / 20%);
-  --dialogo-relleno:     var(--interfaz-espacio-4);
-  --dialogo-pie-relleno: var(--interfaz-espacio-3) var(--interfaz-espacio-4);
+  --dialogo-relleno:     var(--interfaz-espacio-3);   /* 12px */
+  --dialogo-pie-relleno: var(--interfaz-espacio-2) var(--interfaz-espacio-3); /* 8px 12px */
   --dialogo-pie-fondo:   #f9f9f9;
 }

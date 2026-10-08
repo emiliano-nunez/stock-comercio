@@ -18,7 +18,7 @@
  * ================================================================= */
 
 .titulo {
-  font-size: var(--texto-lg);
+  font-size: var(--texto-lg);   /* 16px */
   line-height: var(--texto-lg-al);
   font-weight: var(--grosor-fuerte);
   color: var(--color-texto);
@@ -105,12 +105,12 @@
  * ================================================================= */
 
 .detalle {
-  font-size: var(--texto-sm);
+  font-size: var(--texto-sm);   /* 12px */
   line-height: var(--texto-sm-al);
 }
 
 .micro {
-  font-size: var(--texto-xs);
+  font-size: var(--texto-xs);   /* 11px */
   line-height: var(--texto-xs-al);
 }
 
