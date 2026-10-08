@@ -1,4 +1,4 @@
-import { db, dbUtils, TIPOS_VENTA, UNIDADES_STOCK, pasoUnidadStock, categoriasDe, normalizarProveedor, construirHistorialPrecios, claveFamilia, economiaDistinta } from '../db.js';
+import { db, dbUtils, TIPOS_VENTA, UNIDADES_STOCK, pasoUnidadStock, categoriasDe, normalizarProveedor, construirHistorialPrecios, claveFamilia, economiaDistinta, COLORES_CATEGORIAS, nombreBaseDe } from '../db.js';
 import { imagenUtils } from '../utils/imagen.js';
 import { abrirCamara } from './CamaraModal.js';
 import { abrirScanner } from './ScannerModal.js';
@@ -66,6 +66,10 @@ export class ProductoForm {
     // formulario es una sola instancia reutilizada por App.js.
     this._hermanas = [];
     this._aplicarATodas = false;
+    // La etiqueta con la que el nombre quedó compuesto. Al cambiar la
+    // etiqueta en el formulario se quita el sufijo viejo y se pone el nuevo,
+    // y este valor es el que sabe cuál era el viejo.
+    this._etiquetaPrevia = String(this.producto?.varianteEtiqueta || '').trim();
 
     await this.cargarImagenCompleta();
 
@@ -348,6 +352,14 @@ export class ProductoForm {
             <button type="button" id="btn-aplicar-familia" class="btn-secundario no-crece" aria-pressed="false">Aplicar a todas</button>
           </p>`;
 
+    /*
+     * El color que arranca elegido en la paleta: el del producto si ya es
+     * variante, o el primero si es nuevo o nunca tuvo. Se compara en
+     * minúsculas porque una copia de seguridad devuelve los colores en
+     * minúsculas y la paleta los trae con sus mayúsculas.
+     */
+    const colorInicial = String(this.producto?.varianteColor || COLORES_CATEGORIAS[0]).toLowerCase();
+
     modal.innerHTML = `
       <div class="dialogo dialogo-ancho dialogo-columna dialogo-formulario">
         <!-- Header -->
@@ -420,6 +432,32 @@ export class ProductoForm {
                   required
                   autocomplete="off"
                 >
+              </div>
+
+              <!--
+                Etiqueta y color de variante, juntos como en el diálogo de
+                creación. Con etiqueta el producto pasa a variante y el nombre
+                de arriba compone el sufijo sólo; sin etiqueta queda normal y
+                no muestra chip.
+              -->
+              <div class="solo-detallado campo-variante">
+                <label for="variante-etiqueta" class="etiqueta">${icono('duplicar')} Etiqueta de variante</label>
+                <input
+                  type="text"
+                  id="variante-etiqueta"
+                  name="varianteEtiqueta"
+                  class="campo"
+                  placeholder="Negro, Rojo, Diseño floral…"
+                  maxlength="40"
+                  value="${escAttr(this.producto?.varianteEtiqueta || '')}"
+                  autocomplete="off"
+                >
+                <label class="etiqueta con-margen-arriba-chica">Color</label>
+                <div class="fila envuelto">
+                  ${COLORES_CATEGORIAS.map(color => `
+                    <button type="button" class="color-btn muestra-color ${color.toLowerCase() === colorInicial ? 'muestra-color-elegida' : ''}" data-color="${escAttr(color)}" style="background-color: ${escAttr(color)}; border-color: ${escAttr(color)}40;" aria-label="Color ${escAttr(color)}"></button>
+                  `).join('')}
+                </div>
               </div>
 
               <div class="solo-detallado campo-codigo-barras">
@@ -893,6 +931,18 @@ export class ProductoForm {
     };
     form.addEventListener('input', refrescarFormulario);
     form.addEventListener('change', refrescarFormulario);
+
+    // La etiqueta de variante compone el nombre en vivo y la paleta sólo
+    // marca la muestra elegida; ambas se leen recién al guardar, y la
+    // etiqueta manda: sin ella no hay variante aunque quede un color tocado.
+    modal.querySelector('#variante-etiqueta')?.addEventListener('input', () => this.refrescarNombreVariante(modal));
+    modal.querySelectorAll('.campo-variante .color-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        modal.querySelectorAll('.campo-variante .color-btn').forEach(b => {
+          b.classList.toggle('muestra-color-elegida', b === btn);
+        });
+      });
+    });
 
     const btnAplicarFamilia = modal.querySelector('#btn-aplicar-familia');
     if (btnAplicarFamilia) {
@@ -1604,11 +1654,50 @@ export class ProductoForm {
     else boton.removeAttribute('aria-disabled');
   }
 
+  /**
+   * El nombre sigue a la etiqueta de variante.
+   *
+   * Al cambiar la etiqueta se le quita al nombre el sufijo anterior y se le
+   * pone el nuevo —el mismo trato que da nombreBaseDe por el otro lado—, así
+   * el campo siempre muestra el nombre compuesto y sigue pudiéndose editar a
+   * mano. Sin nombre todavía no se compone nada: el formulario lo pide igual.
+   */
+  refrescarNombreVariante(modal) {
+    const campoEtiqueta = modal.querySelector('#variante-etiqueta');
+    const campoNombre = modal.querySelector('#nombre');
+    if (!campoEtiqueta || !campoNombre) return;
+
+    const etiqueta = campoEtiqueta.value.trim();
+    const previa = this._etiquetaPrevia;
+    if (etiqueta === previa) return;
+
+    const base = nombreBaseDe({ nombre: campoNombre.value, varianteEtiqueta: previa });
+    if (etiqueta && !base.trim()) {
+      this._etiquetaPrevia = etiqueta;
+      return;
+    }
+
+    // Si el nombre ya termina en la etiqueta (se escribió a mano), no se le
+    // pega el sufijo dos veces.
+    campoNombre.value = etiqueta
+      ? (base.endsWith(` — ${etiqueta}`) ? base : `${base} — ${etiqueta}`)
+      : base;
+    this._etiquetaPrevia = etiqueta;
+  }
+
   async guardar(e) {
     e.preventDefault();
 
     const formData = new FormData(e.target);
     const nombre = formData.get('nombre')?.toString().trim();
+
+    // Etiqueta y color de la variante, leídos del formulario como el nombre.
+    // Sin etiqueta no hay variante (aunque quede un color tocado en la
+    // paleta); con etiqueta, el color es el elegido o el propio de siempre.
+    const varianteEtiqueta = formData.get('varianteEtiqueta')?.toString().trim() || '';
+    const colorElegido = e.target.querySelector('.muestra-color-elegida')?.dataset.color
+      || this.producto?.varianteColor
+      || COLORES_CATEGORIAS[0];
 
     // Lo mismo que mira el botón: si falta algo se dice qué y no se guarda.
     // Sin este corte, el Enter del teclado mandaría el form igual.
@@ -1769,16 +1858,14 @@ export class ProductoForm {
       creadoSinFoto: !this.imagenId,
       fecha,
       unidadPrincipal,
-      // El vínculo de familia de una variante. Sólo llega cuando el producto
-      // nace de "Crear variante" (el modal lo puso en this.producto); un
-      // producto cargado a mano no lo trae y los campos quedan ausentes, que
-      // es como viven en la base. En edición ya entraron con el spread de
-      // this.producto, acá se repiten sin cambiar nada.
-      ...(this.producto?.familia ? {
-        familia: this.producto.familia,
-        varianteEtiqueta: this.producto.varianteEtiqueta || '',
-        varianteColor: this.producto.varianteColor || null
-      } : {}),
+      // La variante viene del formulario: con etiqueta guarda el color
+      // elegido, y sin etiqueta los campos quedan limpios, que es como
+      // viven en la base cuando el producto es normal. El vínculo de familia
+      // no se toca: sólo se conserva si venía puesto (nacido de "Crear
+      // variante" o miembro de una familia ya armada).
+      varianteEtiqueta,
+      varianteColor: varianteEtiqueta ? colorElegido : null,
+      ...(this.producto?.familia ? { familia: this.producto.familia } : {}),
       actualizadoEl: new Date().toISOString()
     };
 
