@@ -572,7 +572,7 @@ export class App {
         </div>
       </header>
 
-      <!-- Bottom-nav móvil: 6 acciones principales -->
+      <!-- Bottom-nav móvil: 5 acciones principales -->
       <nav class="bottom-nav" aria-label="Navegación principal">
         <button class="bottom-nav-item ${this.vistaActual === 'inventario' ? 'activo' : ''}" data-vista="inventario" aria-label="Inventario">
           ${icono('caja')}<span>Inventario</span>
@@ -583,16 +583,23 @@ export class App {
         <button class="bottom-nav-item ${this.vistaActual === 'categorias' ? 'activo' : ''}" data-vista="categorias" aria-label="Categorías">
           ${icono('carpeta')}<span>Categorías</span>
         </button>
-        <button class="bottom-nav-item bottom-nav-principal" data-accion="agregar" aria-label="Agregar producto">
+        <button class="bottom-nav-item bottom-nav-principal" id="btn-agregar-menu" aria-label="Agregar producto" aria-haspopup="true" aria-expanded="false">
           ${icono('mas')}<span>Agregar</span>
-        </button>
-        <button class="bottom-nav-item" data-accion="carga-rapida" aria-label="Carga rápida">
-          ${icono('rayo')}<span>Rápida</span>
         </button>
         <button class="bottom-nav-item" data-accion="ajustes" aria-label="Ajustes">
           ${icono('ajuste')}<span>Ajustes</span>
         </button>
       </nav>
+
+      <!-- Popover del menú Agregar -->
+      <div class="bottom-nav-popover oculto" id="popover-agregar" role="menu" aria-label="Tipo de producto">
+        <button class="popover-item" data-accion="detallado" role="menuitem">
+          ${icono('mas')}<span>Producto detallado</span>
+        </button>
+        <button class="popover-item" data-accion="rapida" role="menuitem">
+          ${icono('rayo')}<span>Carga rápida</span>
+        </button>
+      </div>
 
       <main class="contenido" id="contenido-principal">
         ${this.renderTarjetaActualizacionHTML()}
@@ -1391,15 +1398,42 @@ export class App {
     document.querySelectorAll('.bottom-nav-item[data-vista]').forEach(btn => {
       btn.addEventListener('click', () => this.abrirVista(btn.dataset.vista));
     });
-    document.querySelectorAll('.bottom-nav-item[data-accion="agregar"]').forEach(btn => {
-      btn.addEventListener('click', () => this.nuevoProducto());
-    });
-    document.querySelectorAll('.bottom-nav-item[data-accion="carga-rapida"]').forEach(btn => {
-      btn.addEventListener('click', () => this.nuevoProducto(null, 'rapida'));
-    });
     document.querySelectorAll('.bottom-nav-item[data-accion="ajustes"]').forEach(btn => {
       btn.addEventListener('click', () => this.mostrarAjustes());
     });
+
+    // Popover "Agregar"
+    const btnAgregarMenu = document.getElementById('btn-agregar-menu');
+    const popoverAgregar = document.getElementById('popover-agregar');
+    if (btnAgregarMenu && popoverAgregar) {
+      const togglePopover = (abrir) => {
+        popoverAgregar.classList.toggle('oculto', !abrir);
+        btnAgregarMenu.setAttribute('aria-expanded', String(abrir));
+      };
+      btnAgregarMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const abierto = btnAgregarMenu.getAttribute('aria-expanded') === 'true';
+        togglePopover(!abierto);
+      });
+      // Cerrar al clicar fuera
+      if (!this._popoverCerrarAlClicFuera) {
+        this._popoverCerrarAlClicFuera = (e) => {
+          if (!popoverAgregar.contains(e.target) && e.target !== btnAgregarMenu) {
+            togglePopover(false);
+          }
+        };
+        document.addEventListener('click', this._popoverCerrarAlClicFuera);
+      }
+      // Items del popover
+      popoverAgregar.querySelectorAll('.popover-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const accion = item.dataset.accion;
+          togglePopover(false);
+          if (accion === 'detallado') this.nuevoProducto();
+          else if (accion === 'rapida') this.nuevoProducto(null, 'rapida');
+        });
+      });
+    }
 
     document.getElementById('btn-escanear-header')?.addEventListener('click', () => this.escanearCodigo());
     document.getElementById('btn-copia')?.addEventListener('click', () => this.abrirCopiaSeguridad());
