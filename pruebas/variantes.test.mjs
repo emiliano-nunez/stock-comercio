@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import 'fake-indexeddb/auto';
-import { claveFamilia, nombreBaseDe, nombreDeVariante, datosDeVariante, db, dbUtils } from '../src/db.js';
+import { claveFamilia, nombreBaseDe, nombreDeVariante, datosDeVariante, economiaDe, economiaDistinta, db, dbUtils } from '../src/db.js';
 import { exportarBackup, importarBackup } from '../src/utils/backup.js';
 
 /*
@@ -79,6 +79,35 @@ test('una variante creada desde otra se suma a la misma familia', () => {
   expect(roja.familia).toBe('prod_base');
   expect(roja.nombre).toBe('Taza Solar — Rojo');
   expect(claveFamilia(roja)).toBe('prod_base');
+});
+
+test('la economía de un producto es el precio que se ve y el costo en números', () => {
+  expect(economiaDe(base)).toEqual({ precio: 2500, costo: 1500 });
+
+  // Con lista de precios, manda el de la unidad principal (y si no hay
+  // exacto, el primero con valor).
+  expect(economiaDe({ precio: 3000, precios: [{ unidad: 'unid', valor: 2800 }] }).precio).toBe(2800);
+
+  // Vacío o ilegible cuenta como 0, nunca como NaN.
+  expect(economiaDe({ precio: '', costo: null })).toEqual({ precio: 0, costo: 0 });
+  expect(economiaDe(null)).toEqual({ precio: 0, costo: 0 });
+});
+
+test('la economía es distinta si cambia el precio o el costo de alguna hermana', () => {
+  const misma = [{ ...base, id: 'prod_v', familia: 'prod_base' }];
+  const precioAjeno = [{ ...base, id: 'prod_v', familia: 'prod_base', precio: 3000 }];
+  const costoAjeno = [{ ...base, id: 'prod_v', familia: 'prod_base', costo: 900 }];
+
+  // Sin hermanas no hay nada que avisar.
+  expect(economiaDistinta({ precio: 2500, costo: 1500 }, [])).toBe(false);
+  expect(economiaDistinta({ precio: 2500, costo: 1500 }, null)).toBe(false);
+
+  expect(economiaDistinta({ precio: 2500, costo: 1500 }, misma)).toBe(false);
+  expect(economiaDistinta({ precio: 2500, costo: 1500 }, precioAjeno)).toBe(true);
+  expect(economiaDistinta({ precio: 2500, costo: 1500 }, costoAjeno)).toBe(true);
+
+  // Un costo vacío en la hermana es un 0: contra un 0 propio no hay diferencia.
+  expect(economiaDistinta({ precio: 2500, costo: 0 }, [{ ...base, id: 'prod_v', familia: 'prod_base', costo: '' }])).toBe(false);
 });
 
 test('la copia de seguridad lleva familia, etiqueta y color', async () => {

@@ -1,4 +1,4 @@
-import { db, dbUtils, TIPOS_VENTA, UNIDADES_STOCK, pasoUnidadStock, categoriasDe, normalizarProveedor, construirHistorialPrecios } from '../db.js';
+import { db, dbUtils, TIPOS_VENTA, UNIDADES_STOCK, pasoUnidadStock, categoriasDe, normalizarProveedor, construirHistorialPrecios, claveFamilia, economiaDistinta } from '../db.js';
 import { imagenUtils } from '../utils/imagen.js';
 import { abrirCamara } from './CamaraModal.js';
 import { abrirScanner } from './ScannerModal.js';
@@ -61,6 +61,11 @@ export class ProductoForm {
     // porque App.js mantiene una sola instancia del formulario.
     this._imagenesNuevas.clear();
     this._guardado = false;
+    // Las hermanas con las que se compara la economía se leen de nuevo en
+    // cada apertura, y "Aplicar a todas" arranca siempre desarmado: el
+    // formulario es una sola instancia reutilizada por App.js.
+    this._hermanas = [];
+    this._aplicarATodas = false;
 
     await this.cargarImagenCompleta();
 
@@ -329,6 +334,20 @@ export class ProductoForm {
             </div>
           </div>`;
 
+    /*
+     * El aviso de familia en vivo, pegado a los precios en los dos modos.
+     * Aparece sólo si el precio o el costo del formulario difiere del de
+     * alguna hermana. El botón no escribe en la base: arma la unificación y
+     * guardar() la aplica junto con todo lo demás, así cancelar el formulario
+     * no deja la familia a medio unificar.
+     */
+    const avisoFamilia = `
+          <p class="nota-atencion fila fila-corta aviso-familia oculto" id="aviso-familia">
+            <span class="no-crece">${icono('alerta')}</span>
+            <span class="nota-texto crece" id="aviso-familia-texto">Las hermanas tienen precios o costos distintos.</span>
+            <button type="button" id="btn-aplicar-familia" class="btn-secundario no-crece" aria-pressed="false">Aplicar a todas</button>
+          </p>`;
+
     modal.innerHTML = `
       <div class="dialogo dialogo-ancho dialogo-columna dialogo-formulario">
         <!-- Header -->
@@ -443,7 +462,7 @@ export class ProductoForm {
                 >
               </div>
 
-              ${esRapida ? bloquePrecios : ''}
+              ${esRapida ? bloquePrecios + avisoFamilia : ''}
             </div>
           </div>
 
@@ -565,7 +584,7 @@ export class ProductoForm {
             <p class="micro apagado con-margen-arriba-chica centro-texto">Edita el precio final abajo para redondear · Los % se guardan</p>
           </div>
 
-          ${esRapida ? '' : bloquePrecios}
+          ${esRapida ? '' : bloquePrecios + avisoFamilia}
 
           <!--
             El botón va FUERA del bloque de arriba a propósito. Adentro comparte
@@ -868,8 +887,21 @@ export class ProductoForm {
      * un botón mudo o la burbuja del navegador.
      */
     this.actualizarBotonGuardar(modal);
-    form.addEventListener('input', () => this.actualizarBotonGuardar(modal));
-    form.addEventListener('change', () => this.actualizarBotonGuardar(modal));
+    const refrescarFormulario = () => {
+      this.actualizarBotonGuardar(modal);
+      this.actualizarAvisoFamilia(modal);
+    };
+    form.addEventListener('input', refrescarFormulario);
+    form.addEventListener('change', refrescarFormulario);
+
+    const btnAplicarFamilia = modal.querySelector('#btn-aplicar-familia');
+    if (btnAplicarFamilia) {
+      btnAplicarFamilia.addEventListener('click', () => {
+        this._aplicarATodas = !this._aplicarATodas;
+        this.actualizarAvisoFamilia(modal);
+      });
+    }
+    this.cargarHermanas(modal);
     modal.querySelector('button[type="submit"][form="form-producto"]').addEventListener('click', (e) => {
       const faltan = this.camposFaltantes(modal);
       if (faltan.length) {
@@ -1158,6 +1190,119 @@ export class ProductoForm {
       this.inicializarCalculadoraPrecio(modal);
       this.configurarEventosPrecios(modal);
     });
+
+    // Los campos de precio se repintaron con el nuevo tipo: el aviso de
+    // familia vuelve a comparar contra lo que ahora muestra el formulario.
+    this.actualizarAvisoFamilia(modal);
+  }
+
+  /**
+   * Las hermanas con las que este formulario compara su economía.
+   *
+   * Se leen de la base una vez por apertura (lo mismo que hace variantesDe en
+   * App.js, pero adentro del form para no agrandarle la API). Sin familia no
+   * hay nada que comparar y las hermanas quedan vacías: el aviso nunca aparece.
+   */
+  async cargarHermanas(modal) {
+    const clave = claveFamilia(this.producto);
+    if (!clave) return;
+    try {
+      const todos = await db.productos.toArray();
+      this._hermanas = todos.filter(p => p.id !== this.producto?.id && claveFamilia(p) === clave);
+    } catch (error) {
+      console.error('[Formulario] No se pudieron leer las hermanas:', error);
+      this._hermanas = [];
+    }
+    this.actualizarAvisoFamilia(modal);
+  }
+
+  /**
+   * Lo que el formulario muestra ahora mismo: precio principal y costo.
+   *
+   * El precio se lee por el nombre del campo (precio_<unidad principal>), el
+   * mismo criterio con el que guardar() arma la lista de precios. Un campo
+   * vacío o ilegible cuenta como 0, igual que en la base.
+   */
+  economiaFormulario(modal) {
+    const form = modal.querySelector('#form-producto');
+    if (!form) return { precio: 0, costo: 0 };
+    const tipo = TIPOS_VENTA.find(t => t.value === this.tipoVenta) || TIPOS_VENTA[0];
+    const unidadPrincipal = tipo.subUnidades?.[0]?.value || tipo.unidadBase;
+    const datos = new FormData(form);
+    return {
+      precio: Number(datos.get(`precio_${unidadPrincipal}`)) || 0,
+      costo: Number(datos.get('costo')) || 0
+    };
+  }
+
+  /**
+   * El aviso de familia en vivo.
+   *
+   * Se esconde sólo cuando la economía del formulario coincide con todas las
+   * hermanas. Si se esconde con el botón armado, se desarma solo: si no hay
+   * diferencia, no queda nada por unificar.
+   */
+  actualizarAvisoFamilia(modal) {
+    const aviso = modal.querySelector('#aviso-familia');
+    if (!aviso) return;
+
+    const hay = economiaDistinta(this.economiaFormulario(modal), this._hermanas);
+    if (!hay) {
+      this._aplicarATodas = false;
+      aviso.classList.add('oculto');
+      return;
+    }
+
+    aviso.classList.remove('oculto');
+    const texto = aviso.querySelector('#aviso-familia-texto');
+    const boton = aviso.querySelector('#btn-aplicar-familia');
+    if (texto) {
+      texto.textContent = this._aplicarATodas
+        ? `Se unificará el precio y el costo con las ${this._hermanas.length} hermanas al guardar.`
+        : 'Las hermanas tienen precios o costos distintos.';
+    }
+    if (boton) boton.setAttribute('aria-pressed', String(this._aplicarATodas));
+  }
+
+  /**
+   * "Aplicar a todas": la familia queda con la economía de este formulario.
+   *
+   * Cada hermana se guarda por guardarProducto (que recalcula sus campos
+   * derivados) con su propia entrada de historial, que nace sólo si algo
+   * cambió. IVA y margen viajan con el precio y el costo para que las fichas
+   * queden iguales de punta a punta.
+   *
+   * Un fallo no tira abajo el guardado principal: el producto propio ya está
+   * guardado y el aviso de error dice que la familia quedó sin unificar.
+   *
+   * @param {object} valores precio, precios, costo, IVA, margen y unidad ya validados
+   */
+  async aplicarEconomiaAFamilia(valores) {
+    const hoy = new Date().toISOString().split('T')[0];
+    const ahora = new Date().toISOString();
+    try {
+      let unificadas = 0;
+      for (const hermana of this._hermanas) {
+        await dbUtils.guardarProducto({
+          ...hermana,
+          precio: valores.precioPrincipal,
+          precios: valores.precios,
+          unidadPrincipal: valores.unidadPrincipal,
+          costo: valores.costo,
+          ivaPorcentaje: valores.ivaPorcentaje,
+          margenPorcentaje: valores.margenPorcentaje,
+          historialPrecios: construirHistorialPrecios(hermana, valores.precioPrincipal, valores.costo, hoy),
+          actualizadoEl: ahora
+        }, hermana.id);
+        unificadas++;
+      }
+      if (unificadas > 0) {
+        toast.success(`Economía unificada en las ${unificadas} fichas de la familia`);
+      }
+    } catch (error) {
+      console.error('[Formulario] No se pudo unificar la familia:', error);
+      toast.error('No se pudo unificar toda la familia');
+    }
   }
 
   inicializarCalculadoraPrecio(modal) {
@@ -1655,6 +1800,19 @@ export class ProductoForm {
       } else {
         await dbUtils.guardarProducto(datosProducto);
         toast.success('Producto agregado');
+      }
+
+      // Recién acá, después de que el producto propio quedó guardado: si la
+      // unificación falla, el error es de la familia y no del producto.
+      if (this._aplicarATodas && this._hermanas.length > 0) {
+        await this.aplicarEconomiaAFamilia({
+          precios,
+          precioPrincipal,
+          costo,
+          ivaPorcentaje,
+          margenPorcentaje,
+          unidadPrincipal
+        });
       }
 
       this._guardado = true;

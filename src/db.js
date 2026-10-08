@@ -1378,6 +1378,49 @@ export function datosDeVariante(original, { etiqueta, color = null, base = null 
   };
 }
 
+/**
+ * Lo económico de un producto, normalizado para compararlo entre hermanas.
+ *
+ * El precio es el que se ve en la tarjeta y en la ficha (el de la unidad
+ * principal de la lista `precios`, con la caída al campo `precio` de siempre)
+ * y el costo va en números: undefined, null o "" de una ficha recién cargada
+ * cuentan como 0 y no como una diferencia.
+ *
+ * IVA y margen no se comparan: no cambian lo que se cobra, sólo la calculadora
+ * que lo deriva. Pero sí viajan cuando "Aplicar a todas" unifica la familia,
+ * para que las fichas queden iguales en lo económico de punta a punta.
+ *
+ * @param {object} producto
+ * @returns {{precio: number, costo: number}}
+ */
+export function economiaDe(producto) {
+  return {
+    precio: getPrecioPrincipal(producto).valor,
+    costo: Number(producto?.costo) || 0
+  };
+}
+
+/**
+ * ¿Hay alguna hermana con precio o costo distinto del propio?
+ *
+ * Sin hermanas no hay nada que comparar, así que es false y el aviso del
+ * formulario no aparece. `propio` es la misma forma que devuelve
+ * `economiaDe`, pero leída del formulario: los números que se van a guardar.
+ *
+ * @param {{precio?: number, costo?: number}} propio
+ * @param {object[]} hermanas
+ * @returns {boolean}
+ */
+export function economiaDistinta(propio, hermanas) {
+  if (!Array.isArray(hermanas) || hermanas.length === 0) return false;
+  const precioPropio = Number(propio?.precio) || 0;
+  const costoPropio = Number(propio?.costo) || 0;
+  return hermanas.some(hermana => {
+    const eco = economiaDe(hermana);
+    return eco.precio !== precioPropio || eco.costo !== costoPropio;
+  });
+}
+
 // Inicializar categorías - NO crear por defecto, el usuario crea las suyas
 export async function inicializarCategorias() {
   // No crear categorías por defecto - el usuario define las suyas

@@ -773,3 +773,36 @@ svg {
   height: 1.2rem;
 }
 
+/* =================================================================
+ * Aviso de precios de familia
+ *
+ * El aviso en vivo del formulario de producto: aparece cuando el precio o el
+ * costo del formulario difiere del de alguna hermana, con el botón que arma
+ * la unificación para aplicarla al guardar.
+ * ================================================================= */
+
+/*
+ * Las nota-* sólo ponen el color de fondo y la letra: en la tarjeta el aire
+ * lo daba el contenedor, y contra el fondo del diálogo hacía falta relleno,
+ * borde redondo y un ancho mínimo para que el botón no se apile al texto.
+ */
+.aviso-familia {
+  align-items: center;
+  padding: var(--espacio-2) var(--espacio-3);
+  border: 1px solid var(--ambar-200);
+  border-radius: var(--radio-lg);
+  font-size: var(--texto-sm);
+}
+
+/*
+ * "Aplicar a todas" es un toggle: mientras esté armado, el aviso dice qué va
+ * a pasar al guardar. El estado vive en aria-pressed —que es lo que escucha
+ * un lector de pantalla— y el estilo se cuelga de esa misma señal, sin una
+ * clase paralela que olvidar.
+ */
+#btn-aplicar-familia[aria-pressed="true"] {
+  background-color: var(--ambar-100);
+  border-color: var(--ambar-700);
+  color: var(--ambar-700);
+}
+
