@@ -181,12 +181,12 @@ export class CamaraModal {
     try {
       await this.iniciarCamara();
     } catch (error) {
-
       this.facingMode = anterior;
       try {
         await this.iniciarCamara();
       } catch {
-
+        // El reintento también falló, pero se tira el error original: el de
+        // este intento sólo lo taparía.
       }
       throw error;
     }

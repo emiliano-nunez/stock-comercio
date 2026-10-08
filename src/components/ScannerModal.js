@@ -226,7 +226,8 @@ export class ScannerModal {
         try {
           await this.iniciarEscaneo();
         } catch {
-
+          // iniciarEscaneo ya mostró el error y ofreció la salida; acá sólo
+          // se traga el rechazo para no dejar una promesa sin atender.
         }
       });
     }
@@ -346,8 +347,9 @@ export class ScannerModal {
     if (this.scanner && this.isScanning) {
       try {
         await this.scanner.stop();
-      } catch (e) {
-
+      } catch {
+        // stop() tira si el escáner nunca arrancó; de todos modos abajo se
+        // marca como detenido, que es lo que sigue mirando el resto del flujo.
       }
       this.isScanning = false;
     }
