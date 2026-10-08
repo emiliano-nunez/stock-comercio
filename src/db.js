@@ -1163,6 +1163,24 @@ export function estadoStock(producto) {
 }
 
 /**
+ * La insignia de un estado de stock: su clase CSS y su texto corto.
+ *
+ * Los dos juntos porque siempre se usan juntos —el color y la palabra— y así
+ * un mismo estado no puede quedar con la clase de un lado y el texto del otro.
+ * Es el único lugar donde 'ok' | 'poco' | 'vacio' se traduce a insignia: la
+ * tarjeta del inventario, el catálogo, la ficha del producto y el diálogo de
+ * código repetido pasan por acá.
+ *
+ * @param {'ok'|'poco'|'vacio'} estado
+ * @returns {{clase: string, texto: string}}
+ */
+export function insigniaEstado(estado) {
+  if (estado === 'vacio') return { clase: 'insignia-sin', texto: 'Agotado' };
+  if (estado === 'poco') return { clase: 'insignia-poco', texto: 'Poco' };
+  return { clase: 'insignia-ok', texto: 'OK' };
+}
+
+/**
  * Unidad principal elegida por el usuario para un producto.
  *
  * Devuelve el descriptor de la sub-unidad elegida ({ value, label, icon }), o

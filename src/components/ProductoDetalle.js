@@ -1,4 +1,4 @@
-import { TIPOS_VENTA, estadoStock, getPrecioPrincipal, getUnidadPrincipal, getUnidadBase, unidadStockTexto, pasoUnidadStock, categoriasDe, COLORES_CATEGORIAS } from '../db.js';
+import { TIPOS_VENTA, estadoStock, insigniaEstado, getPrecioPrincipal, getUnidadPrincipal, getUnidadBase, unidadStockTexto, pasoUnidadStock, categoriasDe, COLORES_CATEGORIAS } from '../db.js';
 import { esc, escAttr, fmtPrecio } from '../utils/html.js';
 import { fechaEnDia } from '../utils/texto.js';
 import { icono } from '../utils/iconos.js';
@@ -52,8 +52,7 @@ export function abrirDetalleProducto({ producto, categorias = [], variantes = []
     .filter(Boolean);
 
   const estado = estadoStock(p);
-  const claseEstado = estado === 'vacio' ? 'insignia-sin' : estado === 'poco' ? 'insignia-poco' : 'insignia-ok';
-  const textoEstado = estado === 'vacio' ? 'Agotado' : estado === 'poco' ? 'Poco' : 'OK';
+  const { clase: claseEstado, texto: textoEstado } = insigniaEstado(estado);
 
   /*
    * Todas las filas aparecen siempre.
@@ -275,9 +274,8 @@ export function abrirDetalleProducto({ producto, categorias = [], variantes = []
 
     const celdaEstado = modal.querySelector('.js-detalle-estado');
     if (!celdaEstado) return;
-    const bajo = nuevo === 0 ? 'vacio' : nuevo <= stockMinimo ? 'poco' : 'ok';
-    const clases = bajo === 'vacio' ? 'insignia-sin' : bajo === 'poco' ? 'insignia-poco' : 'insignia-ok';
-    const texto = bajo === 'vacio' ? 'Agotado' : bajo === 'poco' ? 'Poco' : 'OK';
+    const bajo = estadoStock({ stock: nuevo, stockMinimo });
+    const { clase: clases, texto } = insigniaEstado(bajo);
     celdaEstado.className = `planilla-valor js-detalle-estado`;
     celdaEstado.innerHTML = `<span class="insignia ${clases}">${texto}</span>`;
 

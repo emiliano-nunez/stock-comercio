@@ -1,4 +1,4 @@
-import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe, claveFamilia, datosDeVariante } from './db.js';
+import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, insigniaEstado, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe, claveFamilia, datosDeVariante } from './db.js';
 import { abrirFormularioProducto } from './components/ProductoForm.js';
 import { abrirCopiaSeguridad } from './components/CopiaSeguridadModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
@@ -32,17 +32,16 @@ export class App {
   // grupo y su contenido se vean del mismo color.
 
   /*
-   * Los tres estados de stock, con el nombre de la clase y el color.
+   * Los tres estados de stock, con el nombre corto y el color.
    *
-   * El color está escrito dos veces a propósito: una vez como clase de CSS y una
-   * vez como valor, porque va por atributo `style` en el punto de color del
-   * catálogo. Si los dos tienen que salir del mismo lugar, cambiar el verde es
-   * cambiar un número en tokens.css y otro acá, y se puede olvidar uno.
+   * El color está escrito como valor y no sacado de la clase de insignia
+   * porque va por atributo `style` en el punto de color del catálogo, donde
+   * una clase de CSS no pinta nada.
    */
   static ESTADOS_STOCK = [
-    { clave: 'ok', etiqueta: 'Con stock', clase: 'insignia-ok', color: '#22c55e' },
-    { clave: 'poco', etiqueta: 'Pocas unidades', clase: 'insignia-poco', color: '#f59e0b' },
-    { clave: 'vacio', etiqueta: 'Sin stock', clase: 'insignia-sin', color: '#ef4444' }
+    { clave: 'ok', etiqueta: 'Con stock', color: '#22c55e' },
+    { clave: 'poco', etiqueta: 'Pocas unidades', color: '#f59e0b' },
+    { clave: 'vacio', etiqueta: 'Sin stock', color: '#ef4444' }
   ];
 
   /**
@@ -452,7 +451,7 @@ export class App {
   }
 
   getStockClass(producto) {
-    return App.ESTADOS_STOCK.find(e => e.clave === estadoStock(producto)).clase;
+    return insigniaEstado(estadoStock(producto)).clase;
   }
 
   getStockLabel(producto) {
@@ -1166,7 +1165,6 @@ export class App {
   }
 
   renderProductoHTML(p) {
-    const stockClass = this.getStockClass(p);
     const stock = p.stock || 0;
     const tipo = TIPOS_VENTA.find(t => t.value === p.tipoVenta) || TIPOS_VENTA[0];
     // La única unidad de esta tarjeta es la del costo, y el costo va siempre
@@ -1190,11 +1188,7 @@ export class App {
          </p>`
       : '';
 
-    const stockBadgeClass = stock === 0
-      ? 'insignia-sin'
-      : stock <= stockMinimo
-        ? 'insignia-poco'
-        : 'insignia-ok';
+    const stockBadgeClass = insigniaEstado(estadoStock(p)).clase;
 
     // El punto de color de una variante, pegado al nombre: es la marca con la
     // que se la distingue de un vistazo en la lista. Sin color no hay punto,
@@ -1637,15 +1631,10 @@ export class App {
     if (!card) return;
 
     const stock = producto.stock || 0;
-    const stockMinimo = producto.stockMinimo || 0;
 
     const badge = card.querySelector('.js-stock-badge');
     if (badge) {
-      const clases = stock === 0
-        ? 'insignia-sin'
-        : stock <= stockMinimo
-          ? 'insignia-poco'
-          : 'insignia-ok';
+      const clases = insigniaEstado(estadoStock(producto)).clase;
       badge.className = `js-stock-badge insignia insignia-pequena insignia-stock esquina-superior-derecha ${clases}`;
       badge.textContent = `${stock}`;
     }

@@ -1,4 +1,4 @@
-import { db, estadoStock, unidadStockTexto } from '../db.js';
+import { db, estadoStock, insigniaEstado, unidadStockTexto } from '../db.js';
 import { esc, fmtPrecio } from '../utils/html.js';
 import { icono } from '../utils/iconos.js';
 
@@ -83,12 +83,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       const stock = p.stock || 0;
       const minimo = p.stockMinimo || 0;
 
-      const ETIQUETA = {
-        ok: { clase: 'insignia-ok', texto: 'OK' },
-        poco: { clase: 'insignia-poco', texto: 'Poco' },
-        vacio: { clase: 'insignia-sin', texto: 'Agotado' }
-      };
-      const badge = ETIQUETA[estadoStock(p)];
+      const badge = insigniaEstado(estadoStock(p));
 
       // El botón "Abrir" sólo aparece en el escáner: en el formulario taparía
       // lo que el usuario viene escribiendo sin avisar.
