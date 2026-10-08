@@ -213,13 +213,13 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       // botón, para que el usuario vea el código exacto que va a quedar antes
       // de aceptarlo y no después.
 
-      if (origen === 'formulario') prepararSufijo();
+      if (origen === 'formulario') prepararSufijo().catch(console.error);
     }
 
     async function prepararSufijo() {
       const boton = box.querySelector('[data-accion="sufijo"]');
-      if (!boton) return;
-      const texto = boton.querySelector('.js-texto-sufijo');
+      const texto = boton?.querySelector('.sufijo-campo');
+      if (!boton || !texto) return;
       const libre = await primerCodigoLibre(codigo);
       if (libre === codigo) {
 
