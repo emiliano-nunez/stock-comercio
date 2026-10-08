@@ -1266,6 +1266,97 @@ export function construirHistorialPrecios(productoViejo, precioNuevo, costoNuevo
   return [...historial, { fecha, precio: precioViejo, costo: costoViejo }];
 }
 
+/**
+ * La familia de un producto: el id del que la abrió, o la que le asignaron.
+ *
+ * El producto base no guarda `familia`: su clave es su propio id. Así base y
+ * variantes resuelven a la misma clave sin un campo extra en el primero, y si
+ * el base se borra, las hermanas siguen juntas (la clave es simétrica).
+ *
+ * @param {object} producto
+ * @returns {string|null}
+ */
+export function claveFamilia(producto) {
+  return producto?.familia || producto?.id || null;
+}
+
+/**
+ * El nombre de un producto sin su etiqueta de variante al final.
+ *
+ * "Taza Solar — Negro" con varianteEtiqueta "Negro" da "Taza Solar". Sin
+ * etiqueta, el nombre vuelve tal cual.
+ *
+ * @param {object} producto
+ * @returns {string}
+ */
+export function nombreBaseDe(producto) {
+  const propia = String(producto?.varianteEtiqueta || '');
+  const nombre = String(producto?.nombre || '');
+  const sufijo = propia ? ` — ${propia}` : '';
+  return sufijo && nombre.endsWith(sufijo) ? nombre.slice(0, -sufijo.length) : nombre;
+}
+
+/**
+ * El nombre de una variante nueva: el de la familia más la etiqueta.
+ *
+ * Si la base está viva manda el nombre de ella; si se borró, se cae al del
+ * original sin la etiqueta propia, para no apilar "— Negro — Rojo".
+ *
+ * @param {object} original producto del que nace la variante
+ * @param {string} etiqueta lo que distingue a la variante ("Negro")
+ * @param {object|null} base producto que abrió la familia, si se encontró
+ * @returns {string}
+ */
+export function nombreDeVariante(original, etiqueta, base = null) {
+  const nombreBase = base && base.id !== original.id ? base.nombre : nombreBaseDe(original);
+  return `${nombreBase} — ${String(etiqueta || '').trim()}`;
+}
+
+/**
+ * Los datos de una variante nueva, armados sobre el producto del que nace.
+ *
+ * Copia todo lo que hace a un producto (precios, costo, categoría, proveedor,
+ * tipo de venta, foto) y cambia lo que la distingue:
+ *
+ *   - stock: es un SKU propio y arranca sin mercadería.
+ *   - codigoBarras / codigoProveedor: la identidad es de cada variante; se
+ *     dejan para que se cargue el que le corresponde y no se herede el ajeno.
+ *   - historialPrecios: no arrastra la referencia de precios de la hermana.
+ *   - familia / varianteEtiqueta / varianteColor: los datos nuevos del vínculo.
+ *
+ * No lleva id: el formulario tiene que crear un producto nuevo, no pisar al
+ * original.
+ *
+ * @param {object} original
+ * @param {object} opciones
+ * @param {string} opciones.etiqueta lo que distingue a la variante
+ * @param {string|null} [opciones.color] color de la paleta o null
+ * @param {object|null} [opciones.base] producto que abrió la familia
+ * @returns {object} datos listos para el formulario
+ */
+export function datosDeVariante(original, { etiqueta, color = null, base = null } = {}) {
+  const {
+    id: _id,
+    codigoBarras: _codigoBarras,
+    imagenUrl: _imagenUrl,
+    fotoPerdida: _fotoPerdida,
+    creadoEl: _creadoEl,
+    actualizadoEl: _actualizadoEl,
+    ...resto
+  } = original;
+
+  return {
+    ...resto,
+    nombre: nombreDeVariante(original, etiqueta, base),
+    stock: 0,
+    codigoProveedor: null,
+    historialPrecios: [],
+    familia: original.familia || original.id,
+    varianteEtiqueta: String(etiqueta || '').trim(),
+    varianteColor: color
+  };
+}
+
 // Inicializar categorías - NO crear por defecto, el usuario crea las suyas
 export async function inicializarCategorias() {
   // No crear categorías por defecto - el usuario define las suyas

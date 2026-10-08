@@ -105,6 +105,11 @@ function normalizarProducto(p) {
     precio: Math.max(0, numero(resto.precio)),
     precios: preciosSeguros(resto.precios),
     historialPrecios: historialSeguro(resto.historialPrecios),
+    // Familia de variantes: la clave, la etiqueta y el color. El color pasa por
+    // colorSeguro porque también se usa para pintar directo en el HTML.
+    familia: resto.familia ? texto(resto.familia, { largo: 120 }) : null,
+    varianteEtiqueta: texto(resto.varianteEtiqueta, { largo: 60 }),
+    varianteColor: colorSeguro(resto.varianteColor),
     imagenId: resto.imagenId ? texto(resto.imagenId, { largo: 120 }) : null,
     fechaCompra: texto(resto.fechaCompra, { largo: 40 }),
     fecha: texto(resto.fecha, { largo: 40 }),

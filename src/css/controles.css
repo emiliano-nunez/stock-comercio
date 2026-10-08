@@ -194,13 +194,13 @@ svg {
 }
 
 /*
- * El botón de duplicar de la tarjeta no se ve en el teléfono: va en la hoja del
- * producto. Está esta regla acá y no en disposicion.css porque `.btn` pone
- * `display: inline-flex` y a igual especificidad gana la regla más abajo del
- * bundle.
+ * El botón de crear variante de la tarjeta no se ve en el teléfono: va en la
+ * hoja del producto. Está esta regla acá y no en disposicion.css porque `.btn`
+ * pone `display: inline-flex` y a igual especificidad gana la regla más abajo
+ * del bundle.
  */
 @media (max-width: 839px) {
-  .duplicar-tarjeta {
+  .variante-tarjeta {
     display: none;
   }
 }
@@ -767,6 +767,33 @@ svg {
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
+}
+
+/*
+ * Un chip con el nombre de una variante hermana, en la fila "Variantes" de la
+ * ficha. Pastilla con el punto de color, tamaño táctil, y tocarlo abre la
+ * ficha del hermano. Estilo parecido al chip `.dato-anterior` porque cumplen
+ * la misma función: mostrar algo chico que acompaña a un dato.
+ */
+.chip-variante {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--interfaz-espacio-1);
+  max-width: 100%;
+  min-height: var(--toque-min);
+  padding: var(--interfaz-espacio-1) var(--interfaz-espacio-2);
+  border: 1px solid var(--interfaz-borde);
+  border-radius: var(--radio-full);
+  background-color: var(--color-marca-tenue);
+  color: var(--interfaz-texto);
+  font-size: var(--interfaz-texto-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Para que el nombre largo se corte con puntos en vez de estirar la pastilla. */
+.chip-variante .cortado {
+  min-width: 0;
 }
 
 .etiqueta-seccion {

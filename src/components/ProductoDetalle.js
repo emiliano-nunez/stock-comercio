@@ -20,12 +20,15 @@ let abierta = null;
  * @param {object}   opciones
  * @param {object}   opciones.producto    el producto tal como lo carga la app
  * @param {object[]} opciones.categorias  todas, para resolver nombres y colores
+ * @param {object[]} [opciones.variantes] las hermanas de la misma familia
  * @param {Function} [opciones.onEditar]  se llama con el producto al pedir editar
  * @param {Function} [opciones.onAjustar] recibe +1 o -1 y devuelve el stock nuevo,
  *   o null si no se pudo guardar
+ * @param {Function} [opciones.onVariante] al pedir crear variante de este producto
+ * @param {Function} [opciones.onVerVariante] al tocar un chip de variante, con su id
  * @returns {{ cerrar: Function }}        para poder cerrarla desde afuera
  */
-export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAjustar, onDuplicar }) {
+export function abrirDetalleProducto({ producto, categorias = [], variantes = [], onEditar, onAjustar, onVariante, onVerVariante }) {
   const p = producto;
   if (!p) return { cerrar() {} };
 
@@ -83,6 +86,21 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
   fila('Stock', `${stock} <span class="tenue">${esc(unidadStockTexto(p, stock))}</span>`, 'js-detalle-stock', 'stock');
   fila('Mínimo', `${stockMinimo} <span class="tenue">${esc(unidadStockTexto(p, stockMinimo))}</span>`, '', 'stock-minimo');
   fila('Estado', `<span class="insignia ${claseEstado}">${textoEstado}</span>`, 'js-detalle-estado', 'stock');
+
+  /*
+   * Las hermanas de este producto: las variantes si ésta es la base, las otras
+   * variantes si ésta es variante. Cada chip abre la otra ficha, que es como se
+   * salta entre colores para ajustar stock. Sólo hay fila con familia de
+   * verdad: en un producto común no hay nada que mostrar.
+   */
+  if (variantes.length) {
+    const chips = variantes.map(v => `
+      <button type="button" class="chip-variante js-ver-variante" data-id="${escAttr(v.id)}">
+        ${v.varianteColor ? `<span class="punto-chico" style="background-color: ${escAttr(v.varianteColor)}"></span>` : ''}
+        <span class="cortado">${esc(v.nombre)}</span>
+      </button>`).join('');
+    fila('Variantes', `<span class="fila envuelto">${chips}</span>`, 'js-variantes');
+  }
 
   /*
    * El precio sale en la unidad corta (unidad, kg, 500g) y no en el nombre largo
@@ -208,17 +226,18 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
           ${ajustarHTML}
           <div class="fila">
             <!--
-              El botón de duplicar vive acá y no en la tarjeta en el teléfono. La
-              tarjeta lleva los botones en una columna al costado y con los tres
-              dedans la fila de la tarjeta se pone más alta; sacándolo de la
-              tarjeta, la columna queda con dos. En el escritorio el botón vuelve a
-              la tarjeta, que es donde se lo usa, y acá se esconde.
+              El botón de crear variante vive acá y no en la tarjeta en el
+              teléfono. La tarjeta lleva los botones en una columna al costado y
+              con los tres dedos la fila de la tarjeta se pone más alta;
+              sacándolo de la tarjeta, la columna queda con dos. En el escritorio
+              el botón vuelve a la tarjeta, que es donde se lo usa, y acá se
+              esconde.
             -->
             <button
               type="button"
-              id="detalle-duplicar"
-              class="btn-secundario btn-icono-solo duplicar-detalle"
-              aria-label="Duplicar este producto"
+              id="detalle-variante"
+              class="btn-secundario btn-icono-solo variante-detalle"
+              aria-label="Crear variante de este producto"
             >${icono('duplicar')}</button>
             <button type="button" id="detalle-editar" class="btn-secundario btn-icono-solo" aria-label="Editar este producto">${icono('editar')}</button>
             <button type="button" id="detalle-cerrar-pie" class="btn-principal btn-crece">Cerrar</button>
@@ -283,9 +302,15 @@ export function abrirDetalleProducto({ producto, categorias = [], onEditar, onAj
     onEditar?.(p);
   });
 
-  modal.querySelector('#detalle-duplicar')?.addEventListener('click', () => {
+  modal.querySelector('#detalle-variante')?.addEventListener('click', () => {
     cerrar();
-    onDuplicar?.(p);
+    onVariante?.(p);
+  });
+
+  // Cada chip abre la ficha de su hermana. No se cierra la actual a mano: al
+  // crear la nueva hoja, la que estaba abierta se cierra sola.
+  modal.querySelectorAll('.js-ver-variante').forEach(chip => {
+    chip.addEventListener('click', () => onVerVariante?.(chip.dataset.id));
   });
 
   const hoja = { cerrar };

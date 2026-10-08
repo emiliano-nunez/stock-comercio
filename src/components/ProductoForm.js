@@ -1644,6 +1644,16 @@ export class ProductoForm {
       creadoSinFoto: !this.imagenId,
       fecha,
       unidadPrincipal,
+      // El vínculo de familia de una variante. Sólo llega cuando el producto
+      // nace de "Crear variante" (el modal lo puso en this.producto); un
+      // producto cargado a mano no lo trae y los campos quedan ausentes, que
+      // es como viven en la base. En edición ya entraron con el spread de
+      // this.producto, acá se repiten sin cambiar nada.
+      ...(this.producto?.familia ? {
+        familia: this.producto.familia,
+        varianteEtiqueta: this.producto.varianteEtiqueta || '',
+        varianteColor: this.producto.varianteColor || null
+      } : {}),
       actualizadoEl: new Date().toISOString()
     };
 

@@ -1,9 +1,10 @@
-import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe } from './db.js';
+import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe, claveFamilia, datosDeVariante } from './db.js';
 import { abrirFormularioProducto } from './components/ProductoForm.js';
 import { abrirCopiaSeguridad } from './components/CopiaSeguridadModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
 import { abrirScanner } from './components/ScannerModal.js';
 import { abrirCodigoDuplicado } from './components/CodigoDuplicado.js';
+import { abrirVarianteModal } from './components/VarianteModal.js';
 import { abrirDetalleProducto } from './components/ProductoDetalle.js';
 import { abrirAjustes } from './components/AjustesModal.js';
 import { toast } from './utils/toast.js';
@@ -633,7 +634,7 @@ export class App {
     // PANTALLA, que es cuando la columna de la app ya llegó a su tope de 48rem.
     //
     // El corte va en md y no en sm a propósito. La tarjeta de inventario lleva
-    // tres filas de controles (ajuste rápido, duplicar/editar/eliminar) y con la
+    // tres filas de controles (ajuste rápido, variante/editar/eliminar) y con la
     // miniatura al costado necesita unos 254px de contenido: a 640px de pantalla
     // dos columnas darían 305px de tarjeta, unos 190px de contenido, y el botón
     // de eliminar se caería de la fila. Con md, la columna ya mide 768px y cada
@@ -1230,9 +1231,9 @@ export class App {
           <!--
             Este botón no se ve en el teléfono: en la hoja del producto está el
             mismo, y acá sólo sobra. La regla que lo esconde se llama
-            .duplicar-tarjeta y está en controles.css.
+            .variante-tarjeta y está en controles.css.
           -->
-          <button class="btn-fantasma btn-crece btn-icono-solo duplicar-tarjeta" data-action="duplicate" data-id="${escAttr(p.id)}" aria-label="Duplicar ${escAttr(p.nombre)}">
+          <button class="btn-fantasma btn-crece btn-icono-solo variante-tarjeta" data-action="variante" data-id="${escAttr(p.id)}" aria-label="Crear variante de ${escAttr(p.nombre)}">
             ${icono('duplicar')}
           </button>
           <button class="btn-fantasma btn-crece btn-icono-solo" data-action="edit" data-id="${escAttr(p.id)}" aria-label="Editar ${escAttr(p.nombre)}">
@@ -1464,8 +1465,8 @@ export class App {
         case 'edit':
           this.editarProducto(id);
           break;
-        case 'duplicate':
-          this.duplicarProducto(id);
+        case 'variante':
+          this.crearVariante(id);
           break;
         case 'delete':
           this.eliminarProducto(id);
@@ -1532,10 +1533,37 @@ export class App {
     abrirDetalleProducto({
       producto,
       categorias: this.categorias,
+      variantes: await this.variantesDe(producto),
       onEditar: p => this.editarProducto(p.id),
       onAjustar: delta => this.ajustarStock(producto.id, delta),
-      onDuplicar: p => this.duplicarProducto(p.id)
+      onVariante: p => this.crearVariante(p.id),
+      onVerVariante: vid => this.abrirDetalle(vid)
     });
+  }
+
+  /**
+   * Las hermanas de un producto: sus variantes si es la base, las otras
+   * variantes si ésta es variante.
+   *
+   * Se leen de la base y no de la página pintada: la ficha puede abrirse con
+   * un filtro puesto o desde otra pestaña, y un chip que no encuentra a su
+   * hermana por eso sería un vínculo roto.
+   *
+   * @param {object} producto
+   * @returns {Promise<object[]>} ordenadas por nombre, sin el producto mismo.
+   */
+  async variantesDe(producto) {
+    const clave = claveFamilia(producto);
+    if (!clave) return [];
+    try {
+      const todos = await db.productos.toArray();
+      return todos
+        .filter(q => q.id !== producto.id && claveFamilia(q) === clave)
+        .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    } catch (error) {
+      console.error('[App] No se pudieron leer las variantes:', error);
+      return [];
+    }
   }
 
   async ajustarStock(id, delta) {
@@ -1659,46 +1687,36 @@ export class App {
     );
   }
 
-  // Abrir el formulario con una copia del producto, listo para guardar como
-  // nuevo. Sirve para las variantes: mismo nombre base, mismo precio, misma
-  // foto, y el usuario cambia lo que la distingue.
+  // Crear una variante: se pide etiqueta y color en el diálogo y después se
+  // abre el formulario con una copia del producto, ya vinculada a la familia.
   //
-  // No se escribe NADA en la base hasta que el usuario guarda. Podría ser más
-  // simple meter el duplicado directo y después abrirlo para editar, pero
-  // entonces cancelar el formulario deja un producto basura en el inventario, y
-  // un producto basura con foto es lo más caro de limpiar después. Con el
-  // formulario de por medio, si cancela no pasó nada.
+  // No se escribe NADA en la base hasta que el usuario guarda el formulario.
+  // Si lo cancela, no pasó nada: no queda un producto basura ni un vínculo a
+  // medias (y un producto basura con foto es lo más caro de limpiar después).
   //
-  // Lo que se copia: todos los datos del producto (precios, stock, categoría,
-  // tipo de venta, unidad principal, costos, IVA, fecha, foto).
-  //
-  // Lo que NO se copia, a propósito:
-  //   - id: sin esto el formulario cree que está editando y en vez de crear uno
-  //     nuevo pisaría el original.
-  //   - codigoBarras: es la identidad del producto, no un dato. Copiarlo
-  //     devolvería dos artículos con el mismo código, que es justo lo que el
-  //     escáner y el formulario avisan. Se deja en blanco para que el usuario
-  //     escriba el de la variante, y si la variante no tiene, lo deja vacío.
-  //   - imagenUrl: es un ObjectURL que pertenece al catálogo. Pasarlo haría que
-  //     el formulario revocara en cerrar() la imagen de la tarjeta del
-  //     original. El formulario carga la suya sola desde imagenId.
-  //   - fotoPerdida: se deriva al leer de la base, no tiene sentido guardarlo.
-  //   - creadoEl / actualizadoEl: los pone el formulario al guardar.
+  // Qué se copia y qué no está en `datosDeVariante()`: copia precio, costo,
+  // categoría, foto y el resto; limpia id, códigos y fechas, y pone stock 0.
 
-  async duplicarProducto(id) {
+  async crearVariante(id) {
     if (this._productoFormAbierto) return;
     const original = await this.productoPorId(id);
     if (!original) return;
 
-    const {
-      id: _id,
-      codigoBarras: _codigoBarras,
-      imagenUrl: _imagenUrl,
-      fotoPerdida: _fotoPerdida,
-      creadoEl: _creadoEl,
-      actualizadoEl: _actualizadoEl,
-      ...datos
-    } = original;
+    // Si nace de una variante, el nombre sale de la base viva; si no existe
+    // (se borró), del propio producto sin su etiqueta.
+    let base = null;
+    if (original.familia && original.familia !== original.id) {
+      base = await db.productos.get(original.familia).catch(() => null) || null;
+    }
+
+    const eleccion = await abrirVarianteModal({ producto: original, base });
+    if (!eleccion || this._productoFormAbierto) return;
+
+    const datos = datosDeVariante(original, {
+      etiqueta: eleccion.etiqueta,
+      color: eleccion.color,
+      base
+    });
 
     this._productoFormAbierto = true;
     abrirFormularioProducto(
