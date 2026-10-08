@@ -1770,23 +1770,42 @@ export class App {
    * Un solo lugar para todos los borrados, para que ninguno se escape de la
    * pregunta: cada uno pasa por acá y el botón dice qué cosa borra.
    *
+   * Nunca dos confirmaciones a la vez: `eliminarCategoria` consulta la base
+   * antes de preguntar, y mientras espera el foco sigue en el botón de borrar.
+   * Un Enter dispara otro clic y abriría un segundo diálogo encima del primero,
+   * por eso el guard `_confirmacionAbierta` devuelve false sin abrir nada.
+   *
+   * Todo pasa por un único `cerrar()`, que quita el velo, desconecta el
+   * listener de Escape y resuelve. Ninguna otra salida puede existirla: si el
+   * ✕ o Cancelar resolveyeran por su cuenta, la promesa quedaría esperando, y
+   * si el listener de Escape se quitara sólo en su propia rama, cada diálogo
+   * dejaría uno vivo en document.
+   *
+   * @param {object}  opciones
+   * @param {string}  opciones.titulo     el rótulo de la cabecera
+   * @param {string}  opciones.mensaje    la pregunta o el aviso en el cuerpo
+   * @param {string} [opciones.confirmar] texto del botón que confirma
+   * @param {string} [opciones.icono]     emoji al lado del título
    * @returns {Promise<boolean>} true si el usuario confirmó.
    */
-  confirmarBorrado({ titulo, mensaje, confirmar = 'Eliminar', peligro = true }) {
+  confirmarBorrado({ titulo, mensaje, confirmar = 'Eliminar', icono = '' }) {
+    if (this._confirmacionAbierta) return Promise.resolve(false);
+    this._confirmacionAbierta = true;
     return new Promise(resolve => {
       const velo = document.createElement('div');
       velo.className = 'velo';
       velo.innerHTML = `
         <div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="conf-titulo">
-          <div class="dialogo-cabecera ${peligro ? 'dialogo-cabecera-peligro' : ''}">
-            <h2 class="titulo" id="conf-titulo">${esc(titulo)}</h2>
+          <div class="dialogo-cabecera dialogo-cabecera-peligro">
+            <h2 class="titulo fila" id="conf-titulo">${icono ? `<span class="no-crece">${esc(icono)}</span>` : ''}<span>${esc(titulo)}</span></h2>
+            <button class="btn-fantasma btn-icono" data-accion="no" aria-label="Cerrar">✕</button>
           </div>
           <div class="dialogo-cuerpo">
             <p class="detalle">${esc(mensaje)}</p>
           </div>
           <div class="dialogo-pie">
             <button class="btn-secundario" data-accion="no">Cancelar</button>
-            <button class="${peligro ? 'btn-peligro' : 'btn-principal'}" data-accion="si">${esc(confirmar)}</button>
+            <button class="btn-peligro" data-accion="si">${esc(confirmar)}</button>
           </div>
         </div>
       `;
@@ -1794,6 +1813,7 @@ export class App {
       const cerrar = (respuesta) => {
         velo.remove();
         document.removeEventListener('keydown', alTeclear);
+        this._confirmacionAbierta = false;
         resolve(respuesta);
       };
 
@@ -2077,7 +2097,7 @@ export class App {
       : `¿Eliminar "${cat.nombre}"? ${count} producto(s) dejan de estar en ella` +
         (conOtra > 0 ? `. ${conOtra} se quedan con las categorías que ya tenían.` : '.');
 
-    const confirmado = await this.mostrarConfirmacion(mensaje, 'Eliminar categoría', '⚠️');
+    const confirmado = await this.confirmarBorrado({ titulo: 'Eliminar categoría', mensaje, icono: '⚠️' });
     if (!confirmado) return;
 
     try {
@@ -2234,7 +2254,7 @@ export class App {
       ? `¿Sacar "${prov.nombre}" de la lista?`
       : `¿Sacar "${prov.nombre}" de la lista? ${total} producto(s) quedan sin proveedor.`;
 
-    const confirmado = await this.mostrarConfirmacion(mensaje, 'Sacar proveedor', '⚠️');
+    const confirmado = await this.confirmarBorrado({ titulo: 'Sacar proveedor', mensaje, icono: '⚠️' });
     if (!confirmado) return;
 
     try {
@@ -2248,75 +2268,6 @@ export class App {
     } catch (error) {
       toast.error('No se pudo sacar el proveedor');
     }
-  }
-
-  /**
-   * Diálogo de confirmación con el estilo de la app. Resuelve true si el
-   * usuario confirma, false si cancela por cualquier vía.
-   *
-   * Todo pasa por un único `cerrar()`, que quita el modal, desconecta el listener
-   * de Escape y resuelve. Ninguna otra salida puede existirl: si el ✕ o Cancelar
-   * resolveieran por su cuenta, la promesa quedaría esperando, y si el listener
-   * de Escape se quitara sólo en su propia rama, cada diálogo dejaría uno vivo en
-   * document.
-   */
-  /*
-   * Nunca dos confirmaciones a la vez.
-   *
-   * `eliminarCategoria` consulta la base antes de preguntar, y mientras espera
-   * el foco sigue en el botón de borrar: un Enter dispara otro clic y abría un
-   * segundo diálogo encima del primero.
-   */
-  mostrarConfirmacion(mensaje, titulo = 'Confirmar', icono = '❓') {
-    if (this._confirmacionAbierta) return Promise.resolve(false);
-    this._confirmacionAbierta = true;
-    return new Promise((resolve) => {
-      const modal = document.createElement('div');
-      modal.className = 'velo';
-      modal.innerHTML = `
-        <div class="dialogo">
-          <div class="dialogo-cabecera">
-            <h2 class="titulo fila">
-              <span>${esc(icono)}</span>
-              ${esc(titulo)}
-            </h2>
-            <button class="btn-fantasma btn-icono" data-accion="cancelar" aria-label="Cerrar">✕</button>
-          </div>
-          <div class="relleno-4">
-            <p class="subtitulo con-margen-abajo-amplia">${esc(mensaje)}</p>
-            <div class="fila fila-amplia al-final">
-              <button class="btn-secundario btn-crece" data-accion="cancelar">Cancelar</button>
-              <button class="btn-peligro btn-crece" data-accion="aceptar">Eliminar</button>
-            </div>
-          </div>
-        </div>
-      `;
-
-      let cerrado = false;
-
-      const cerrar = (valor) => {
-        if (cerrado) return;
-        cerrado = true;
-        this._confirmacionAbierta = false;
-        modal.remove();
-        document.removeEventListener('keydown', onEscape);
-        resolve(valor);
-      };
-
-      const onEscape = (e) => {
-        if (e.key === 'Escape') cerrar(false);
-      };
-
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) return cerrar(false);
-        const accion = e.target.closest('[data-accion]')?.dataset.accion;
-        if (accion === 'aceptar') cerrar(true);
-        else if (accion === 'cancelar') cerrar(false);
-      });
-
-      document.addEventListener('keydown', onEscape);
-      document.body.appendChild(modal);
-    });
   }
 
   /**

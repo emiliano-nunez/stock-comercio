@@ -60,10 +60,6 @@
  * Rellenos
  * ================================================================= */
 
-.relleno-4 {
-  padding: var(--espacio-4);
-}
-
 .relleno-superior-2 {
   padding-block-start: var(--espacio-2);
 }
