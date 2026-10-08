@@ -22,9 +22,6 @@
   --verde-50:  #f0fdf4;
   --verde-100: #dcfce7;
   --verde-200: #8df1b0;
-  --verde-500: #22c55e;
-  --verde-600: #16a34a;
-  --verde-700: #15803d;
   --verde-800: #166534;
   /*
    * El verde del texto de las insignias de color.
@@ -81,7 +78,6 @@
   --color-peligro:         var(--rojo-500);
   --color-peligro-fuerte:  var(--rojo-600);
   --color-peligro-tenue:   var(--rojo-50);
-  --color-aviso:           var(--ambar-600);
   --color-aviso-tenue:     var(--ambar-50);
 
   /* -----------------------------------------------------------------
@@ -119,7 +115,6 @@
    * El nombre es el múltiplo, para que en el CSS se lea el tamaño sin tener que
    * hacer la cuenta: --espacio-2 son 6px.
    * ----------------------------------------------------------------- */
-  --espacio-0:  0;
   --espacio-1:  0.1875rem;
   --espacio-2:  0.375rem;
   /* Entre las dos medidas de la escala, para el aire fino de una etiqueta con
@@ -130,9 +125,7 @@
   --espacio-5:  1rem;
   --espacio-6:  1.25rem;
   --espacio-8:  1.5rem;
-  --espacio-10: 1.875rem;
   --espacio-12: 2.25rem;
-  --espacio-16: 3rem;
 
   --relleno-control: var(--espacio-3) var(--espacio-4);
 
@@ -162,16 +155,13 @@
   --radio-sm:   0.25rem;
   --radio-md:   0.5rem;
   --radio-lg:   0.75rem;
-  --radio-xl:   1rem;
   --radio-full: 9999px;
 
-  --sombra-sm: 0 1px 2px rgb(0 0 0 / 10%);
   --sombra-md: 0 2px 6px rgb(0 0 0 / 15%);
   /* La de la etiqueta de sección, que va sobre el fondo de la app y necesita
      apenas un relieve para despegarse sin parecer un botón. */
   --sombra-etiqueta: 0 4px 12px rgb(0 0 0 / 5%);
   --sombra-lg: 0 8px 24px rgb(0 0 0 / 18%);
-  --sombra-xl: 0 12px 32px rgb(0 0 0 / 24%);
 
   --capa-cabecera: 40;
   --capa-flotante: 50;
@@ -252,7 +242,6 @@
   --interfaz-azul:              #3483fa;
   --interfaz-azul-fuerte:       #2968c8;
   --interfaz-azul-mas-fuerte:   #1f4fa0;
-  --interfaz-azul-texto:        #1f4fa0;
   --interfaz-azul-tenue:        rgb(65 137 230 / 15%);
   --interfaz-azul-tenue-fuerte: rgb(65 137 230 / 25%);
   --interfaz-azul-foco:         rgb(52 131 250 / 20%);

@@ -145,16 +145,8 @@
   color: var(--color-peligro-fuerte);
 }
 
-.texto-peligro-fuerte {
-  color: var(--rojo-900);
-}
-
 .texto-aviso {
   color: var(--ambar-700);
-}
-
-.texto-invertido {
-  color: var(--color-texto-invertido);
 }
 
 /* =================================================================
@@ -233,10 +225,6 @@
 
 .centro-texto {
   text-align: center;
-}
-
-.texto-izquierda {
-  text-align: left;
 }
 
 /* Un texto que no debería ocupar nunca todo el ancho, como el nombre de una

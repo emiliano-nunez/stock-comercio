@@ -89,12 +89,6 @@ img, svg, video, canvas {
   height: auto;
 }
 
-hr {
-  border: none;
-  border-top: 1px solid var(--color-borde);
-  margin: var(--espacio-4) 0;
-}
-
 /*
  * En iOS, un div con texto y sin nada que lo vuelva pulsable no es seleccionable
  * y por eso el toque no dispara el clic. Con esto sí lo hace, sin perder la
@@ -154,36 +148,6 @@ textarea {
 input::placeholder,
 textarea::placeholder {
   color: var(--color-texto-tenue);
-}
-
-/* =================================================================
- * 4. Controles de formulario
- * ================================================================= */
-
-fieldset {
-  border: none;
-  margin: 0;
-  padding: 0;
-  min-width: 0;
-}
-
-/* =================================================================
- * 5. Lo que sólo se ve en la app
- * ================================================================= */
-
-.sin-barra::-webkit-scrollbar {
-  display: none;
-}
-
-.sin-barra {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.sin-toque-doble {
-  touch-action: manipulation;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 /*

@@ -19,14 +19,6 @@
   overflow: hidden;
 }
 
-.tarjeta-sin-relleno {
-  padding: 0;
-}
-
-.tarjeta-cuerpo {
-  padding: var(--espacio-3);
-}
-
 /*
  * El puntero va sólo sobre la miniatura y el título: son las dos cosas que
  * parecen un objetivo. Sobre el precio o el código, que son sólo datos, el cursor
@@ -147,20 +139,7 @@
   font-size: 1.5rem;
 }
 
-.miniatura-marca {
-  width: 3rem;
-  height: 3rem;
-  background-color: var(--verde-100);
-  font-size: 1.25rem;
-}
-
 @media (max-width: 839px) {
-  .miniatura-marca {
-    width: 2.5rem;
-    height: 2.5rem;
-    font-size: 1rem;
-  }
-
   /*
    * Los botones de la tarjeta no se estiran.
    *
@@ -610,9 +589,7 @@
  * puede ser de cualquier color sin que el CSS tenga que conocerlos todos.
  * ================================================================= */
 
-.punto,
-.punto-medio {
-
+.punto {
   display: inline-block;
   width: 1.5rem;
   height: 1.5rem;
@@ -654,17 +631,11 @@
   vertical-align: -0.1em;
 }
 
-.flecha,
-.flecha-medio {
+.flecha {
   display: inline-block;
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
-}
-
-.flecha-medio {
-  width: 1.5rem;
-  height: 1.5rem;
 }
 
 /*
@@ -801,15 +772,6 @@
   color: var(--gris-700);
 }
 
-.tarjeta-acciones {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  margin-top: auto;
-  padding-top: var(--espacio-1);
-  border-top: 1px solid var(--color-borde-tenue);
-}
-
 /* =================================================================
  * Diálogos
  *
@@ -926,31 +888,6 @@
   background-color: var(--color-aviso-tenue);
 }
 
-/* El título del diálogo va en 600 y no en 700: es el estándar, y con el cuerpo del
-   diálogo en 14px una negrita de 18px tapa la primera línea de lo que está
-   abajo. */
-.dialogo-titulo {
-  display: flex;
-  align-items: center;
-  gap: var(--espacio-2);
-  font-weight: var(--grosor-media);
-}
-
-.dialogo-cerrar {
-  flex-shrink: 0;
-  min-width: var(--toque-min);
-  min-height: var(--toque-min);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radio-lg);
-  color: var(--color-texto-suave);
-}
-
-.dialogo-cerrar:active {
-  background-color: var(--gris-100);
-}
-
 .dialogo-cuerpo {
   padding: var(--dialogo-relleno);
 }
@@ -1047,40 +984,6 @@
   background-color: var(--color-peligro-tenue);
 }
 
-.dialogo-cabecera-peligro .dialogo-titulo {
-  color: var(--rojo-900);
-}
-
-/*
- * Una fila de una lista que además es pulsable, como cada punto de restauración
- * del historial. Comparte forma con .opcion, pero sin borde propio hasta que se
- * toca, para que la lista se lea como una lista y no como un grupo de botones.
- */
-.entrada-lista {
-  display: flex;
-  align-items: center;
-  gap: var(--espacio-3);
-  width: 100%;
-  padding: var(--espacio-4);
-  border: 1px solid transparent;
-  border-radius: var(--radio-lg);
-  background-color: var(--color-superficie);
-  color: var(--color-texto);
-  text-align: left;
-  cursor: pointer;
-  transition: background-color var(--transicion-rapida), border-color var(--transicion-rapida);
-}
-
-.entrada-lista:active {
-  background-color: var(--gris-50);
-  border-color: var(--color-borde);
-}
-
-.entrada-lista-destacada {
-  background-color: var(--color-marca-tenue);
-  border-color: var(--verde-200);
-}
-
 /* =================================================================
  * Las apariciones
  *
@@ -1089,11 +992,6 @@
  * reemplaza entero, y por eso el código le saca una clase y le pone la otra en
  * vez de alternar un estado.
  * ================================================================= */
-
-@keyframes aparecer {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
 
 @keyframes subir {
   from { opacity: 0; transform: translateY(20px); }
@@ -1119,7 +1017,6 @@
   to   { opacity: 0; transform: translateY(-16px); }
 }
 
-.anim-aparecer { animation: aparecer var(--transicion-media); }
 .anim-subir    { animation: subir var(--transicion-lenta); }
 .anim-bajar    { animation: bajar var(--transicion-media); }
 
@@ -1128,7 +1025,6 @@
 
 @media (prefers-reduced-motion: reduce) {
 
-  .anim-aparecer,
   .anim-subir,
   .anim-bajar,
   .anim-aviso-entra,
@@ -1185,11 +1081,6 @@
   color: var(--rojo-700);
 }
 
-.insignia-marca {
-  background-color: var(--color-marca-tenue);
-  color: var(--verde-800);
-}
-
 .categoria-chip {
   display: inline-flex;
   align-items: center;
@@ -1206,21 +1097,13 @@
  * Notas
  *
  * Un bloque con color propio que explica algo y queda dentro de la pantalla, en
- * un diálogo o en una tarjeta. El tono se elige con una clase más, no repitiendo
- * el bloque entero.
+ * un diálogo o en una tarjeta. Cada tono lleva su propia clase, que es la que
+ * pone el fondo, el borde y la letra.
  *
- * Se llama `nota` y no `aviso` a propósito: `aviso` es el cartel que sale flotando
+ * Se llaman `nota-*` y no `aviso-*`: `aviso` es el cartel que sale flotando
  * arriba y se va solo. Con el mismo nombre en los dos, cada uno pisaba los colores
  * del otro y sólo los separaba el orden del archivo.
  * ================================================================= */
-
-.nota {
-  padding: var(--espacio-3);
-  border-radius: var(--radio-lg);
-  border: 1px solid transparent;
-  font-size: var(--texto-sm);
-  line-height: var(--texto-sm-al);
-}
 
 .nota-info {
   background-color: var(--color-marca-tenue);
@@ -1228,46 +1111,10 @@
   color: var(--verde-800);
 }
 
-.nota-peligro {
-  background-color: var(--color-peligro-tenue);
-  border-color: var(--rojo-200);
-  color: var(--rojo-700);
-}
-
 .nota-atencion {
   background-color: var(--color-aviso-tenue);
   border-color: var(--ambar-200);
   color: var(--ambar-700);
-}
-
-/* =================================================================
- * Secciones con título
- *
- * El título de un grupo con su cantidad, y el contenido abajo. Es el patrón que
- * usan el catálogo agrupado por stock y la lista de categorías.
- * ================================================================= */
-.seccion {
-  margin-bottom: var(--espacio-6);
-}
-
-.seccion-titulo {
-  display: flex;
-  align-items: center;
-  gap: var(--espacio-2);
-  padding-bottom: var(--espacio-1);
-  border-bottom: 1px solid var(--color-borde);
-  font-weight: var(--grosor-fuerte);
-}
-
-.seccion-contenido {
-  margin-top: var(--espacio-3);
-}
-
-.seccion-punto {
-  flex-shrink: 0;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: var(--radio-full);
 }
 
 /* =================================================================

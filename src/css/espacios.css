@@ -56,96 +56,16 @@
   margin-inline-start: var(--espacio-2);
 }
 
-.con-margen-izquierda-media {
-  margin-inline-start: var(--espacio-3);
-}
-
-.con-margen-arriba-auto {
-  margin-block-start: auto;
-}
-
 /* =================================================================
  * Rellenos
  * ================================================================= */
-
-.relleno-1 {
-  padding: var(--espacio-1);
-}
-
-.relleno-1-5 {
-  padding: 0.375rem;
-}
-
-.relleno-2 {
-  padding: var(--espacio-2);
-}
-
-.relleno-3 {
-  padding: var(--espacio-3);
-}
 
 .relleno-4 {
   padding: var(--espacio-4);
 }
 
-.relleno-6 {
-  padding: var(--espacio-6);
-}
-
-.relleno-8 {
-  padding: var(--espacio-8);
-}
-
-.relleno-vertical-2 {
-  padding-block: var(--espacio-2);
-}
-
-.relleno-vertical-3 {
-  padding-block: var(--espacio-3);
-}
-
-.relleno-vertical-12 {
-  padding-block: var(--espacio-12);
-}
-
-.relleno-vertical-chico {
-  padding-block: 0.125rem;
-}
-
-.relleno-horizontal-2 {
-  padding-inline: var(--espacio-2);
-}
-
-.relleno-horizontal-3 {
-  padding-inline: var(--espacio-3);
-}
-
-.relleno-horizontal-4 {
-  padding-inline: var(--espacio-4);
-}
-
-.relleno-superior-1 {
-  padding-block-start: var(--espacio-1);
-}
-
 .relleno-superior-2 {
   padding-block-start: var(--espacio-2);
-}
-
-.relleno-izquierdo-7 {
-  padding-inline-start: 1.75rem;
-}
-
-.relleno-izquierdo-10 {
-  padding-inline-start: 2.5rem;
-}
-
-.relleno-derecho-2 {
-  padding-inline-end: var(--espacio-2);
-}
-
-.relleno-derecho-10 {
-  padding-inline-end: 2.75rem;
 }
 
 /* =================================================================

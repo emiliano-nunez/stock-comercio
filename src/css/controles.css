@@ -43,20 +43,6 @@
               transform var(--transicion-media);
 }
 
-.btn:active {
-  transform: scale(0.98);
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--interfaz-azul);
-  outline-offset: 2px;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .btn-ancho {
   width: 100%;
 }
@@ -111,18 +97,12 @@
 }
 
 /*
- * sería el ícono solo, que es más chico que el mínimo táctil.
+ * El relleno va en el paso del ícono y no en el mínimo táctil: el botón es sólo
+ * el ícono, que es más chico que el mínimo táctil.
  */
 .btn-icono {
   padding: var(--espacio-2);
   flex-shrink: 0;
-}
-
-.btn-chico {
-  padding: var(--espacio-2);
-  font-size: var(--texto-xs);
-  font-weight: var(--grosor-medio);
-  gap: var(--espacio-1);
 }
 
 /* Los tres botones de la cabecera. El texto toma el de la cabecera, que es el gris
@@ -339,15 +319,6 @@ svg {
   color: var(--gris-500);
 }
 
-.selector {
-  appearance: none;
-  padding-right: var(--espacio-8);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right var(--espacio-3) center;
-  background-size: 12px;
-}
-
 .area-texto {
   min-height: 5rem;
   resize: vertical;
@@ -467,18 +438,6 @@ svg {
   line-height: var(--texto-sm-al);
   font-weight: var(--grosor-medio);
   white-space: nowrap;
-}
-
-/* =================================================================
- * La casilla de verificar
- * ================================================================= */
-
-.casilla {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-top: 0.125rem;
-  flex-shrink: 0;
-  accent-color: var(--color-marca);
 }
 
 /* =================================================================
@@ -814,10 +773,3 @@ svg {
   height: 1.2rem;
 }
 
-.campo-grupo {
-  margin-bottom: var(--campo-grupo-margen);
-}
-
-.campo-grupo-apretado {
-  margin-bottom: var(--espacio-2);
-}
