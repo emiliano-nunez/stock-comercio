@@ -832,37 +832,68 @@ body.sin-categorias #form-producto .form-par {
   }
 }
 
-/* Header compacto en móvil: oculta Copia/Pedido/Ajustes y botones de alta */
+/* Header compacto en móvil: solo logo + buscador */
 @media (max-width: 839px) {
-  .cabecera-accion {
-    display: none;
+  .btn-texto.cabecera-accion,
+  .boton-agregar.cabecera-accion {
+    display: none !important;
   }
 
-  /* El título no empuja a la derecha; busca al centro */
+  .cabecera-cuerpo {
+    flex-wrap: wrap;
+    gap: var(--interfaz-espacio-2);
+    padding: var(--interfaz-espacio-2) var(--interfaz-espacio-3);
+  }
+
   .cabecera-cuerpo > h1 {
-    margin-inline-end: 0;
     order: 1;
+    flex: 0 0 100%;
+    margin-inline-end: 0;
+    justify-content: center;
+    margin-block-end: 0;
   }
 
-  /* La fila de búsqueda ocupa todo el ancho */
   .fila-busca {
     order: 2;
+    flex: 0 0 100%;
     width: 100%;
-    flex: 1 1 100%;
   }
 
   .fila-busca > .posicionado {
     width: 100%;
   }
 
-  /* Las pestañas se ocultan en móvil (van en bottom-nav) */
   .pestanas {
     display: none;
   }
 
-  /* Ajuste de padding del contenido para que no quede tapado por el bottom-nav */
   .contenido {
     padding-bottom: calc(56px + env(safe-area-inset-bottom) + var(--espacio-4));
+  }
+}
+
+/* Bottom-nav con 6 items en móvil: agregamos Carga rápida */
+@media (max-width: 839px) {
+  .bottom-nav {
+    gap: 0;
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    min-width: 0;
+    padding: var(--espacio-1) var(--espacio-1);
+    font-size: 10px;
+  }
+
+  .bottom-nav-item svg {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .bottom-nav-principal {
+    flex: 1;
+    margin: var(--espacio-1);
+    border-radius: var(--interfaz-radio);
   }
 }
 

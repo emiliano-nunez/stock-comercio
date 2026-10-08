@@ -572,7 +572,7 @@ export class App {
         </div>
       </header>
 
-      <!-- Bottom-nav móvil: 4 acciones principales -->
+      <!-- Bottom-nav móvil: 6 acciones principales -->
       <nav class="bottom-nav" aria-label="Navegación principal">
         <button class="bottom-nav-item ${this.vistaActual === 'inventario' ? 'activo' : ''}" data-vista="inventario" aria-label="Inventario">
           ${icono('caja')}<span>Inventario</span>
@@ -580,11 +580,14 @@ export class App {
         <button class="bottom-nav-item ${this.vistaActual === 'catalogo' ? 'activo' : ''}" data-vista="catalogo" aria-label="Catálogo">
           ${icono('etiqueta')}<span>Catálogo</span>
         </button>
+        <button class="bottom-nav-item ${this.vistaActual === 'categorias' ? 'activo' : ''}" data-vista="categorias" aria-label="Categorías">
+          ${icono('carpeta')}<span>Categorías</span>
+        </button>
         <button class="bottom-nav-item bottom-nav-principal" data-accion="agregar" aria-label="Agregar producto">
           ${icono('mas')}<span>Agregar</span>
         </button>
-        <button class="bottom-nav-item ${this.vistaActual === 'categorias' ? 'activo' : ''}" data-vista="categorias" aria-label="Categorías">
-          ${icono('carpeta')}<span>Categorías</span>
+        <button class="bottom-nav-item" data-accion="carga-rapida" aria-label="Carga rápida">
+          ${icono('rayo')}<span>Rápida</span>
         </button>
         <button class="bottom-nav-item" data-accion="ajustes" aria-label="Ajustes">
           ${icono('ajuste')}<span>Ajustes</span>
@@ -1390,6 +1393,9 @@ export class App {
     });
     document.querySelectorAll('.bottom-nav-item[data-accion="agregar"]').forEach(btn => {
       btn.addEventListener('click', () => this.nuevoProducto());
+    });
+    document.querySelectorAll('.bottom-nav-item[data-accion="carga-rapida"]').forEach(btn => {
+      btn.addEventListener('click', () => this.nuevoProducto(null, 'rapida'));
     });
     document.querySelectorAll('.bottom-nav-item[data-accion="ajustes"]').forEach(btn => {
       btn.addEventListener('click', () => this.mostrarAjustes());
