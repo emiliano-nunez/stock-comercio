@@ -208,7 +208,9 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       // botón, para que el usuario vea el código exacto que va a quedar antes
       // de aceptarlo y no después.
 
-      if (origen === 'formulario') prepararSufijo().catch(console.error);
+      if (origen === 'formulario') {
+        prepararSufijo().catch((error) => console.error('No se pudo preparar el sufijo disponible:', error));
+      }
     }
 
     async function prepararSufijo() {
@@ -240,7 +242,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       try {
         await onBorrar(producto);
       } catch (error) {
-        console.error(error);
+        console.error('No se pudo borrar el producto:', error);
         box.querySelector(`[data-fila="${indice}"]`)?.replaceWith(filaProducto(producto, indice));
         return;
       }

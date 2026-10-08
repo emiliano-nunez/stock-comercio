@@ -158,7 +158,7 @@ export class CopiaSeguridadModal {
         descargarBackup(await exportarBackup());
         toast.success('Copia exportada');
       } catch (error) {
-        console.error(error);
+        console.error('No se pudo exportar la copia de seguridad:', error);
         toast.error('No se pudo exportar la copia');
       } finally {
         btn.disabled = false;
@@ -187,7 +187,7 @@ export class CopiaSeguridadModal {
         this.cerrar();
         this.onCambio?.();
       } catch (error) {
-        console.error(error);
+        console.error('No se pudo importar la copia:', error);
         toast.error('Error importando: ' + error.message);
       }
     });

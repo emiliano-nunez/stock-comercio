@@ -325,7 +325,7 @@ export class PedidoModal {
       await navigator.clipboard.writeText(texto);
       toast.success(mensaje);
     } catch (error) {
-      console.error(error);
+      console.error('No se pudo copiar al portapapeles:', error);
       toast.error('No se pudo copiar');
     }
   }

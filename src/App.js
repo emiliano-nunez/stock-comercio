@@ -255,7 +255,7 @@ export class App {
         descargarBackup(await exportarBackup(), `backup-stock-rescate-${new Date().toISOString().slice(0, 10)}.json`);
         btn.textContent = '✅ Copia descargada';
       } catch (e) {
-        console.error(e);
+        console.error('[App] No se pudo exportar la copia de rescate:', e);
         btn.textContent = '❌ No se pudo exportar';
         btn.disabled = false;
       }
@@ -1759,7 +1759,7 @@ export class App {
 
       toast.success(`Producto eliminado: ${producto.nombre}`);
     } catch (error) {
-      console.error(error);
+      console.error('[App] No se pudo eliminar el producto:', error);
       toast.error('Error eliminando producto');
     }
   }
