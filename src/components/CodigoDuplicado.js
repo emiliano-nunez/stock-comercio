@@ -90,7 +90,8 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       };
       const badge = ETIQUETA[estadoStock(p)];
 
-      // taparía lo que el usuario viene escribiendo sin avisar.
+      // El botón "Abrir" sólo aparece en el escáner: en el formulario taparía
+      // lo que el usuario viene escribiendo sin avisar.
       const acciones = origen === 'escaner'
         ? `<button class="btn-secundario btn-crece" data-accion="abrir" data-indice="${indice}">Abrir</button>`
         : '';
@@ -136,7 +137,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       const ocultos = total - aMostrar.length;
       const muchos = total > 1;
 
-      // El pie cambia por origen porque las decisiones disponibles son otras:
+      // El pie cambia según el origen: cada uno ofrece decisiones distintas.
 
       const pie = origen === 'escaner'
         ? `
@@ -208,9 +209,9 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
         </div>
       `;
 
-      // // El sufijo disponible se calcula una vez por pintado y se muestra
-      // en el // botón, para que el usuario vea el código exacto que va a
-      // quedar antes // de aceptarlo y no después.
+      // El sufijo disponible se calcula una vez por pintado y se muestra en el
+      // botón, para que el usuario vea el código exacto que va a quedar antes
+      // de aceptarlo y no después.
 
       if (origen === 'formulario') prepararSufijo();
     }
@@ -222,7 +223,8 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       const libre = await primerCodigoLibre(codigo);
       if (libre === codigo) {
 
-        // (el usuario borró el último conflicto desde acá). No tiene sentido
+        // El código volvió a quedar libre (el usuario borró el último conflicto
+        // desde acá), así que ofrecerle un sufijo no tiene sentido.
 
         boton.disabled = true;
         texto.textContent = 'Distinguir con sufijo';
@@ -249,7 +251,8 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
       }
       conflictos = conflictos.filter(p => p.id !== producto.id);
 
-      // que le corresponde tomar es la de siempre, la del código tal cual.
+      // Si no queda ningún conflicto no hay nada que elegir: se cierra como
+      // resuelto y el código se queda tal cual, el de siempre.
       if (conflictos.length === 0) return cerrar({ accion: 'resuelto' });
       pintar();
     }

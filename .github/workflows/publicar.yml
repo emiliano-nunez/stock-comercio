@@ -64,7 +64,7 @@ jobs:
           echo "Publicando en: $REPO -> $(cut -d= -f2 "$GITHUB_OUTPUT" | tail -1)"
 
       - name: Verificar
-        # Los cinco verificadores, antes de compilar.
+        # Los seis verificadores, antes de compilar.
         #
         # `npm run build` sólo detecta errores de sintaxis y de imports rotos: es
         # lo mínimo. Los verificadores miran lo que el build no ve, y cada uno
@@ -81,8 +81,11 @@ jobs:
         #                siendo JavaScript válido
         #   escapado     una interpolación sin escapar dentro de un atributo de
         #                HTML, que sale cruda
+        #   propiedades  un campo que se lee pero que la clase nunca escribió, o
+        #                un método que pisa una propiedad con el mismo nombre y
+        #                deja de existir
         #
-        # Con esto, un push que rompe cualquiera de las cinco no se publica.
+        # Con esto, un push que rompe cualquiera de los seis no se publica.
         run: npm run verificar
 
       - name: Compilar

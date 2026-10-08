@@ -26,10 +26,10 @@ export class App {
    */
   static ESPERA_BUSQUEDA = 250;
 
-  // // Los tres grupos en que se ordena el catálogo, en el orden en que se
-  // // muestran: lo que hay, lo que se está por acabar, y lo que ya se
-  // acabó. // El color de cada uno es el mismo que usa el badge de la
-  // tarjeta, para que // el grupo y su contenido se vean del mismo color.
+  // Los tres grupos en que se ordena el catálogo, en el orden en que se
+  // muestran: lo que hay, lo que se está por acabar, y lo que ya se acabó. El
+  // color de cada uno es el mismo que usa el badge de la tarjeta, para que el
+  // grupo y su contenido se vean del mismo color.
 
   /*
    * Los tres estados de stock, con el nombre de la clase y el color.
@@ -664,6 +664,19 @@ export class App {
   }
 
   /**
+   * Los productos de la vista: los que ya trajo la consulta.
+   *
+   * `productosDeLaVista()` ya no filtra nada. Antes armaba el grupo de la
+   * categoría, del estado o del proveedor sobre el arreglo entero, y por eso
+   * se llamaba cuatro o cinco veces por render para tener lo mismo. Ahora ese
+   * filtro lo hace `consultarProductos()` en la base, una sola vez, y lo que
+   * llega ya viene filtrado.
+   */
+  productosDeLaVista() {
+    return this.productos || [];
+  }
+
+  /**
    * Productos que se pintan, según hasta dónde llegó el usuario con "Cargar
    * más".
    *
@@ -678,24 +691,10 @@ export class App {
    * recortar la lista por el principio. Repartido al revés, con 200 productos
    * ordenados por nombre los primeros 60 son los que empiezan con A y B: el
    * grupo "Sin stock" podía quedar con la cabecera en "(12)" y cero tarjetas
-   * debajo, que es peor que no mostrarlo, porque el contador miente.
+   * debajo, que es peor que no mostrarlo, porque el contador miente. Ese
+   * reparto por estado de stock es una cosa de lectura y no de filtro: el
+   * catálogo muestra los tres grupos juntos.
    */
-
-  /**
-   * Los productos visibles: son los que ya trajo la consulta.
-   *
-   * `productosDeLaVista()` ya no filtra nada. Antes armaba el grupo de la
-   * categoría, del estado o del proveedor sobre el arreglo entero, y por eso se llamaba cuatro o cinco veces por render para tener lo mismo. Ahora
-   * ese filtro lo hace `consultarProductos()` en la base, una sola vez, y lo que
-   * llega ya viene filtrado.
-   *
-   * Lo que queda acá es el reparto del catálogo por estado de stock, que es una
-   * cosa de lectura y no de filtro: el catálogo muestra los tres grupos juntos.
-   */
-  productosDeLaVista() {
-    return this.productos || [];
-  }
-
   productosVisibles() {
     const base = this.productosDeLaVista();
     if (this.vistaActual !== 'catalogo') return base;
@@ -704,8 +703,6 @@ export class App {
     for (const p of base) {
       porEstado.get(estadoStock(p)).push(p);
     }
-
-    // mostraría 20 de 200 y haría aparecer "Cargar más" cinco veces seguidas
 
     const grupos = [...porEstado.values()].filter(g => g.length > 0);
     if (grupos.length === 0) return [];
@@ -804,10 +801,9 @@ export class App {
         + this.renderCargarMasHTML(visibles);
     }
 
-    // // Se agrupan sólo los productos que se van a pintar, no todos. Con
-    // el tope // de render, meter el resto haría que un grupo quedara con
-    // la cabecera en // "(12)" y cero tarjetas debajo, y el contador
-    // miente.
+    // Se agrupan sólo los productos que se van a pintar, no todos. Con el
+    // tope de render, meter el resto haría que un grupo quedara con la
+    // cabecera en "(12)" y cero tarjetas debajo, y el contador miente.
 
     return this.renderFiltroVistaHTML() + App.ESTADOS_STOCK
       .filter(estado => porEstado.get(estado.clave).length > 0)
@@ -906,7 +902,8 @@ export class App {
     return COLORES_CATEGORIAS.find(c => c.toLowerCase() === limpio) || COLORES_CATEGORIAS[0];
   }
 
-  // de sobra, y si el usuario tiene más de 20 categorías ya sabrá elegir.
+  // La paleta tiene 20 colores y alcanza de sobra: si el usuario tiene más de
+  // 20 categorías, los colores se repiten y ya sabrá elegir.
   colorAleatorioCategoria() {
     const usados = new Set(this.categorias.map(c => c.color).filter(Boolean));
     const libres = COLORES_CATEGORIAS.filter(c => !usados.has(c));
@@ -929,7 +926,7 @@ export class App {
     // Ver la nota de avisoFotoPerdida en renderProductoHTML: el 📦 de siempre
     // no distingue "nunca tuvo foto" de "se le perdió". En la grilla el aviso
     // va como texto bajo el nombre, porque el espacio de la foto lo ocupa
-    // la // categoría y el precio.
+    // la categoría y el precio.
 
     const avisoFotoPerdida = p.fotoPerdida
       ? `<p class="nota-atencion fila-corta con-margen-abajo-chica">
@@ -1489,14 +1486,6 @@ export class App {
   }
 
   /**
-   * La hoja del producto: tocar la tarjeta la abre, sin pasar por Editar.
-   *
-   * El botón "detalle" no está en el HTML: lo busca `e.target.closest()` en
-   * cualquier parte del contenedor, así que alcanza con que la tarjeta lo traiga
-   * en un atributo y no hace falta envolverla en otro elemento que se coma el
-   * clic de los botones de adentro.
-   */
-  /**
    * Un producto por id, buscando en la base si no está en la página.
    *
    * `this.productos` es lo que se está pintando, no el inventario. Antes estas
@@ -1527,6 +1516,14 @@ export class App {
     }
   }
 
+  /**
+   * La hoja del producto: tocar la tarjeta la abre, sin pasar por Editar.
+   *
+   * El botón "detalle" no está en el HTML: lo busca `e.target.closest()` en
+   * cualquier parte del contenedor, así que alcanza con que la tarjeta lo traiga
+   * en un atributo y no hace falta envolverla en otro elemento que se coma el
+   * clic de los botones de adentro.
+   */
   async abrirDetalle(id) {
     const producto = await this.productoPorId(id);
     if (!producto) return;
@@ -1856,9 +1853,9 @@ export class App {
   nuevoProductoConCodigo(codigo) {
     if (this._productoFormAbierto) return;
     this._productoFormAbierto = true;
-    // Se pasa un producto "semilla" con el código escaneado para que el //
+    // Se pasa un producto "semilla" con el código escaneado para que el
     // formulario lo pre-cargue. Antes se ignoraba el argumento y el usuario
-    // // tenía que volver a escribir el código a mano.
+    // tenía que volver a escribir el código a mano.
 
     abrirFormularioProducto(
       () => { this.recargarYAvisar(() => { this._productoFormAbierto = false; }); },
@@ -2354,17 +2351,9 @@ export class App {
     window.addEventListener('hashchange', ejecutar);
     ejecutar();
   }
-  // El service worker NO se registra aquí.
-  //
-  // vite-plugin-pwa (injectRegister: 'auto', el valor por defecto) ya inyecta
-  // un <script src="/registerSW.js"> en index.html que hace exactamente esto al
-  // evento 'load'. Registrarlo además desde aquí era un duplicado con dos
-  // fallos:
-  //   1. init() es async (espera a IndexedDB), así que el listener de 'load'
-  //      podía registrarse DESPUÉS de que 'load' ya hubiera disparado -> el SW
-  //      no se registraba nunca y la app perdía el modo offline.
-  //   2. En dev, /sw.js no existe (sólo se genera en build) y el registro
-  //      fallaba con un error de MIME type.
+  // El service worker NO se registra acá: lo hace vite-plugin-pwa, que inyecta
+  // <script src="/registerSW.js"> en index.html (injectRegister: 'auto'). Acá
+  // sólo queda un aviso en desarrollo, para no duplicar el registro.
 
   registrarServiceWorker() {
     if (import.meta.env.DEV) {
@@ -2372,7 +2361,7 @@ export class App {
     }
   }
 
-/**
+  /**
    * Avisa que ya se descargó una versión nueva y que un toque la trae.
    *
    * La app NO queda atrapada en una versión vieja: con `registerType:
@@ -2384,7 +2373,7 @@ export class App {
    *
    * El modo `prompt` dejaba esto más lindo pero ataba a la app en un bucle: la
    * tarjeta vive dentro del bundle, así que el usuario con la versión vieja, que
-   * es a quien hay que avisarle, no tiene el código que avisa. Nunca la veía, y
+   * es a quien hay que avisarle, no tiene el código que avisa. Nunca la veía.
    * La versión al pie del inventario es la que dice en qué está cada uno.
    */
   vigilarActualizacion() {

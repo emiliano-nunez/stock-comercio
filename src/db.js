@@ -41,10 +41,12 @@ db.version(4).stores({
 
 // v5: se dejan de declarar tres índices que ninguna consulta usaba.
 //
-//   nombre        -> buscarProductos() filtra con includes(), que es búsqueda
-//                    de subcadena y no puede aprovechar un índice. Y la
-//                    búsqueda real de la app (App.cargarProductos) ni
-//                    siquiera consulta la BD: filtra en memoria.
+//   nombre        -> la búsqueda de texto es por subcadena sobre el campo
+//                    `busqueda`, y un índice sólo sirve para comparar el
+//                    principio de una clave, no cualquier trozo del texto. Y
+//                    el orden por nombre se resuelve con
+//                    sortBy('nombreOrden'), en memoria. Ninguna consulta
+//                    llega a hacer where('nombre').
 //   precios       -> indexar un campo array crea UNA ENTRADA DE ÍNDICE POR
 //                    ELEMENTO: un producto con 4 precios genera 4 filas. Y no
 //                    hay ninguna consulta where('precios').
@@ -148,7 +150,8 @@ db.version(7)
       if (!nombre) continue;
       const clave = normalizarTexto(nombre);
 
-      // el usuario tiene anotada.
+      // La clave de deduplicación es la forma normalizada, pero se guarda el
+      // nombre tal como el usuario lo tiene anotado.
       if (!vistos.has(clave)) vistos.set(clave, nombre);
     }
     if (!vistos.size) return;

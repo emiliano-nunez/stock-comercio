@@ -16,7 +16,8 @@ export class CamaraModal {
     this.modal = this.crearModal();
     document.body.appendChild(this.modal);
 
-    // Pequeño delay para que la animación funcione
+    // Un frame de espera para que el navegador pinte el modal recién agregado
+    // y arranque su animación de entrada antes de arrancar la cámara.
     await new Promise(r => requestAnimationFrame(r));
 
     try {
@@ -207,7 +208,8 @@ export class CamaraModal {
       const thumb = await imagenUtils.crearThumb(blob);
       await dbUtils.guardarImagen(imagenId, blob, thumb);
 
-      // es un cuadrado de ~320px y la miniatura de 200px se vería borroso.
+      // La vista previa usa la foto completa: el recuadro es un cuadrado de
+      // ~320px y la miniatura de 200px se vería borroso.
       const imagenUrl = imagenUtils.crearObjectURL(blob);
 
       this.cerrar();

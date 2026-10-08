@@ -9,9 +9,9 @@ export class ScannerModal {
     this.scanner = null;
     this.modal = null;
     this.isScanning = false;
-    // Pasa a true en cuanto el usuario cierra el modal (a mano o por código).
-
-    // formulario de producto sobre un escáner que el usuario ya descartó.
+    // Pasa a true en cuanto el usuario cierra el modal (a mano o por código),
+    // para no abrir después el formulario de producto sobre un escáner que el
+    // usuario ya descartó.
     this._cerrado = false;
   }
 
@@ -27,8 +27,6 @@ export class ScannerModal {
     try {
       await this.iniciarEscaneo();
     } catch (error) {
-
-      // aquí, así que el usuario veía desaparecer el modal sin explicación.
       this.escanerFallido = true;
       console.error('No se pudo iniciar el escáner:', error);
     }
@@ -203,7 +201,8 @@ export class ScannerModal {
     const statusEl = this.modal?.querySelector('#scanner-status');
     if (!statusEl) return;
 
-    // corriendo y el usuario cree que todavía está leyendo.
+    // Se oculta el visor para que el usuario no crea que el escáner todavía
+    // está leyendo, y la cámara no quede a la vista.
     this.modal.querySelector('.marco-video')?.classList.add('oculto');
     this.isScanning = false;
 
@@ -270,9 +269,8 @@ export class ScannerModal {
     const aviso = statusEl.querySelector('#aviso-codigo-manual');
 
     // El foco abre el teclado al toque, sin que el usuario tenga que tocar
-    // el // campo: en un teléfono es un toque menos y el teclado tapa la
-    // mitad de la // pantalla.
-
+    // el campo: en un teléfono es un toque menos y el teclado tapa la mitad
+    // de la pantalla.
     campo.focus();
 
     form.addEventListener('submit', (e) => {
@@ -313,8 +311,9 @@ export class ScannerModal {
    * mano: si cada uno armara su propio camino, el que escribe a mano se
    * saltaría la búsqueda de duplicados y el diálogo de código repetido.
    *
-   * modal se vaya. El código escrito a mano no la necesita: no hay de qué
-   * taparse la vista.
+   * La espera opcional es sólo para el código leído por la cámara: le da
+   * tiempo al modal de irse antes de mostrar el resultado. El código escrito
+   * a mano no la necesita: no hay de qué taparse la vista.
    */
   async resolverCodigo(codigo, espera = 0) {
 
@@ -334,8 +333,8 @@ export class ScannerModal {
     }
 
     // Si en esos milisegundos el usuario cerró el escáner a mano (✕, Escape
-    // o // clic fuera), se respeta su decisión: no se le abre el formulario
-    // del // producto encima del escáner que acaba de descartar.
+    // o clic fuera), se respeta su decisión: no se le abre el formulario del
+    // producto encima del escáner que acaba de descartar.
 
     if (this._cerrado) return;
 

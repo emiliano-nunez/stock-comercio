@@ -16,11 +16,11 @@ export class ProductoForm {
 
     this.onBuscarCodigo = onBuscarCodigo;
     // Se invoca cuando el usuario borra un producto en conflicto desde el
-    // // diálogo de código repetido. Pasa por la app y no por dbUtils
-    // directo para // que el borrado deje punto de restauración, ofrezca
-    // deshacer y recargue la // vista: si el formulario borrara por su
-    // cuenta, la app se quedaría con la // lista vieja y el producto
-    // volvería a aparecer al cancelar el formulario.
+    // diálogo de código repetido. Pasa por la app y no por dbUtils directo
+    // para que el borrado deje punto de restauración, ofrezca deshacer y
+    // recargue la vista: si el formulario borrara por su cuenta, la app se
+    // quedaría con la lista vieja y el producto volvería a aparecer al
+    // cancelar el formulario.
 
     this.onBorrarProducto = onBorrarProducto;
 
@@ -30,8 +30,6 @@ export class ProductoForm {
 
     this.isEditing = !!producto?.id;
     this.imagenId = producto?.imagenId || null;
-
-    // formulario es un cuadrado de ~320px, así que con la miniatura se vería
 
     this.imagenUrl = producto?.imagenUrl || null;
 
@@ -46,24 +44,20 @@ export class ProductoForm {
 
     this._outsideClick = new AbortController();
     // Ids de imágenes creadas durante esta sesión del formulario. Si el usuario
-    // cancela en vez de guardar, quedan huérfanas en db.imagenes para
-    // siempre // (no hay ningún producto que las referencie), así que se
-    // borran en cerrar().
+    // cancela en vez de guardar, quedan huérfanas en db.imagenes para siempre
+    // (no hay ningún producto que las referencie), así que se borran en
+    // cerrar().
 
     this._imagenesNuevas = new Set();
     this._guardado = false;
   }
 
   async abrir() {
-
-    // // Cada apertura es una sesión nueva del formulario. Sin este reset,
-    // el // _guardado del primer guardado exitoso quedaba en true para
-    // siempre y // limpiarImagenesSinGuardar() salía con su early return en
-    // TODAS las // cancelaciones siguientes: las fotos capturadas y luego
-    // descartadas se // acumulaban como blobs huérfanos. El constructor
-    // sólo corre una vez, // porque App.js mantiene una sola instancia del
-    // formulario.
-
+    // Cada apertura es una sesión nueva del formulario. Sin este reset, el
+    // _guardado del primer guardado exitoso quedaba en true para siempre y
+    // limpiarImagenesSinGuardar() salía con su early return en TODAS las
+    // cancelaciones siguientes: las fotos capturadas y luego descartadas se
+    // acumulaban como blobs huérfanos. El constructor sólo corre una vez,
     // porque App.js mantiene una sola instancia del formulario.
     this._imagenesNuevas.clear();
     this._guardado = false;
@@ -163,7 +157,7 @@ export class ProductoForm {
    * Con el campo vacío no se muestra nada: son veinte nombres y ninguno es el
    * que el usuario quiere todavía. Recién con dos letras hay algo que filtrar.
    *
-   * El filtro no se parece en mayúsculas ni en tildes, igual que la búsqueda
+   * El filtro no distingue mayúsculas ni tildes, igual que la búsqueda
    * principal. Si el usuario busca "sur" tiene que salir "Distribuidora del Sur".
    */
   bindProveedor(modal) {
@@ -200,8 +194,8 @@ export class ProductoForm {
         .slice(0, MAXIMO);
 
       if (!encontrados.length) {
-        // Sin resultados no se muestra un desplegable vacío: el usuario está
-
+        // Sin resultados no se muestra un desplegable vacío: se cierra la
+        // lista y el usuario sigue escribiendo en el campo.
         cerrarLista();
         return;
       }
@@ -230,7 +224,9 @@ export class ProductoForm {
     campo.addEventListener('input', filtrar);
     campo.addEventListener('focus', () => { if (campo.value.trim().length >= MINIMO) filtrar(); });
 
-    // formulario entero y el usuario perdía lo que había escrito del proveedor.
+    // Con stopPropagation el Escape se queda en el campo: sin él burbujeaba y
+    // cerraba el formulario entero, y el usuario perdía lo que había escrito
+    // del proveedor.
     campo.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !lista.hidden) {
         e.stopPropagation();
@@ -238,10 +234,10 @@ export class ProductoForm {
       }
     });
 
-    // // El clic por fuera cierra la lista. Se escucha en el documento y no
-    // en el // campo porque el toque puede caer en cualquier lado, y con un
-    // retardo // porque si no el clic que elige una opción llega después
-    // del blur y no // cuenta.
+    // El clic por fuera cierra la lista. Se escucha en el documento y no en
+    // el campo porque el toque puede caer en cualquier lado, y con un retardo
+    // porque si no el clic que elige una opción llega después del blur y no
+    // cuenta.
 
     document.addEventListener('click', (e) => {
       if (lista.hidden) return;
@@ -800,8 +796,6 @@ export class ProductoForm {
       if (e.target === modal) this.cerrar();
     });
 
-    // en el input oculto #tipoVenta. Se elimina este bloque porque además
-
     modal.querySelectorAll('[data-stock-action]').forEach(btn => {
       btn.addEventListener('click', () => this.ajustarStock(btn.dataset.stockAction));
     });
@@ -906,10 +900,10 @@ export class ProductoForm {
         else cerrarCategorias();
       });
 
-      // // Cerrar al hacer click fuera. // Se registra con AbortController
-      // para poder desconectarlo en cerrar(): // si no, cada apertura del
-      // formulario deja un listener en document que // retiene el modal
-      // entero ya desconectado del DOM.
+      // Cerrar al hacer click fuera. Se registra con AbortController para
+      // poder desconectarlo en cerrar(): si no, cada apertura del formulario
+      // deja un listener en document que retiene el modal entero ya
+      // desconectado del DOM.
 
       document.addEventListener('click', (e) => {
         if (!categoriaToggle.contains(e.target) && !categoriaOptions.contains(e.target)) {
@@ -936,17 +930,18 @@ export class ProductoForm {
           const marcadas = [...categoriaOptions.querySelectorAll('[role="option"][aria-selected="true"]')];
           const ids = marcadas.map(opt => opt.dataset.id).filter(Boolean);
 
-          // de a poco, sin que el usuario hiciera nada para que eso pasara.
+          // También se conservan los ids que ya no tienen opción en la lista:
+          // si se descartaran, irían desapareciendo de a poco, sin que el
+          // usuario hiciera nada para que eso pasara.
           const colgados = categoriaInput.value
             .split(',')
             .map(id => id.trim())
             .filter(id => id && !categoriaOptions.querySelector(`[role="option"][data-id="${CSS.escape(id)}"]`));
           categoriaInput.value = [...ids, ...colgados].join(',');
 
-          // // El botón se repinta con las fichas de las elegidas. Se
-          // reemplaza el // contenido entero en vez de tocar el texto del
-          // contenedor, porque // el textContent borraría los puntos de
-          // color de adentro.
+          // El botón se repinta con las fichas de las elegidas. Se reemplaza
+          // el contenido entero en vez de tocar el texto del contenedor,
+          // porque el textContent borraría los puntos de color de adentro.
 
           const MAXIMO = 3;
           categoriaTexto.innerHTML = marcadas.length === 0
@@ -1169,18 +1164,18 @@ export class ProductoForm {
     const costoInput = modal.querySelector('#costo');
 
     /*
- * El campo de precio se busca cada vez que hace falta y no se guarda en una
- * variable. `#precios-lista` se vuelve a pintar cuando cambia el tipo de venta,
- * así que el campo atrapado en el cierre quedaba viejo: los listeners de costo,
- * IVA y margen están atados una sola vez y seguían escribiendo en un campo que ya
- * no estaba en la página.
- *
- * El selector es el primer `precio_` de la lista, sin `.precio-item`: esa clase
- * sólo la llevan los precios de sub-unidades, y el campo "Precio final" —al que
- * calcula esta herramienta— está fuera de ella. Con un producto sin sub-unidades
- * no había ningún `.precio-item`, el selector no matcheaba nada y la guardaba de
- * abajo cortaba la inicialización entera.
- */
+     * El campo de precio se busca cada vez que hace falta y no se guarda en una
+     * variable. `#precios-lista` se vuelve a pintar cuando cambia el tipo de venta,
+     * así que el campo atrapado en el cierre quedaba viejo: los listeners de costo,
+     * IVA y margen están atados una sola vez y seguían escribiendo en un campo que ya
+     * no estaba en la página.
+     *
+     * El selector es el primer `precio_` de la lista, sin `.precio-item`: esa clase
+     * sólo la llevan los precios de sub-unidades, y el campo "Precio final" —al que
+     * calcula esta herramienta— está fuera de ella. Con un producto sin sub-unidades
+     * no había ningún `.precio-item`, el selector no matcheaba nada y la guarda de
+     * abajo cortaba la inicialización entera.
+     */
     const campoPrecio = () => modal.querySelector('#precios-lista input[name^="precio_"]');
 
     const ivaInput = modal.querySelector('#ivaPorcentaje');
@@ -1396,16 +1391,14 @@ export class ProductoForm {
 
   async abrirScanner() {
     try {
-
-      // // `coincidencias` es una LISTA de productos, no un producto. Antes
-      // se // comprobaba `if (productoExistente)` sobre la lista, y un
-      // array vacío es // verdadero en JavaScript: por eso escanear un
-      // código nuevo decía siempre // que ya existía.
-
+      // `coincidencias` es una LISTA de productos, no un producto. Antes se
+      // comprobaba `if (productoExistente)` sobre la lista, y un array vacío
+      // es verdadero en JavaScript: por eso escanear un código nuevo decía
+      // siempre que ya existía.
       await abrirScanner(async (codigo, coincidencias) => {
         // El escáner se abre encima del formulario: si el usuario cerró el
-        // // formulario mientras escaneaba, this.modal ya es null y buscar
-        // el input // reventaría con TypeError dentro de un callback.
+        // formulario mientras escaneaba, this.modal ya es null y buscar el
+        // input reventaría con TypeError dentro de un callback.
 
         const input = this.modal?.querySelector('#codigoBarras');
         if (input) input.value = codigo;
@@ -1415,8 +1408,8 @@ export class ProductoForm {
           return;
         }
 
-        // No se abre el producto a editar. Escaneando lo que el usuario está
-
+        // No se abre el producto a editar: sólo se avisa del código repetido
+        // y se ofrece verlo en el inventario.
         const cuantos = coincidencias.length;
         toast.warning(
           cuantos === 1
@@ -1425,11 +1418,9 @@ export class ProductoForm {
           {
             action: 'Ver en el inventario',
             onAction: async () => {
-
-              // // await en cerrar(): el padre cambia de vista y su onClose
-              // // diferido de 200 ms tiene que ejecutarse antes, si no
-              // dejaría el // formulario nuevo ya montado sobre el viejo.
-
+              // await en cerrar(): el padre cambia de vista y su onClose
+              // diferido de 200 ms tiene que ejecutarse antes, si no
+              // dejaría el formulario nuevo ya montado sobre el viejo.
               await this.cerrar();
               this.onBuscarCodigo?.(codigo);
             }
@@ -1494,7 +1485,8 @@ export class ProductoForm {
       return;
     }
 
-    // visible es mucho mejor que un 0 que el usuario no ve.
+    // Si el número no es válido se avisa en pantalla: un error visible es
+    // mucho mejor que un 0 que el usuario no ve.
     const stockNum = dbUtils.leerNumero(formData.get('stock'), 'Stock', { min: 0 });
     if (stockNum.error) { toast.error(stockNum.error); return; }
 
@@ -1520,20 +1512,19 @@ export class ProductoForm {
     // Sin selector de unidad: la principal es siempre la base del tipo de venta.
     const unidadPrincipal = subUnidades[0]?.value || tipoActual.unidadBase;
 
-    // // El precio que se guarda en producto.precio tiene que ser el de la
-    // unidad // PRINCIPAL elegida, no el de la primera sub-unidad. Antes
-    // tomaba precios[0] // (que es siempre la unidad base), así que si el
-    // usuario elegía "500g" como // principal el catálogo mostraba el
-    // precio del kilo con la etiqueta de la // unidad principal al lado:
-    // dos números que no iban juntos.
+    // El precio que se guarda en producto.precio tiene que ser el de la
+    // unidad PRINCIPAL elegida, no el de la primera sub-unidad. Antes tomaba
+    // precios[0] (que es siempre la unidad base), así que si el usuario
+    // elegía "500g" como principal el catálogo mostraba el precio del kilo
+    // con la etiqueta de la unidad principal al lado: dos números que no iban
+    // juntos.
 
     const precioDePrincipal = precios.find(p => p.unidad === unidadPrincipal);
 
     if (!precioDePrincipal) {
-      // Sin precio para la unidad principal no se guarda: el producto quedaría
-
-      // confuso que este arreglo busca evitar. Se avisa y se aborta para que
-      // el usuario ponga el precio o elija otra unidad.
+      // Sin precio para la unidad principal no se guarda: el producto
+      // quedaría confuso, que es lo que este aviso busca evitar. Se avisa y
+      // se aborta para que el usuario ponga el precio o elija otra unidad.
       const sub = subUnidades.find(s => s.value === unidadPrincipal);
       toast.error(`Falta el precio de la unidad principal (${sub?.label || unidadPrincipal}). Poné el precio o elegí otra unidad.`);
       return;
@@ -1544,15 +1535,15 @@ export class ProductoForm {
     let codigoBarras = formData.get('codigoBarras')?.toString().trim() || null;
     const codigoProveedor = formData.get('codigoProveedor')?.toString().trim() || null;
 
-    // limpian los ids vacíos, porque un id con espacios alrededor rompería
-
+    // Se recortan los espacios y se limpian los ids vacíos: un id con
+    // espacios alrededor rompería la comparación con el de la categoría.
     const categoriaIds = (formData.get('categoriaIds') || '')
       .split(',')
       .map(id => id.trim())
       .filter(Boolean);
 
     // Proveedor y notas son texto libre. Se guardan sin espacios en los bordes
-    // para que no se comparen distintos dos productos con el mismo proveedor.
+    // para que dos productos con el mismo proveedor no se comparen distintos.
     // El proveedor además se normaliza: el pedido de faltantes se manda por
     // proveedor y "distribuidora del sur" escrito con minúscula tiene que caer
     // en el mismo grupo que "Distribuidora del Sur".
@@ -1577,7 +1568,7 @@ export class ProductoForm {
         if (r.accion === 'sufijo') codigoBarras = r.codigo;
         else if (r.accion === 'sin-codigo') codigoBarras = null;
         // 'guardar' (acepta el duplicado) y 'resuelto' (el usuario borró
-        // todos // los conflictos) dejan el código como estaba escrito.
+        // todos los conflictos) dejan el código como estaba escrito.
 
       }
     }
@@ -1635,7 +1626,8 @@ export class ProductoForm {
       //     del catálogo es la foto, no un síntoma.
       //   - creadoSinFoto: false con imagenId puesta pero sin blob -> se le
       //     perdió la foto por fuera de la app, y ahí sí hay que avisarle
-      //     (ver p.fotoPerdida en getAllProductosConImagenes).
+      //     (eso es p.fotoPerdida, que se deriva al leer los productos y no
+      //     se guarda en la base).
       //
       // Sin este campo, el 90% de los productos de un negocio chico nunca va a
       // tener foto y todos mostrarían un cartel de "Falta la foto" que no
@@ -1812,8 +1804,8 @@ export class ProductoForm {
    * "false" el flag de "formulario abierto", permitiendo abrir un tercero
    * encima del segundo.
    *
-   * Cerrar sin esperar (✕, Escape, guardar) sigue funcionando: la promesa se
-   * simplemente ignora.
+   * Cerrar sin esperar (✕, Escape, guardar) sigue funcionando: la promesa
+   * simplemente se ignora.
    */
   cerrar() {
     if (this.handleKeydown) {
@@ -1822,7 +1814,8 @@ export class ProductoForm {
 
     this._outsideClick?.abort();
 
-    // catálogo no se tocan: son de App y las revoca él al recargar la vista.
+    // Se revoca sólo la URL propia: las del catálogo no se tocan, son de App
+    // y las revoca él al recargar la vista.
     if (this.imagenUrl && this._imagenUrlPropia) {
       imagenUtils.revocarObjectURL(this.imagenUrl);
       this.imagenUrl = null;

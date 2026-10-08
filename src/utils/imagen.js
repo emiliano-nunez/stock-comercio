@@ -30,7 +30,7 @@ export const imagenUtils = {
   // Tope de tamaño para la foto de cámara.
   //
   // La galería sí pasaba por browser-image-compression con maxSizeMB: 0.1, pero
-  // la foto de cámara se encodeaba suelta con calidad 0.75 y SIN medir nada. Una
+  // la foto de cámara se codificaba suelta con calidad 0.75 y SIN medir nada. Una
   // escena con textura (etiqueta con texto, landa, superficie de góndola) se
   // va fácil de 100 KB. Y el impacto no era teórico: cargarTodo() trae
   // todos los blobs de imagen a memoria de una vez, así que el tamaño de cada
@@ -38,9 +38,9 @@ export const imagenUtils = {
   // para que el usuario no reciba fotos de tamaños dispares según de dónde las sacó.
   maxBytesCamara: 100 * 1024,
 
-  // // Resolución mínima antes de rendirse. Más abajo la foto deja de
-  // servir: // el usuario tiene que poder distinguir el producto en la
-  // tarjeta del // catálogo y pasarlo bien al proveedor.
+  // Resolución mínima antes de rendirse. Más abajo la foto deja de servir:
+  // el usuario tiene que poder distinguir el producto en la tarjeta del
+  // catálogo y pasarlo bien al proveedor.
 
   minDimCamara: 320,
 
@@ -91,13 +91,16 @@ export const imagenUtils = {
     const ctx = origen.getContext('2d');
     ctx.drawImage(videoElement, 0, 0, ancho, alto);
 
-    // y sólo después se recorta, porque perder resolución duele más.
+    // Primero se baja la calidad manteniendo la resolución, y sólo después se
+    // recorta, porque perder resolución duele más.
     const intentos = [];
     for (const calidad of [0.75, 0.6, 0.5, 0.4]) {
       intentos.push({ ancho, alto, calidad });
     }
 
-    // siempre, y el lazo termina porque el factor decae geométricamente.
+    // Se sigue achicando mientras la dimensión mayor siga por encima del
+    // mínimo: el factor se aplica siempre, y el lazo termina porque el factor
+    // decae geométricamente.
     let escala = 1;
     while (Math.max(ancho, alto) * escala > this.minDimCamara) {
       escala *= 0.75;
@@ -131,18 +134,20 @@ export const imagenUtils = {
     return URL.createObjectURL(blob);
   },
 
-  // // Generar la miniatura que usa el catálogo. // // El catálogo pinta
-  // cada foto en una caja de 64-80px, pero lo guardado es de // hasta
-  // 800px: se estaban decodificando del orden de 150 veces más píxeles de
-  // // los que se veían. Y como cargarTodo() trae TODOS los blobs a memoria
-  // de una // vez (no se van descargando a medida que se scrollea), el
-  // ahorro es directo // en RAM, que es lo más escaso en el equipo
-  // objetivo. // // Se genera una sola vez, al guardar la foto. Las
-  // imágenes ya guardadas no // tienen miniatura y siguen usando la
-  // completa: no hace falta migración, se // van benefiting a medida que se
-  // re-guarden. // // @returns {Promise<Blob|null>} null si no se pudo
-  // generar, y en ese caso el // catálogo usa la imagen completa (ver
-  // getAllProductosConImagenes).
+  // Generar la miniatura que usa el catálogo.
+  //
+  // El catálogo pinta cada foto en una caja de 64-80px, pero lo guardado es de
+  // hasta 800px: se estaban decodificando del orden de 150 veces más píxeles
+  // de los que se veían. Y como cargarTodo() trae TODOS los blobs a memoria de
+  // una vez (no se van descargando a medida que se scrollea), el ahorro es
+  // directo en RAM, que es lo más escaso en el equipo objetivo.
+  //
+  // Se genera una sola vez, al guardar la foto. Las imágenes ya guardadas no
+  // tienen miniatura y siguen usando la completa: no hace falta migración, se
+  // van beneficiándose a medida que se re-guarden.
+  //
+  // @returns {Promise<Blob|null>} null si no se pudo generar, y en ese caso el
+  // catálogo usa la imagen completa.
 
   async crearThumb(blob, maxDim = 200) {
     let bitmap;
@@ -185,10 +190,10 @@ export const imagenUtils = {
 
   validarArchivo(archivo) {
 
-    // // Sólo formatos que browser-image-compression sabe decodificar en
-    // todos los // navegadores. HEIC/HEIF se acceptaban aquí pero fallaban
-    // al comprimir // ( salvo Safari), así que el usuario elegía un archivo
-    // "válido" y le // salía "No se pudo comprimir la imagen".
+    // Sólo formatos que browser-image-compression sabe decodificar en todos
+    // los navegadores. HEIC/HEIF se aceptaban aquí pero fallaban al comprimir
+    // (salvo Safari), así que el usuario elegía un archivo "válido" y le
+    // salía "No se pudo comprimir la imagen".
 
     const tiposValidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     const maxSizeMB = 10;

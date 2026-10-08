@@ -58,8 +58,8 @@ function agruparPorProveedor(productos) {
     const clave = nombre ? claveProveedor(nombre) : '';
     if (!grupos.has(clave)) {
 
-      // clave no tiene mayúsculas ni tildes, y mostrarla sería mostrar algo que
-      // el usuario nunca escribió.
+      // La clave normalizada no se muestra en ningún lado: no tiene mayúsculas
+      // ni tildes, y mostrarla sería mostrar algo que el usuario nunca escribió.
       grupos.set(clave, { clave, nombre, productos: [] });
     }
     grupos.get(clave).productos.push(p);
@@ -94,10 +94,9 @@ export class PedidoModal {
     this.modal = null;
     this.productos = [];
     this.grupos = [];
-    // Lo que el usuario pidió de cada producto. Se arma con el sugerido y
-    // se // cambia a mano. Vive sólo en esta sesión: es un borrador del
-    // pedido de hoy, // no un dato del producto, así que no se guarda en la
-    // base.
+    // Lo que el usuario pidió de cada producto. Se arma con el sugerido y se
+    // cambia a mano. Vive sólo en esta sesión: es un borrador del pedido de
+    // hoy, no un dato del producto, así que no se guarda en la base.
 
     this.cantidades = new Map();
   }
@@ -177,9 +176,10 @@ export class PedidoModal {
       this.copiar(this.textoGrupo(this.grupos.find(g => !g.clave)), 'Copiados los que no tienen proveedor');
     });
 
-    // proveedor porque la clave lleva tildes y espacios normalizados: usarla
+    // Cada botón lleva el índice del grupo en data-grupo y no la clave del
+    // proveedor, porque la clave lleva tildes y espacios normalizados: usarla
     // como atributo obligaría a escaparla, y es un dato que no hace falta
-
+    // exponer.
     modal.querySelectorAll('.btn-copiar-grupo').forEach(btn => {
       btn.addEventListener('click', () => {
         const grupo = this.grupos[Number(btn.dataset.grupo)];
@@ -187,8 +187,9 @@ export class PedidoModal {
       });
     });
 
-    // diálogo y no uno por botón porque la lista se vuelve a pintar cada vez
-
+    // Listener delegado en el diálogo y no uno por cada botón: los +/- se
+    // identifican por sus data- y siguen funcionando aunque la lista se vuelva
+    // a pintar.
     modal.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-pedido="cantidad"]');
       if (!btn) return;
@@ -308,7 +309,8 @@ export class PedidoModal {
    * El pedido entero, con los proveedores de título.
    *
    * Va agrupado y no como una lista corrida porque el texto se manda por chat: un
-   * bloque de treinta productos sin saber a quién van es algo que el usuario
+   * bloque de treinta productos sin saber a quién van es algo que el usuario no
+   * puede aprovechar.
    */
   textoTodo() {
     return `${TITULO_PEDIDO}\n\n${this.grupos.map(g => this.textoGrupo(g)).join('\n\n')}`;
