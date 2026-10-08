@@ -572,7 +572,7 @@ export class App {
         </div>
       </header>
 
-      <!-- Bottom-nav móvil: 5 acciones principales -->
+      <!-- Bottom-nav móvil: 5 acciones principales, + centrado -->
       <nav class="bottom-nav" aria-label="Navegación principal">
         <button class="bottom-nav-item ${this.vistaActual === 'inventario' ? 'activo' : ''}" data-vista="inventario" aria-label="Inventario">
           ${icono('caja')}<span>Inventario</span>
@@ -580,11 +580,11 @@ export class App {
         <button class="bottom-nav-item ${this.vistaActual === 'catalogo' ? 'activo' : ''}" data-vista="catalogo" aria-label="Catálogo">
           ${icono('etiqueta')}<span>Catálogo</span>
         </button>
-        <button class="bottom-nav-item ${this.vistaActual === 'categorias' ? 'activo' : ''}" data-vista="categorias" aria-label="Categorías">
-          ${icono('carpeta')}<span>Categorías</span>
-        </button>
         <button class="bottom-nav-item bottom-nav-principal" id="btn-agregar-menu" aria-label="Agregar producto" aria-haspopup="true" aria-expanded="false">
           ${icono('mas')}<span>Agregar</span>
+        </button>
+        <button class="bottom-nav-item ${this.vistaActual === 'categorias' ? 'activo' : ''}" data-vista="categorias" aria-label="Categorías">
+          ${icono('carpeta')}<span>Categorías</span>
         </button>
         <button class="bottom-nav-item" data-accion="ajustes" aria-label="Ajustes">
           ${icono('ajuste')}<span>Ajustes</span>
