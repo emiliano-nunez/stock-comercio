@@ -155,22 +155,20 @@
   .acciones-tarjeta .btn-crece {
     flex: 0 0 auto;
   }
-}
 
-/*
- * Todo lo que no es PC: teléfono y tablet.
- *
- * La foto y los botones van en columna y no en fila, así que la foto no se estira
- * a lo alto de la tarjeta y la fecha queda pegada abajo de la foto en vez de al
- * pie de la tarjeta. El alto lo manda la columna de los botones, que con dos
- * cuadrados de 40px apilados mide 88px.
- *
- * El aviso de la foto perdida queda en el ícono solo: son cuatro renglones de
- * texto en una columna angosta, y con uno de esos productos la tarjeta quedaba el
- * doble de alta que las demás. El texto entero sigue en la hoja del producto, que
- * es donde se abre al tocar la tarjeta.
- */
-@media (max-width: 839px) {
+  /*
+   * Todo lo que no es PC: teléfono y tablet.
+   *
+   * La foto y los botones van en columna y no en fila, así que la foto no se estira
+   * a lo alto de la tarjeta y la fecha queda pegada abajo de la foto en vez de al
+   * pie de la tarjeta. El alto lo manda la columna de los botones, que con dos
+   * cuadrados de 40px apilados mide 88px.
+   *
+   * El aviso de la foto perdida queda en el ícono solo: son cuatro renglones de
+   * texto en una columna angosta, y con uno de esos productos la tarjeta quedaba el
+   * doble de alta que las demás. El texto entero sigue en la hoja del producto, que
+   * es donde se abre al tocar la tarjeta.
+   */
   .tarjeta-alta .stock-foto {
     align-self: start;
   }
@@ -461,7 +459,6 @@
   grid-template-columns: 5rem minmax(0, 1fr) auto;
   grid-template-areas: "foto info acciones";
   column-gap: var(--interfaz-espacio-2);
-  padding: var(--tarjeta-relleno);
 }
 
 @media (min-width: 840px) {
