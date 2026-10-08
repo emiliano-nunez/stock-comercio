@@ -34,7 +34,7 @@ export function fechaEnDia(fecha) {
  */
 export function fechaYHora(iso) {
   if (!iso) return '';
-  const fecha = new Date(iso);
+  const fecha = iso instanceof Date ? iso : new Date(iso);
   if (Number.isNaN(fecha.getTime())) return '';
 
   const dos = (n) => String(n).padStart(2, '0');

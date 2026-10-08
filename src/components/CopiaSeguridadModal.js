@@ -1,6 +1,7 @@
 import { db, dbUtils } from '../db.js';
 import { toast } from '../utils/toast.js';
 import { esc } from '../utils/html.js';
+import { fechaYHora } from '../utils/texto.js';
 import { exportarBackup, importarBackup, descargarBackup, leerBackupArchivo } from '../utils/backup.js';
 import { icono } from '../utils/iconos.js';
 
@@ -227,21 +228,6 @@ export class CopiaSeguridadModal {
   }
 
   /**
-   * La fecha de un backup, como DD/MM/AAAA HH:MM.
-   *
-   * Se arma a mano y no con `toLocaleString` porque el resultado de ese cambia
-   * según el aparato: en unos sale "02/10/2026, 16:37" y en otros
-   * "10/2/2026, 04:37 p. m.". Sale de la fecha local, no de la de UTC: el
-   * horario que importa es el del que exportó.
-   */
-  formatearFecha(fechaISO) {
-    const d = fechaISO instanceof Date ? fechaISO : new Date(fechaISO);
-    if (Number.isNaN(d.getTime())) return 'Sin fecha';
-    const dos = n => String(n).padStart(2, '0');
-    return `${dos(d.getDate())}/${dos(d.getMonth() + 1)}/${d.getFullYear()} ${dos(d.getHours())}:${dos(d.getMinutes())}`;
-  }
-
-  /**
    * Diálogo de confirmación superpuesto, con el estilo de la app.
    *
    * Se prefiere a confirm() nativo porque el texto necesita detalle (cuántas
@@ -317,7 +303,7 @@ export class CopiaSeguridadModal {
           <strong>${esc(nombreArchivo)}</strong> contiene
           ${resumen.productos} producto(s) y ${resumen.categorias} categoría(s).
         </p>
-        ${resumen.fecha ? `<p class="detalle apagado">Copia del ${esc(this.formatearFecha(resumen.fecha))}.</p>` : ''}
+        ${resumen.fecha ? `<p class="detalle apagado">Copia del ${esc(fechaYHora(resumen.fecha) || 'Sin fecha')}.</p>` : ''}
         ${hayDatos > 0
           ? `<p class="texto-peligro">
                Se <strong>reemplazarán los ${hayDatos} producto(s) que tenés
