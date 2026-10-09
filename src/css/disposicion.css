@@ -992,11 +992,20 @@ body.sin-categorias #form-producto .form-par {
   background-color: var(--interfaz-fondo);
 }
 
-/* Popover del usuario */
+/* Popover del usuario, anclado al botón en cualquier ancho. Antes en el teléfono
+   quedaba fijo con una altura de cabecera fija (`--cabecera-altura`) que no
+   existía como variable, y la altura real de la cabecera lo hacía caer encima de
+   ella. Anclado al botón va debajo de él y no hace falta medir la cabecera.
+   El lado depende del renglón: en el teléfono el botón queda a la izquierda de
+   su renglón y el popover crece hacia la derecha (`left: 0`); en el escritorio
+   queda al final de la barra lateral y crece hacia la izquierda (`right: 0`, en
+   el media de abajo). */
 .usuario-popover {
-  position: fixed;
-  top: calc(var(--cabecera-altura, 60px) + var(--espacio-2));
-  right: var(--espacio-3);
+  position: absolute;
+  top: calc(100% + var(--espacio-1));
+  left: 0;
+  right: auto;
+  bottom: auto;
   z-index: var(--capa-flotante);
   background-color: var(--color-superficie);
   border: 1px solid var(--color-borde);
@@ -1005,6 +1014,13 @@ body.sin-categorias #form-producto .form-par {
   padding: var(--espacio-1);
   min-width: 180px;
   max-width: 90vw;
+}
+
+@media (min-width: 840px) {
+  .usuario-popover {
+    left: auto;
+    right: 0;
+  }
 }
 
 .usuario-popover:not(.oculto) {
@@ -1038,17 +1054,6 @@ body.sin-categorias #form-producto .form-par {
   height: 1.25rem;
   flex-shrink: 0;
   color: var(--interfaz-azul);
-}
-
-/* En escritorio el popover se ancla al botón */
-@media (min-width: 840px) {
-  .usuario-popover {
-    position: absolute;
-    top: calc(100% + var(--espacio-1));
-    right: 0;
-    bottom: auto;
-    left: auto;
-  }
 }
 
 @media (min-width: 1100px) {
