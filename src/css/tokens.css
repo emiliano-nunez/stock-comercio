@@ -296,4 +296,13 @@
   --dialogo-relleno:     var(--espacio-3);   /* 10px */
   --dialogo-pie-relleno: var(--espacio-2) var(--espacio-3); /* 6px 10px */
   --dialogo-pie-fondo:   #f9f9f9;
+
+  /* -----------------------------------------------------------------
+   * El bottom-nav (móvil)
+   * ----------------------------------------------------------------- */
+
+  --bottom-nav-alto:     3.5rem;    /* 56px */
+  --bottom-nav-etiqueta: 0.625rem;  /* 10px: más chica que --texto-xs (11px)
+                                       para que quepan los cinco items */
+  --bottom-nav-gap:      2px;       /* aire entre el ícono y la etiqueta */
 }
