@@ -97,6 +97,14 @@ button {
   font: inherit;
 }
 
+/* El anillo de foco por teclado, con el color de foco de la app. Los campos
+   ya tienen el suyo con box-shadow (en controles.css); acá se cubren los
+   botones, que hasta ahora quedaban con el anillo por defecto del navegador. */
+button:focus-visible {
+  outline: 2px solid var(--interfaz-azul-foco);
+  outline-offset: 2px;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
 }

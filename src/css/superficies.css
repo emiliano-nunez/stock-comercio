@@ -1015,8 +1015,19 @@
   .anim-subir,
   .anim-bajar,
   .anim-aviso-entra,
-  .anim-aviso-sale {
+  .anim-aviso-sale,
+  .bottom-nav-popover:not(.oculto),
+  .usuario-popover:not(.oculto) {
     animation: none;
+  }
+
+  /* El escalado de presión de los botones también es movimiento: sin la
+     transición, el botón salta de tamaño al tocar, así que se elimina. */
+  .btn-suma:active:not(:disabled),
+  .btn-resta:active:not(:disabled),
+  .btn-transparente:active:not(:disabled),
+  .boton-agregar:active {
+    transform: none;
   }
 }
 
