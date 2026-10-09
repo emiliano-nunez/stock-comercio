@@ -187,12 +187,12 @@ body.sin-categorias #form-producto .form-par {
 /* Las columnas de la cabecera y de las parejas: 8px y no 13. */
 #form-producto .form-cabecera,
 #form-producto .form-par {
-  gap: var(--interfaz-espacio-2);
+  gap: var(--espacio-2);
 }
 
 /* La calculadora, con relleno chico. */
 #form-producto .recuadro {
-  padding: var(--interfaz-espacio-2);
+  padding: var(--espacio-2);
 }
 
 /*
@@ -270,8 +270,8 @@ body.sin-categorias #form-producto .form-par {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--interfaz-espacio-2);
-  padding: var(--interfaz-espacio-2) var(--interfaz-espacio-4);
+  gap: var(--espacio-2);
+  padding: var(--espacio-2) var(--espacio-4);
 }
 
 .cabecera-cuerpo > h1 {
@@ -482,14 +482,14 @@ body.sin-categorias #form-producto .form-par {
   flex: 0 0 auto;
   width: var(--toque-min);
   height: var(--toque-min);
-  margin-top: var(--interfaz-espacio-2);
+  margin-top: var(--espacio-2);
 
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--espacio-2);
 
-  border-radius: var(--interfaz-radio-2);
+  border-radius: var(--radio-control);
 
   background-color: var(--interfaz-azul-fuerte);
   color: var(--color-texto-invertido);
@@ -784,11 +784,11 @@ body.sin-categorias #form-producto .form-par {
   padding: var(--espacio-1) var(--espacio-2);
   background: none;
   border: none;
-  font-size: var(--interfaz-texto-xs);
+  font-size: var(--texto-xs);
   color: var(--interfaz-texto-2);
   font-weight: var(--grosor-medio);
   cursor: pointer;
-  border-radius: var(--interfaz-radio-2);
+  border-radius: var(--radio-control);
   transition: color var(--transicion-rapida), background-color var(--transicion-rapida);
 }
 
@@ -813,7 +813,7 @@ body.sin-categorias #form-producto .form-par {
 .bottom-nav-principal {
   background-color: var(--interfaz-azul);
   color: var(--color-texto-invertido);
-  border-radius: var(--interfaz-radio);
+  border-radius: var(--radio-md);
   padding: var(--espacio-1) var(--espacio-3);
 }
 
@@ -841,8 +841,8 @@ body.sin-categorias #form-producto .form-par {
 
   .cabecera-cuerpo {
     flex-wrap: wrap;
-    gap: var(--interfaz-espacio-2);
-    padding: var(--interfaz-espacio-2) var(--interfaz-espacio-3);
+    gap: var(--espacio-2);
+    padding: var(--espacio-2) var(--espacio-3);
   }
 
   .cabecera-cuerpo > h1 {
@@ -893,7 +893,7 @@ body.sin-categorias #form-producto .form-par {
   .bottom-nav-principal {
     flex: 1;
     margin: var(--espacio-1);
-    border-radius: var(--interfaz-radio);
+    border-radius: var(--radio-md);
   }
 }
 
@@ -906,7 +906,7 @@ body.sin-categorias #form-producto .form-par {
   z-index: var(--capa-flotante);
   background-color: var(--color-superficie);
   border: 1px solid var(--color-borde);
-  border-radius: var(--interfaz-radio);
+  border-radius: var(--radio-md);
   box-shadow: var(--sombra-lg);
   padding: var(--espacio-2);
   min-width: 160px;
@@ -931,8 +931,8 @@ body.sin-categorias #form-producto .form-par {
   padding: var(--espacio-2) var(--espacio-3);
   background: none;
   border: none;
-  border-radius: var(--interfaz-radio-2);
-  font-size: var(--interfaz-texto-sm);
+  border-radius: var(--radio-control);
+  font-size: var(--texto-sm);
   color: var(--interfaz-texto);
   font-weight: var(--grosor-medio);
   text-align: left;
@@ -1000,7 +1000,7 @@ body.sin-categorias #form-producto .form-par {
   z-index: var(--capa-flotante);
   background-color: var(--color-superficie);
   border: 1px solid var(--color-borde);
-  border-radius: var(--interfaz-radio);
+  border-radius: var(--radio-md);
   box-shadow: var(--sombra-lg);
   padding: var(--espacio-1);
   min-width: 180px;
@@ -1020,8 +1020,8 @@ body.sin-categorias #form-producto .form-par {
   padding: var(--espacio-2) var(--espacio-3);
   background: none;
   border: none;
-  border-radius: var(--interfaz-radio-2);
-  font-size: var(--interfaz-texto-sm);
+  border-radius: var(--radio-control);
+  font-size: var(--texto-sm);
   color: var(--interfaz-texto);
   font-weight: var(--grosor-medio);
   text-align: left;
@@ -1281,13 +1281,13 @@ body.sin-categorias #form-producto .form-par {
    estándar, 16px, y antes eran 13px. */
 .franja-inferior {
   position: absolute;
-  bottom: var(--interfaz-espacio-4);
-  left: var(--interfaz-espacio-4);
-  right: var(--interfaz-espacio-4);
+  bottom: var(--espacio-4);
+  left: var(--espacio-4);
+  right: var(--espacio-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--interfaz-espacio-4);
+  gap: var(--espacio-4);
 }
 
 /* =================================================================

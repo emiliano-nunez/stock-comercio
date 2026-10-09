@@ -13,8 +13,8 @@
      escrito en tokens.css y ese es el lugar donde se cambia. */
   padding: var(--tarjeta-relleno);
   background-color: var(--color-superficie);
-  border: 1px solid var(--interfaz-borde);
-  border-radius: var(--interfaz-radio);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
   box-shadow: var(--interfaz-sombra);
   overflow: hidden;
 }
@@ -56,11 +56,11 @@
   overflow: hidden;
   white-space: normal;
 
-  font-size: var(--interfaz-texto-sm);   /* 13px */
+  font-size: var(--texto-sm);   /* 13px */
   line-height: var(--tarjeta-interlinea-2);
   font-weight: var(--grosor-normal);
   color: var(--interfaz-texto);
-  margin-block-end: var(--interfaz-espacio-1);
+  margin-block-end: var(--espacio-1);
 }
 
 /*
@@ -75,7 +75,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--interfaz-espacio-1);
+  gap: var(--espacio-1);
   margin-block-start: 0;
 }
 
@@ -101,7 +101,7 @@
 /* El costo, el mínimo y el código son los datos de apoyo: 12px y en el gris
    secundario del estándar. */
 .datos-producto .micro {
-  font-size: var(--interfaz-texto-xs);
+  font-size: var(--texto-xs);
 }
 
 .datos-producto .apagado {
@@ -121,7 +121,7 @@
   width: 4rem;
   height: 4rem;
   background-color: var(--gris-100);
-  border-radius: var(--interfaz-radio);
+  border-radius: var(--radio-md);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -206,7 +206,7 @@
    foto: es un dato de apoyo y no tiene por qué caer al fondo de la tarjeta. */
 .stock-fecha {
   margin-block-start: auto;
-  font-size: var(--interfaz-texto-xs);
+  font-size: var(--texto-xs);
   color: var(--interfaz-texto-2);
   white-space: nowrap;
 }
@@ -222,7 +222,7 @@
   width: 100%;
   aspect-ratio: 1;
   background-color: var(--gris-100);
-  border-radius: var(--interfaz-radio);
+  border-radius: var(--radio-md);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -287,7 +287,7 @@
 }
 
 .cuadricula .tarjeta .micro {
-  font-size: var(--interfaz-texto-xs);
+  font-size: var(--texto-xs);
 }
 
 .cuadricula .tarjeta .apagado {
@@ -303,7 +303,7 @@
 }
 
 .foto-cuadro {
-  border-radius: var(--interfaz-radio);
+  border-radius: var(--radio-md);
 }
 
 .foto-llena {
@@ -322,15 +322,15 @@
 .marco-video {
   position: relative;
   background-color: var(--gris-900);
-  padding: var(--interfaz-espacio-2);
-  border-radius: var(--interfaz-radio);
+  padding: var(--espacio-2);
+  border-radius: var(--radio-md);
   overflow: hidden;
 }
 
 .visor-video {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: var(--interfaz-radio);
+  border-radius: var(--radio-md);
   overflow: hidden;
   background-color: var(--gris-900);
 }
@@ -350,7 +350,7 @@
   width: 75%;
   height: 75%;
   border: 4px solid color-mix(in srgb, var(--interfaz-azul) 50%, transparent);
-  border-radius: var(--interfaz-radio);
+  border-radius: var(--radio-md);
 }
 
 .marco-escaner::before,
@@ -448,7 +448,7 @@
   display: grid;
   grid-template-columns: 5rem minmax(0, 1fr) auto;
   grid-template-areas: "foto info acciones";
-  column-gap: var(--interfaz-espacio-2);
+  column-gap: var(--espacio-2);
 }
 
 @media (min-width: 840px) {
@@ -460,7 +460,7 @@
       "acciones  acciones";
     /* En la PC lo único que hay entre columnas es la foto y el texto, y ahí sí hay
        lugar: va en el paso de 12px del estándar. */
-    column-gap: var(--interfaz-espacio-3);
+    column-gap: var(--espacio-3);
   }
 }
 
@@ -491,7 +491,7 @@
 .acciones-tarjeta {
   grid-area: acciones;
   display: flex;
-  gap: var(--interfaz-espacio-2);
+  gap: var(--espacio-2);
 }
 
 @media (max-width: 839px) {
@@ -502,8 +502,8 @@
 
 @media (min-width: 840px) {
   .acciones-tarjeta {
-    border-block-start: 1px solid var(--interfaz-borde);
-    padding-block-start: var(--interfaz-espacio-2);
+    border-block-start: 1px solid var(--color-borde);
+    padding-block-start: var(--espacio-2);
   }
 }
 
@@ -522,7 +522,7 @@
  * tenía.
  */
 .acciones-tarjeta .btn-icono-solo {
-  border-radius: var(--interfaz-radio-2);
+  border-radius: var(--radio-control);
   background-color: var(--interfaz-azul-tenue);
   color: var(--interfaz-azul);
 }
@@ -613,7 +613,7 @@
   display: inline-block;
   width: 0.8em;
   height: 0.8em;
-  margin-right: var(--interfaz-espacio-1);
+  margin-right: var(--espacio-1);
   border-radius: var(--radio-full);
   vertical-align: -0.1em;
 }
@@ -658,9 +658,9 @@
  * ================================================================= */
 
 .recuadro {
-  padding: var(--interfaz-espacio-3);
-  border: 1px solid var(--interfaz-borde);
-  border-radius: var(--interfaz-radio);
+  padding: var(--espacio-3);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
   background-color: var(--color-superficie);
 }
 
@@ -803,7 +803,7 @@
   overflow-y: auto;
 
   background-color: var(--color-superficie);
-  border-radius: var(--interfaz-radio);
+  border-radius: var(--radio-md);
   box-shadow: var(--dialogo-sombra);
 }
 
@@ -847,11 +847,11 @@
   .dialogo-cabecera,
   .dialogo-cuerpo,
   .dialogo-pie-fija {
-    padding: var(--interfaz-espacio-3);
+    padding: var(--espacio-3);
   }
 
   .dialogo-pie {
-    padding: 0 var(--interfaz-espacio-3) var(--interfaz-espacio-3);
+    padding: 0 var(--espacio-3) var(--espacio-3);
   }
 }
 
@@ -861,14 +861,14 @@
   justify-content: space-between;
   gap: var(--espacio-2);
   padding: var(--dialogo-relleno);
-  border-bottom: 1px solid var(--interfaz-borde);
+  border-bottom: 1px solid var(--color-borde);
 }
 
 .dialogo-cabecera-fija {
   flex-shrink: 0;
   background-color: var(--color-marca-tenue);
-  border-top-left-radius: var(--interfaz-radio);
-  border-top-right-radius: var(--interfaz-radio);
+  border-top-left-radius: var(--radio-md);
+  border-top-right-radius: var(--radio-md);
 }
 
 .dialogo-cabecera-aviso {
@@ -902,7 +902,7 @@
 
 .dialogo-pie {
   display: flex;
-  gap: var(--interfaz-espacio-3);
+  gap: var(--espacio-3);
   justify-content: flex-end;
   padding: 0 var(--dialogo-relleno) var(--dialogo-relleno);
 }
@@ -922,7 +922,7 @@
   bottom: 0;
   flex-shrink: 0;
   padding: var(--dialogo-pie-relleno);
-  border-top: 1px solid var(--interfaz-borde);
+  border-top: 1px solid var(--color-borde);
   background-color: var(--dialogo-pie-fondo);
 }
 
@@ -935,7 +935,7 @@
 .dialogo-formulario .dialogo-cabecera,
 .dialogo-formulario .dialogo-cuerpo,
 .dialogo-formulario .dialogo-pie-fija {
-  padding: var(--interfaz-espacio-3);
+  padding: var(--espacio-3);
 }
 
 /*
@@ -1038,9 +1038,9 @@
 }
 
 .insignia-pequena {
-  padding: 2px var(--interfaz-espacio-1);
-  border-radius: var(--interfaz-radio-3);
-  font-size: var(--interfaz-texto-xs);
+  padding: 2px var(--espacio-1);
+  border-radius: var(--radio-sm);
+  font-size: var(--texto-xs);
 }
 
 /* =================================================================
@@ -1088,7 +1088,7 @@
 .price-container {
   display: flex;
   align-items: center;
-  gap: var(--interfaz-espacio-1);
+  gap: var(--espacio-1);
   flex-wrap: wrap;
 }
 
@@ -1102,27 +1102,27 @@
 
 /* Precio original tachado: 11px, gris atenuado */
 .price-original {
-  font-size: var(--interfaz-texto-xs);
+  font-size: var(--texto-xs);
   color: var(--interfaz-texto-3);
   text-decoration: line-through;
 }
 
 /* Badge de descuento: verde sobre fondo verde pálido */
 .discount-badge {
-  font-size: var(--interfaz-texto-xs);
+  font-size: var(--texto-xs);
   font-weight: var(--grosor-fuerte);
   color: var(--color-accent-green);
   background-color: var(--color-bg-green-badge);
-  padding: 2px var(--interfaz-espacio-1);
-  border-radius: var(--interfaz-radio-3);
+  padding: 2px var(--espacio-1);
+  border-radius: var(--radio-sm);
 }
 
 /* Tarjeta de sección (banner promocional) */
 .section-card {
   background-color: var(--color-superficie);
-  border-radius: var(--interfaz-radio);
-  padding: var(--interfaz-espacio-4);
-  margin: var(--interfaz-espacio-3);
+  border-radius: var(--radio-md);
+  padding: var(--espacio-4);
+  margin: var(--espacio-3);
   box-shadow: var(--interfaz-sombra);
 }
 
@@ -1130,7 +1130,7 @@
   font-size: var(--texto-lg);
   font-weight: var(--grosor-fuerte);
   color: var(--interfaz-texto);
-  margin-bottom: var(--interfaz-espacio-2);
+  margin-bottom: var(--espacio-2);
 }
 
 /* Botón secundario claro (estilo Meli: fondo azul 15% + texto azul) */
@@ -1138,11 +1138,11 @@
   width: 100%;
   background-color: var(--interfaz-azul-tenue);
   color: var(--interfaz-azul);
-  font-size: var(--interfaz-texto-sm);
+  font-size: var(--texto-sm);
   font-weight: var(--grosor-fuerte);
-  padding: var(--interfaz-espacio-3) var(--interfaz-espacio-4);
+  padding: var(--espacio-3) var(--espacio-4);
   border: none;
-  border-radius: var(--interfaz-radio-2);
+  border-radius: var(--radio-control);
   text-align: center;
   cursor: pointer;
   min-height: var(--toque-min);
@@ -1288,14 +1288,14 @@
 .planilla {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--interfaz-texto-sm);
+  font-size: var(--texto-sm);
   color: var(--interfaz-texto);
 }
 
 .planilla th,
 .planilla td {
-  padding: var(--interfaz-espacio-2) var(--interfaz-espacio-1);
-  border-bottom: 1px solid var(--interfaz-borde);
+  padding: var(--espacio-2) var(--espacio-1);
+  border-bottom: 1px solid var(--color-borde);
   vertical-align: top;
 }
 

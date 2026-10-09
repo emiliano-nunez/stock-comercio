@@ -12,7 +12,6 @@
   --gris-100: #f3f4f6;
   --gris-200: #e5e7eb;
   --gris-300: #d1d5db;
-  --gris-400: #9ca3af;
   --gris-500: #6b7280;
   --gris-600: #4b5563;
   --gris-700: #374151;
@@ -38,7 +37,6 @@
   --ambar-50:  #fffbeb;
   --ambar-100: #fef3c7;
   --ambar-200: #fde68a;
-  --ambar-600: #d97706;
   --ambar-700: #b45309;
 
   --rojo-50:  #fef2f2;
@@ -147,10 +145,11 @@
   /* -----------------------------------------------------------------
    * Radios, sombras y capas
    * ----------------------------------------------------------------- */
-  --radio-sm:   0.25rem;
-  --radio-md:   0.5rem;
-  --radio-lg:   0.75rem;
-  --radio-full: 9999px;
+  --radio-sm:      0.25rem;   /* 4px  la etiqueta */
+  --radio-control: 0.375rem;  /* 6px  el control */
+  --radio-md:      0.5rem;    /* 8px  la caja */
+  --radio-lg:      0.75rem;
+  --radio-full:    9999px;
 
   --sombra-md: 0 2px 6px rgb(0 0 0 / 15%);
   /* La de la etiqueta de sección, que va sobre el fondo de la app y necesita
@@ -201,18 +200,11 @@
    * Lo que comparten todos los componentes (escala estándar compacta)
    * ----------------------------------------------------------------- */
 
-  /* El espaciado del estándar: 4 / 8 / 12 / 16. */
-  --interfaz-espacio-1: 4px;
-  --interfaz-espacio-2: 8px;
-  --interfaz-espacio-3: 12px;
-  --interfaz-espacio-4: 16px;
-
   /* Los tres grises y el fondo neutro de la pantalla. */
   --interfaz-texto:   #333333;
   --interfaz-texto-2: #666666;
   --interfaz-texto-3: #999999;
   --interfaz-fondo:   #ebebeb;
-  --interfaz-borde:   #e6e6e6;
 
   /*
    * El fondo de la página va aparte del de las tarjetas y es el verde del
@@ -220,10 +212,6 @@
    * muestren el mismo color. Las tarjetas siguen en su gris claro.
    */
   --fondo-pagina:      var(--verde-50);
-
-  /* Las dos medidas de texto que el estándar repite en todos lados. */
-  --interfaz-texto-xs: 11px;
-  --interfaz-texto-sm: 13px;
 
   /*
    * El azul: el del botón de acción, el del borde de foco y el del botón
@@ -245,11 +233,6 @@
   --interfaz-error-tenue:        rgb(240 68 56 / 10%);
   --interfaz-error-tenue-fuerte: rgb(240 68 56 / 18%);
 
-  /* Los tres radios del estándar: 8px la caja, 6px el control, 4px la etiqueta. */
-  --interfaz-radio:   8px;
-  --interfaz-radio-2: 6px;
-  --interfaz-radio-3: 4px;
-
   /* La sombra de un píxel, que es la de las cajas del estándar. */
   --interfaz-sombra: 0 1px 2px 0 rgb(0 0 0 / 12%);
 
@@ -259,8 +242,8 @@
 
   /* El relleno de la tarjeta. En el formato de lista horizontal va uno más grande,
      que es lo que dice el estándar. */
-  --tarjeta-relleno:      var(--interfaz-espacio-2);   /* 8px */
-  --tarjeta-relleno-fila: var(--interfaz-espacio-3);   /* 12px */
+  --tarjeta-relleno:      var(--espacio-2);   /* 6px */
+  --tarjeta-relleno-fila: var(--espacio-3);   /* 10px */
 
   /* El precio es lo único grande de la tarjeta: 16px, sin negrita y con la línea
      apretada. */
@@ -301,9 +284,8 @@
      controles, los campos bajan con ellos. */
   --campo-alto: var(--toque-min);
   --campo-borde:        #cccccc;
-  --campo-relleno:      var(--interfaz-espacio-2);   /* 8px */
+  --campo-relleno:      var(--espacio-2);   /* 6px */
   --campo-grupo-hueco:  4px;
-  --campo-grupo-margen: var(--interfaz-espacio-3);   /* 12px */
 
   /* -----------------------------------------------------------------
    * Los diálogos (compactos)
@@ -312,7 +294,7 @@
   --velo-fondo:          rgb(0 0 0 / 60%);
   --dialogo-ancho:       500px;
   --dialogo-sombra:      0 10px 25px rgb(0 0 0 / 20%);
-  --dialogo-relleno:     var(--interfaz-espacio-3);   /* 12px */
-  --dialogo-pie-relleno: var(--interfaz-espacio-2) var(--interfaz-espacio-3); /* 8px 12px */
+  --dialogo-relleno:     var(--espacio-3);   /* 10px */
+  --dialogo-pie-relleno: var(--espacio-2) var(--espacio-3); /* 6px 10px */
   --dialogo-pie-fondo:   #f9f9f9;
 }
