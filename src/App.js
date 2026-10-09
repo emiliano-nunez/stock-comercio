@@ -477,15 +477,6 @@ export class App {
         <header class="cabecera">
           <div class="cabecera-cuerpo">
             <h1 class="titulo fila fila-centro fila-amplia">${icono('caja')}<span>DepoApp</span></h1>
-            <button id="btn-copia" class="btn-texto cabecera-accion" aria-label="Copia de seguridad">
-              ${icono('descargar')}<span class="texto-boton">Copia</span>
-            </button>
-            <button id="btn-pedido" class="btn-texto cabecera-accion" aria-label="Pedido de faltantes">
-              ${icono('etiqueta')}<span class="texto-boton">Pedido</span>
-            </button>
-            <button id="btn-ajustes" class="btn-texto cabecera-accion" aria-label="Ajustes de campos">
-              ${icono('ajuste')}<span class="texto-boton">Ajustes</span>
-            </button>
 
             <div class="fila-busca">
             <div class="posicionado con-margen-arriba">
@@ -568,6 +559,35 @@ export class App {
             >
               ${icono('carpeta')}<span>Categorías</span>
             </button>
+          </div>
+
+          <!-- Acciones de cabecera (ocultas en móvil, visibles en sidebar desktop) -->
+          <button id="btn-copia" class="btn-texto cabecera-accion" aria-label="Copia de seguridad">
+            ${icono('descargar')}<span class="texto-boton">Copia</span>
+          </button>
+          <button id="btn-pedido" class="btn-texto cabecera-accion" aria-label="Pedido de faltantes">
+            ${icono('etiqueta')}<span class="texto-boton">Pedido</span>
+          </button>
+          <button id="btn-ajustes" class="btn-texto cabecera-accion" aria-label="Ajustes de campos">
+            ${icono('ajuste')}<span class="texto-boton">Ajustes</span>
+          </button>
+
+          <!-- Usuario / Perfil (siempre visible a la derecha) -->
+          <div class="usuario-menu">
+            <button id="btn-usuario" class="btn-usuario" aria-label="Menú de usuario" aria-haspopup="true" aria-expanded="false">
+              ${icono('usuario')}
+            </button>
+            <div class="usuario-popover oculto" id="popover-usuario" role="menu" aria-label="Opciones de usuario">
+              <button class="usuario-popover-item" data-accion="copia" role="menuitem">
+                ${icono('descargar')}<span>Copia de seguridad</span>
+              </button>
+              <button class="usuario-popover-item" data-accion="pedido" role="menuitem">
+                ${icono('etiqueta')}<span>Pedido de faltantes</span>
+              </button>
+              <button class="usuario-popover-item" data-accion="ajustes" role="menuitem">
+                ${icono('ajuste')}<span>Ajustes de campos</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -1431,6 +1451,39 @@ export class App {
           togglePopover(false);
           if (accion === 'detallado') this.nuevoProducto();
           else if (accion === 'rapida') this.nuevoProducto(null, 'rapida');
+        });
+      });
+    }
+    // Popover "Usuario"
+    const btnUsuario = document.getElementById('btn-usuario');
+    const popoverUsuario = document.getElementById('popover-usuario');
+    if (btnUsuario && popoverUsuario) {
+      const toggleUsuario = (abrir) => {
+        popoverUsuario.classList.toggle('oculto', !abrir);
+        btnUsuario.setAttribute('aria-expanded', String(abrir));
+      };
+      btnUsuario.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const abierto = btnUsuario.getAttribute('aria-expanded') === 'true';
+        toggleUsuario(!abierto);
+      });
+      // Cerrar al clicar fuera (reutiliza el mismo listener global)
+      if (!this._usuarioCerrarAlClicFuera) {
+        this._usuarioCerrarAlClicFuera = (e) => {
+          if (!popoverUsuario.contains(e.target) && e.target !== btnUsuario) {
+            toggleUsuario(false);
+          }
+        };
+        document.addEventListener('click', this._usuarioCerrarAlClicFuera);
+      }
+      // Items del popover
+      popoverUsuario.querySelectorAll('.usuario-popover-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const accion = item.dataset.accion;
+          toggleUsuario(false);
+          if (accion === 'copia') this.abrirCopiaSeguridad();
+          else if (accion === 'pedido') this.abrirPedido();
+          else if (accion === 'ajustes') this.mostrarAjustes();
         });
       });
     }

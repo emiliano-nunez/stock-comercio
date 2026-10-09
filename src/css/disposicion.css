@@ -955,6 +955,102 @@ body.sin-categorias #form-producto .form-par {
   color: var(--interfaz-azul);
 }
 
+/* =================================================================
+ * Menú de Usuario (header derecho)
+ * ================================================================= */
+
+.usuario-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.btn-usuario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--toque-min);
+  height: var(--toque-min);
+  min-width: var(--toque-min);
+  min-height: var(--toque-min);
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radio-full);
+  color: var(--interfaz-texto);
+  cursor: pointer;
+  transition: background-color var(--transicion-rapida);
+}
+
+.btn-usuario svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+
+.btn-usuario:active,
+.btn-usuario[aria-expanded="true"] {
+  background-color: var(--interfaz-fondo);
+}
+
+/* Popover del usuario */
+.usuario-popover {
+  position: fixed;
+  top: calc(var(--cabecera-altura, 60px) + var(--espacio-2));
+  right: var(--espacio-3);
+  z-index: var(--capa-flotante);
+  background-color: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--interfaz-radio);
+  box-shadow: var(--sombra-lg);
+  padding: var(--espacio-1);
+  min-width: 180px;
+  max-width: 90vw;
+}
+
+.usuario-popover:not(.oculto) {
+  display: block;
+  animation: popover-entra var(--transicion-rapida);
+}
+
+.usuario-popover-item {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  width: 100%;
+  padding: var(--espacio-2) var(--espacio-3);
+  background: none;
+  border: none;
+  border-radius: var(--interfaz-radio-2);
+  font-size: var(--interfaz-texto-sm);
+  color: var(--interfaz-texto);
+  font-weight: var(--grosor-medio);
+  text-align: left;
+  cursor: pointer;
+  min-height: var(--toque-min);
+}
+
+.usuario-popover-item:active {
+  background-color: var(--interfaz-azul-tenue);
+}
+
+.usuario-popover-item svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: var(--interfaz-azul);
+}
+
+/* En escritorio el popover se ancla al botón */
+@media (min-width: 840px) {
+  .usuario-popover {
+    position: absolute;
+    top: calc(100% + var(--espacio-1));
+    right: 0;
+    bottom: auto;
+    left: auto;
+  }
+}
+
 @media (min-width: 1100px) {
   .contenido .rejilla-inventario,
   .contenido .cuadricula {
