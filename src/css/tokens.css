@@ -1,5 +1,9 @@
 
 :root {
+  /* Declarado y no heredado del sistema: si el sistema está en oscuro y el
+     usuario elige claro, los controles nativos tienen que seguir en claro. */
+  color-scheme: light;
+
   /* -----------------------------------------------------------------
    * Paleta
    *
@@ -400,10 +404,17 @@
 /* =================================================================
  * Tema oscuro
  *
- * Sigue la preferencia del sistema y no ofrece un switch: la app es de uso
- * diario en un depósito, donde a la mañana con luz y de noche sin ella la
- * pantalla tiene que servir sola, y agregar un ajuste más sería una decisión
- * que el usuario tiene que tomar por algo que el sistema ya sabe.
+ * Se elige desde el menú de usuario, y lo elegido queda en `localStorage`
+ * con la clave `depoapp-tema`. El que nunca tocó ese botón arranca con la
+ * preferencia del sistema, que es lo que hacía el switch antes de existir:
+ * en un depósito, a la mañana con luz y de noche sin ella, la pantalla se
+ * arregla sola salvo que el usuario pida lo contrario.
+ *
+ * Por eso el selector es `:root[data-tema="oscuro"]` y no una media query:
+ * el atributo lo escribe un script corto en `index.html` antes del primer
+ * pintado, así no hay tema que parpadee al cargar. Ese script es el que
+ * decide entre lo guardado y la preferencia del sistema; este bloque sólo
+ * pinta los tokens de quien ya tiene `oscuro` puesto.
  *
  * No se toca ni un componente. Todo lo que cambia son tokens, y por eso vive
  * acá y no en una hoja aparte: es el mismo razonamiento de siempre, aplicado
@@ -419,156 +430,153 @@
  * fondo de página, contra los 4.5 que pide el estándar.
  * ================================================================= */
 
-@media (prefers-color-scheme: dark) {
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
 
-  :root {
-    color-scheme: dark;
+  /* -------------------------------------------------------------
+   * La paleta cruda
+   *
+   * Se remapean los pasos pálidos, que son los que sirven de fondo de
+   * insignia y de chip. Los de texto se van al extremo claro. El verde,
+   * el ámbar y el rojo conservan su significado: lo que estaba bien
+   * sigue estando bien y lo que está mal sigue estando mal, sólo que
+   * pintado al revés.
+   * ------------------------------------------------------------- */
 
-    /* -------------------------------------------------------------
-     * La paleta cruda
-     *
-     * Se remapean los pasos pálidos, que son los que sirven de fondo de
-     * insignia y de chip. Los de texto se van al extremo claro. El verde,
-     * el ámbar y el rojo conservan su significado: lo que estaba bien
-     * sigue estando bien y lo que está mal sigue estando mal, sólo que
-     * pintado al revés.
-     * ------------------------------------------------------------- */
+  --gris-50:  #1f2937;
+  --gris-100: #374151;
+  --gris-200: #4b5563;
+  --gris-300: #6b7280;
+  --gris-500: #9ca3af;
+  --gris-600: #d1d5db;
+  --gris-700: #e5e7eb;
+  --gris-800: #f3f4f6;
+  --gris-900: #f9fafb;
 
-    --gris-50:  #1f2937;
-    --gris-100: #374151;
-    --gris-200: #4b5563;
-    --gris-300: #6b7280;
-    --gris-500: #9ca3af;
-    --gris-600: #d1d5db;
-    --gris-700: #e5e7eb;
-    --gris-800: #f3f4f6;
-    --gris-900: #f9fafb;
+  --verde-50:  #0f2418;
+  --verde-100: #14361f;
+  --verde-200: #2f855a;
+  --verde-800: #86efac;
+  /*
+   * La escala se invierte igual que la de los grises: en el oscuro, más
+   * número es más claro. El 900 es el verde del estado presionado, y como
+   * la letra de encima es casi negra (#0b1220), subir de luminosidad sólo
+   * mejora el contraste.
+   */
+  --verde-900: #bbf7d0;
+  --verde-texto: #86efac;
 
-    --verde-50:  #0f2418;
-    --verde-100: #14361f;
-    --verde-200: #2f855a;
-    --verde-800: #86efac;
-    /*
-     * La escala se invierte igual que la de los grises: en el oscuro, más
-     * número es más claro. El 900 es el verde del estado presionado, y como
-     * la letra de encima es casi negra (#0b1220), subir de luminosidad sólo
-     * mejora el contraste.
-     */
-    --verde-900: #bbf7d0;
-    --verde-texto: #86efac;
+  --ambar-50:  #2e2210;
+  --ambar-100: #3a2a10;
+  --ambar-200: #a17a2e;
+  --ambar-700: #fcd34d;
 
-    --ambar-50:  #2e2210;
-    --ambar-100: #3a2a10;
-    --ambar-200: #a17a2e;
-    --ambar-700: #fcd34d;
+  --rojo-50:  #2a1414;
+  --rojo-100: #3d1a1a;
+  --rojo-200: #7f1d1d;
+  --rojo-500: #f87171;
+  --rojo-600: #fca5a5;
+  --rojo-700: #fca5a5;
+  --rojo-900: #fecaca;
 
-    --rojo-50:  #2a1414;
-    --rojo-100: #3d1a1a;
-    --rojo-200: #7f1d1d;
-    --rojo-500: #f87171;
-    --rojo-600: #fca5a5;
-    --rojo-700: #fca5a5;
-    --rojo-900: #fecaca;
+  /* -------------------------------------------------------------
+   * Las superficies
+   *
+   * El fondo de página deja de ser el verde claro del manifiesto y va
+   * en un casi negro con un resto de azul, que es lo que hace que el
+   * blanco de las tarjetas --ahora gris-- se despegue sin necesidad de
+   * una sombra fuerte.
+   * ------------------------------------------------------------- */
 
-    /* -------------------------------------------------------------
-     * Las superficies
-     *
-     * El fondo de página deja de ser el verde claro del manifiesto y va
-     * en un casi negro con un resto de azul, que es lo que hace que el
-     * blanco de las tarjetas --ahora gris-- se despegue sin necesidad de
-     * una sombra fuerte.
-     * ------------------------------------------------------------- */
+  --fondo-pagina:      #0d1117;
+  --color-superficie:  #1f2937;
+  --color-texto:       #f9fafb;
+  --color-texto-suave: #d1d5db;
+  --color-texto-tenue: #9ca3af;
+  /*
+   * El botón primario lleva verde claro en este tema, así que la letra de
+   * encima va oscura. Es lo inverso al tema claro y es el motivo de tener
+   * el token en vez de escribir `#fff` en cada botón.
+   */
+  --color-texto-invertido: #0b1220;
+  --color-borde:      #78839a;
+  --color-borde-tenue: #566070;
 
-    --fondo-pagina:      #0d1117;
-    --color-superficie:  #1f2937;
-    --color-texto:       #f9fafb;
-    --color-texto-suave: #d1d5db;
-    --color-texto-tenue: #9ca3af;
-    /*
-     * El botón primario lleva verde claro en este tema, así que la letra de
-     * encima va oscura. Es lo inverso al tema claro y es el motivo de tener
-     * el token en vez de escribir `#fff` en cada botón.
-     */
-    --color-texto-invertido: #0b1220;
-    --color-borde:      #78839a;
-    --color-borde-tenue: #566070;
+  --color-marca:        #d1d5db;
+  --color-marca-fuerte: #f9fafb;
+  --color-marca-tenue:  #374151;
 
-    --color-marca:        #d1d5db;
-    --color-marca-fuerte: #f9fafb;
-    --color-marca-tenue:  #374151;
+  --color-peligro:        #f87171;
+  --color-peligro-fuerte: #fca5a5;
+  --color-peligro-tenue:  #3d1a1a;
+  --color-aviso-tenue:    #2e2210;
 
-    --color-peligro:        #f87171;
-    --color-peligro-fuerte: #fca5a5;
-    --color-peligro-tenue:  #3d1a1a;
-    --color-aviso-tenue:    #2e2210;
+  /* La sombra sobre un fondo oscuro no se ve: lo que separa dos cosas es
+     el borde, y por eso los negros de sombra bajan a la mitad. */
+  --sombra-md:       0 2px 6px rgb(0 0 0 / 45%);
+  --sombra-etiqueta: 0 4px 12px rgb(0 0 0 / 35%);
+  --sombra-lg:       0 8px 24px rgb(0 0 0 / 55%);
 
-    /* La sombra sobre un fondo oscuro no se ve: lo que separa dos cosas es
-       el borde, y por eso los negros de sombra bajan a la mitad. */
-    --sombra-md:       0 2px 6px rgb(0 0 0 / 45%);
-    --sombra-etiqueta: 0 4px 12px rgb(0 0 0 / 35%);
-    --sombra-lg:       0 8px 24px rgb(0 0 0 / 55%);
+  /* -------------------------------------------------------------
+   * El estándar de la interfaz
+   * ------------------------------------------------------------- */
 
-    /* -------------------------------------------------------------
-     * El estándar de la interfaz
-     * ------------------------------------------------------------- */
+  --interfaz-texto:   #f9fafb;
+  --interfaz-texto-2: #d1d5db;
+  --interfaz-texto-3: #d1d5db;
+  /* --interfaz-fondo no se toca: aquí --gris-100 ya es #374151. */
 
-    --interfaz-texto:   #f9fafb;
-    --interfaz-texto-2: #d1d5db;
-    --interfaz-texto-3: #d1d5db;
-    /* --interfaz-fondo no se toca: aquí --gris-100 ya es #374151. */
+  /*
+   * El azul se aclara porque el oscuro ya no sirve: `#1663c4` sobre
+   * `#1f2937` da 2.5 a 1 y los enlaces y el foco desaparecían en la
+   * pantalla. `#60a5fa` da 5.78 sobre la superficie y 6.98 sobre el
+   * fondo de página.
+   *
+   * El primario no necesita nada de esto: en el oscuro es --verde-800
+   * (#86efac) con la letra casi negra, y da 13.3 a 1.
+   */
+  --interfaz-azul:              #60a5fa;
+  --interfaz-azul-tenue:        rgb(96 165 250 / 15%);
+  --interfaz-azul-tenue-fuerte: rgb(96 165 250 / 25%);
+  --interfaz-azul-foco:         #60a5fa;
 
-    /*
-     * El azul se aclara porque el oscuro ya no sirve: `#1663c4` sobre
-     * `#1f2937` da 2.5 a 1 y los enlaces y el foco desaparecían en la
-     * pantalla. `#60a5fa` da 5.78 sobre la superficie y 6.98 sobre el
-     * fondo de página.
-     *
-     * El primario no necesita nada de esto: en el oscuro es --verde-800
-     * (#86efac) con la letra casi negra, y da 13.3 a 1.
-     */
-    --interfaz-azul:              #60a5fa;
-    --interfaz-azul-tenue:        rgb(96 165 250 / 15%);
-    --interfaz-azul-tenue-fuerte: rgb(96 165 250 / 25%);
-    --interfaz-azul-foco:         #60a5fa;
+  --interfaz-error:              #f87171;
+  --interfaz-error-tenue:        rgb(248 113 113 / 12%);
+  --interfaz-error-tenue-fuerte: rgb(248 113 113 / 20%);
 
-    --interfaz-error:              #f87171;
-    --interfaz-error-tenue:        rgb(248 113 113 / 12%);
-    --interfaz-error-tenue-fuerte: rgb(248 113 113 / 20%);
+  --interfaz-sombra: 0 1px 2px 0 rgb(0 0 0 / 45%);
 
-    --interfaz-sombra: 0 1px 2px 0 rgb(0 0 0 / 45%);
+  /*
+   * El verde de la cabecera pasa a ser el verde 800 de la paleta. En el
+   * tema claro la cabecera es verde pálido con letra gris; acá la
+   * inversión completa --verde casi negro con letra blanca-- se come el
+   * contenido, porque la cabecera ocupa el alto de la pantalla entera.
+   * `#166534` da 6.82 con la letra clara y se sigue distinguiendo del
+   * fondo de la página.
+   */
+  --cabecera-fondo:  #166534;
+  --cabecera-texto:  #f9fafb;
+  --cabecera-sombra: 0 1px 2px 0 rgb(0 0 0 / 40%);
 
-    /*
-     * El verde de la cabecera pasa a ser el verde 800 de la paleta. En el
-     * tema claro la cabecera es verde pálido con letra gris; acá la
-     * inversión completa --verde casi negro con letra blanca-- se come el
-     * contenido, porque la cabecera ocupa el alto de la pantalla entera.
-     * `#166534` da 6.82 con la letra clara y se sigue distinguiendo del
-     * fondo de la página.
-     */
-    --cabecera-fondo:  #166534;
-    --cabecera-texto:  #f9fafb;
-    --cabecera-sombra: 0 1px 2px 0 rgb(0 0 0 / 40%);
+  --buscador-sombra: 0 1px 2px 0 rgb(0 0 0 / 40%);
+  --buscador-radio:  2px;
 
-    --buscador-sombra: 0 1px 2px 0 rgb(0 0 0 / 40%);
-    --buscador-radio:  2px;
+  --campo-borde: #78839a;
 
-    --campo-borde: #78839a;
+  --velo-fondo:          rgb(0 0 0 / 70%);
+  --dialogo-sombra:      0 10px 25px rgb(0 0 0 / 50%);
+  --dialogo-pie-fondo:   #161f2e;
 
-    --velo-fondo:          rgb(0 0 0 / 70%);
-    --dialogo-sombra:      0 10px 25px rgb(0 0 0 / 50%);
-    --dialogo-pie-fondo:   #161f2e;
+  /*
+   * El video y la pista no se remapean. Los dos van sobre negro en los
+   * dos temas, y por eso están en sus propios tokens y no en --gris-900:
+   * si estuvieran en --gris-900, que es --color-texto, o el texto se
+   * volvería negro o el video se volvería blanco.
+   */
 
-    /*
-     * El video y la pista no se remapean. Los dos van sobre negro en los
-     * dos temas, y por eso están en sus propios tokens y no en --gris-900:
-     * si estuvieran en --gris-900, que es --color-texto, o el texto se
-     * volvería negro o el video se volvería blanco.
-     */
-
-    /* Los items del bottom-nav que no están activos van en el gris claro,
-       que sobre el fondo oscuro da 5.78. */
-    --bottom-nav-alto:     3.5rem;
-    --bottom-nav-etiqueta: 0.6875rem;
-    --bottom-nav-gap:      2px;
-  }
+  /* Los items del bottom-nav que no están activos van en el gris claro,
+     que sobre el fondo oscuro da 5.78. */
+  --bottom-nav-alto:     3.5rem;
+  --bottom-nav-etiqueta: 0.6875rem;
+  --bottom-nav-gap:      2px;
 }

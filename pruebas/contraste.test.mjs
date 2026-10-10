@@ -19,9 +19,9 @@
  * distinto, el número sigue estando acá.
  *
  * Corre en los DOS temas. El tema oscuro se arma superponiendo las
- * declaraciones del `:root` del media query sobre las del `:root` claro, que es
- * exactamente lo que hace el navegador: el bloque oscuro no redefine todo,
- * sólo pisa lo que cambia.
+ * declaraciones del `:root[data-tema="oscuro"]` sobre las del `:root` claro,
+ * que es exactamente lo que hace el navegador: el bloque oscuro no redefine
+ * todo, sólo pisa lo que cambia.
  *
  * Entorno node: no hay pantalla que simular y leer un archivo no necesita
  * jsdom. Ver pruebas/manifest.test.mjs, que razona lo mismo.
@@ -46,7 +46,7 @@ const crudo = readFileSync(RUTA, 'utf8');
  */
 const limpio = crudo.replace(/\/\*[\s\S]*?\*\//g, '');
 
-const INICIO_OSCURO = limpio.indexOf('@media (prefers-color-scheme: dark)');
+const INICIO_OSCURO = limpio.indexOf(':root[data-tema="oscuro"]');
 const claroCrudo = limpio.slice(0, INICIO_OSCURO < 0 ? limpio.length : INICIO_OSCURO);
 const oscuroCrudo = INICIO_OSCURO < 0 ? '' : limpio.slice(INICIO_OSCURO);
 

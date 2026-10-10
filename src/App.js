@@ -597,6 +597,15 @@ export class App {
               <button class="usuario-popover-item" data-accion="pedido" role="menuitem">
                 ${icono('etiqueta')}<span>Pedido de faltantes</span>
               </button>
+              <!--
+                El tema: dos estados, claro y oscuro, guardados en
+                "depoapp-tema". El texto y el ícono dicen hacia dónde va el
+                cambio, no dónde se está, así que el botón se reescribe solo
+                después de alternar. Ver alternarTema().
+              -->
+              <button class="usuario-popover-item" data-accion="tema" role="menuitem">
+                ${this.etiquetaTema()}
+              </button>
               <!-- El botón de ajustes de campos se removió del popover de usuario; ahora solo está en el bottom-nav como "Ajustes" -->
               <!--
                 El botón de instalar arranca oculto: sólo aparece cuando el
@@ -1517,6 +1526,7 @@ export class App {
           toggleUsuario(false);
           if (accion === 'copia') this.abrirCopiaSeguridad();
           else if (accion === 'pedido') this.abrirPedido();
+          else if (accion === 'tema') this.alternarTema(item);
           else if (accion === 'ajustes') this.mostrarAjustes();
           else if (accion === 'instalar') this.instalarApp();
         });
@@ -2561,6 +2571,52 @@ export class App {
   pintarBotonInstalar() {
     const boton = document.getElementById('btn-instalar-app');
     if (boton) boton.classList.toggle('oculto', !this.promptInstalacion);
+  }
+
+  /**
+   * El contenido del botón de tema del menú de usuario.
+   *
+   * El texto dice hacia dónde va el cambio y no dónde se está: "Poner tema
+   * oscuro" mientras se está en claro, y al revés. Es lo que hace que el
+   * botón se entienda sin tener que interpretar un estado.
+   *
+   * Lee el atributo del documento y no un campo de la clase, porque ese
+   * atributo lo escribe el script de arranque de `index.html` antes de que la
+   * app exista: no hay dos lugares donde guardar el tema.
+   *
+   * @returns {string} el ícono y la etiqueta, listos para meter en el botón
+   */
+  etiquetaTema() {
+    const oscuro = document.documentElement.dataset.tema === 'oscuro';
+    return `${icono(oscuro ? 'sol' : 'luna')}<span>Poner tema ${oscuro ? 'claro' : 'oscuro'}</span>`;
+  }
+
+  /**
+   * Cambia al otro tema y lo guarda para la próxima carga.
+   *
+   * Se toca sólo este botón y no se repinta la pantalla: el cambio de color es
+   * inmediato porque sólo cambia el atributo `data-tema` del documento, del
+   * que dependen los tokens. Repintar entero cerraría el menú de usuario en
+   * la cara, que es el mismo motivo por el que `pintarBotonInstalar()` toca un
+   * nodo y nada más.
+   *
+   * Si el localStorage no está disponible (modo privado estricto), el tema
+   * cambia igual en esta visita y sólo no se acuerda de la elección.
+   *
+   * @param {HTMLElement} boton  el item del menú, cuyo contenido se reescribe
+   */
+  alternarTema(boton) {
+    const oscuro = document.documentElement.dataset.tema === 'oscuro';
+    const siguiente = oscuro ? 'claro' : 'oscuro';
+
+    document.documentElement.dataset.tema = siguiente;
+    try {
+      localStorage.setItem('depoapp-tema', siguiente);
+    } catch {
+      // Sin storage no hay dónde acordarse. El cambio ya ocurrió en pantalla.
+    }
+
+    if (boton) boton.innerHTML = this.etiquetaTema();
   }
 
   async instalarApp() {

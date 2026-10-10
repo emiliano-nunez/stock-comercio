@@ -70,6 +70,8 @@ export const ICONOS = {
   proveedor: trazo('<path d="M2.5 7.5h10v9h-10z"/><path d="M12.5 10.5h4l4 3.5v2.5h-8z"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>'),
 
   // Varios.
+  sol: trazo('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M2 12h2M20 12h2M4.9 19.1l1.5-1.5M17.6 6.4l1.5-1.5"/>'),
+  luna: trazo('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>'),
   bombilla: trazo('<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5.9 1.2.9 1.9v.2h5.2v-.2c0-.7.3-1.4.9-1.9A6 6 0 0 0 12 3Z"/>'),
   etiqueta: trazo('<path d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9Z"/><circle cx="7.5" cy="7.5" r="1.3"/>'),
   alerta: trazo('<path d="M12 3.5 22 20H2Z"/><path d="M12 10v4"/><path d="M12 17.2v.1"/>'),

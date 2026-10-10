@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <!--
+    El tema, antes del primer pintado para que no parpadee: manda lo guardado
+    en "depoapp-tema" y, si nadie eligió todavía, la preferencia del sistema.
+    Mientras no haya elección guardada se sigue al sistema en vivo; en cuanto
+    alguien toca el botón del menú de usuario, la elección queda guardada y
+    deja de mirarse la preferencia. Los tokens que leen el atributo están en
+    src/css/tokens.css, y el botón que lo cambia, en src/App.js.
+  -->
+  <script>
+    (function () {
+      var poner = function (tema) { document.documentElement.dataset.tema = tema; };
+      var guardado = null;
+      try { guardado = localStorage.getItem('depoapp-tema'); } catch (e) { /* sin storage */ }
+      var sistema = window.matchMedia('(prefers-color-scheme: dark)');
+      if (guardado === 'claro' || guardado === 'oscuro') {
+        poner(guardado);
+      } else {
+        poner(sistema.matches ? 'oscuro' : 'claro');
+        if (sistema.addEventListener) {
+          sistema.addEventListener('change', function (e) { poner(e.matches ? 'oscuro' : 'claro'); });
+        }
+      }
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Control de inventario local-first para comerciantes">
