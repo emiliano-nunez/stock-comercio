@@ -499,14 +499,14 @@ body.sin-categorias #form-producto .form-par {
 
   border-radius: var(--radio-control);
 
-  background-color: var(--interfaz-azul-fuerte);
+  background-color: var(--interfaz-primario);
   color: var(--color-texto-invertido);
   font-size: var(--texto-lg);
   line-height: 1;
 }
 
 .boton-agregar:active {
-  background-color: var(--interfaz-azul-mas-fuerte);
+  background-color: var(--interfaz-primario-fuerte);
   transform: scale(0.95);
 }
 
@@ -839,14 +839,14 @@ body.sin-categorias #form-producto .form-par {
 }
 
 .bottom-nav-principal {
-  background-color: var(--interfaz-azul);
+  background-color: var(--interfaz-primario);
   color: var(--color-texto-invertido);
   border-radius: var(--radio-md);
   padding: var(--espacio-1) var(--espacio-3);
 }
 
 .bottom-nav-principal:active {
-  background-color: var(--interfaz-azul-fuerte);
+  background-color: var(--interfaz-primario-fuerte);
 }
 
 .bottom-nav-principal svg {

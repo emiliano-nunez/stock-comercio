@@ -179,15 +179,20 @@ const PARES = [
   // La cabecera.
   ['--cabecera-texto', '--cabecera-fondo', 4.5],
 
-  // El azul como texto (item encendido del menú, enlaces) y como fondo
-  // con letra clara encima (botón principal). El original daba 3.64.
+  // El azul como texto (enlace, item encendido del menú) sobre las
+  // superficies. El original daba 3.64.
   ['--interfaz-azul', '--color-superficie', 4.5],
   ['--interfaz-azul', '--fondo-pagina', 4.5],
   ['--color-superficie', '--interfaz-azul', 4.5],
 
-  // Botones: texto sobre su fondo de acción.
-  ['--color-texto-invertido', '--interfaz-azul-fuerte', 4.5],
-  ['--color-texto-invertido', '--interfaz-azul-mas-fuerte', 4.5],
+  // El verde primario como fondo contra la página, para que el botón
+  // destaque de lo que tiene alrededor.
+  ['--interfaz-primario', '--fondo-pagina', 3],
+
+  // Botones: texto sobre su fondo de acción (verde primario, en los dos
+  // estados: en reposo y presionado).
+  ['--color-texto-invertido', '--interfaz-primario', 4.5],
+  ['--color-texto-invertido', '--interfaz-primario-fuerte', 4.5],
   ['--color-texto-invertido', '--color-marca', 4.5],
   ['--color-texto-invertido', '--color-peligro', 4.5],
 

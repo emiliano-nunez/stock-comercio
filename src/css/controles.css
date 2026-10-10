@@ -51,13 +51,13 @@
 }
 
 .btn-principal {
-  background-color: var(--interfaz-azul-fuerte);
+  background-color: var(--interfaz-primario);
   color: var(--color-texto-invertido);
   box-shadow: var(--interfaz-sombra);
 }
 
 .btn-principal:active:not(:disabled) {
-  background-color: var(--interfaz-azul-mas-fuerte);
+  background-color: var(--interfaz-primario-fuerte);
 }
 
 .btn-secundario {

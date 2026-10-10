@@ -23,6 +23,13 @@
   --verde-200: #8df1b0;
   --verde-800: #166534;
   /*
+   * El paso siguiente de la escala, para el botón primario cuando está
+   * presionado. Con `--verde-800` de fondo el dedo no notaba el cambio, así
+   * que el estado `:active` baja a este y el contraste con la letra blanca
+   * sube de 7.13 a 9.11.
+   */
+  --verde-900: #14532d;
+  /*
    * El verde del texto de las insignias de color.
    *
    * Va entre el 700 y el 800 porque el fondo de la insignia es un verde pálido y
@@ -243,24 +250,22 @@
   --fondo-pagina:      var(--verde-50);
 
   /*
-   * El azul: el del botón de acción, el del borde de foco y el del botón
-   * secundario de la tarjeta, que es fondo azul al 15% con letra azul.
+   * El verde es el color de acción de la app: los botones primarios son verdes
+   * y el azul queda para lo que no ejecuta una acción --los enlaces, el anillo
+   * de foco y los estados seleccionados--.
    *
-   * El tono base era `#3483fa`, el azul de Mercado Libre. Se oscureció porque no
-   * llegaba a ningún lado del 4.5 que pide el estándar: con letra blanca encima
-   * daba 3.64 y como texto sobre blanco daba lo mismo, 3.64. O sea que el botón
-   * principal de la app y el item activo del menú inferior fallaban los dos.
+   * `--verde-800` (#166534) da 7.13 con letra blanca encima y 6.82 contra la
+   * página; el estado presionado baja a `--verde-900` (#14532d), que da 9.11.
    *
-   * `#1663c4` da 5.81 con letra blanca encima, 5.81 como texto sobre blanco,
-   * 4.68 sobre el fondo azul tenue de los chips y 5.55 sobre el verde de la
-   * página. Es el mismo azul, un escalón más abajo: se sigue leyendo como azul
-   * de acción y no como un azul grisáceo.
-   *
-   * El tono claro no lleva letra encima: es para bordes, líneas y anillos.
+   * El azul `#1663c4` sigue acá porque un enlace azul es lo que todo el mundo
+   * reconoce sin leer, y porque el foco necesita un color que no compita con el
+   * verde de las acciones: da 5.81 como texto sobre blanco y 5.55 sobre el
+   * verde de la página. El tono claro no lleva letra encima: es para bordes,
+   * líneas y anillos.
    */
+  --interfaz-primario:          var(--verde-800);
+  --interfaz-primario-fuerte:   var(--verde-900);
   --interfaz-azul:              #1663c4;
-  --interfaz-azul-fuerte:       #124f9e;
-  --interfaz-azul-mas-fuerte:   #0e3d7a;
   --interfaz-azul-tenue:        rgb(22 99 196 / 15%);
   --interfaz-azul-tenue-fuerte: rgb(22 99 196 / 25%);
   /*
@@ -398,9 +403,9 @@
  * al segundo tema. Si un componente usa un token, ya funciona en oscuro.
  *
  * El único token que se inventó para esto es --color-texto-invertido, y el
- * motivo es que "blanco sobre el azul" deja de ser cierto cuando el azul se
+ * motivo es que "blanco sobre el verde" deja de ser cierto cuando el verde se
  * aclara. En el tema claro ese token es blanco; en el oscuro es casi negro,
- * porque ahora es la letra del botón primario, que va sobre un azul claro.
+ * porque ahora es la letra del botón primario, que va sobre un verde claro.
  *
  * Los números de contraste de abajo están calculados, no a ojo. Los que menos
  * margen tienen son los textos tenues: 5.78 sobre la superficie y 6.99 sobre el
@@ -436,6 +441,13 @@
     --verde-100: #14361f;
     --verde-200: #2f855a;
     --verde-800: #86efac;
+    /*
+     * La escala se invierte igual que la de los grises: en el oscuro, más
+     * número es más claro. El 900 es el verde del estado presionado, y como
+     * la letra de encima es casi negra (#0b1220), subir de luminosidad sólo
+     * mejora el contraste.
+     */
+    --verde-900: #bbf7d0;
     --verde-texto: #86efac;
 
     --ambar-50:  #2e2210;
@@ -466,7 +478,7 @@
     --color-texto-suave: #d1d5db;
     --color-texto-tenue: #9ca3af;
     /*
-     * El botón primario lleva azul claro en este tema, así que la letra de
+     * El botón primario lleva verde claro en este tema, así que la letra de
      * encima va oscura. Es lo inverso al tema claro y es el motivo de tener
      * el token en vez de escribir `#fff` en cada botón.
      */
@@ -500,13 +512,14 @@
 
     /*
      * El azul se aclara porque el oscuro ya no sirve: `#1663c4` sobre
-     * `#1f2937` da 2.5 a 1 y el botón principal de la app desaparecía en
-     * la pantalla. `#60a5fa` da 5.78 sobre la superficie, 6.98 sobre el
-     * fondo de página y 7.36 con la letra oscura de encima.
+     * `#1f2937` da 2.5 a 1 y los enlaces y el foco desaparecían en la
+     * pantalla. `#60a5fa` da 5.78 sobre la superficie y 6.98 sobre el
+     * fondo de página.
+     *
+     * El primario no necesita nada de esto: en el oscuro es --verde-800
+     * (#86efac) con la letra casi negra, y da 13.3 a 1.
      */
     --interfaz-azul:              #60a5fa;
-    --interfaz-azul-fuerte:       #7db4f7;
-    --interfaz-azul-mas-fuerte:   #8ab4f8;
     --interfaz-azul-tenue:        rgb(96 165 250 / 15%);
     --interfaz-azul-tenue-fuerte: rgb(96 165 250 / 25%);
     --interfaz-azul-foco:         #60a5fa;
