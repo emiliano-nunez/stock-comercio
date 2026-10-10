@@ -428,7 +428,15 @@ body.sin-categorias #form-producto .form-par {
  * El contenido
  * ================================================================= */
 
+/*
+ * El contenido es columna para que el pie con la versión baje del todo, y para
+ * que el estado vacío --que trae `flex: 1`-- se centre verticalmente en vez de
+ * quedar pegado arriba. En el teléfono no había alto sobrante para centrar: el
+ * estado vacío se quedaba en el borde superior, a un dedo del buscador.
+ */
 .contenido {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   padding: var(--espacio-3);
   /* Este espacio de abajo era para que el botón de agregar no tapara la última
@@ -708,14 +716,11 @@ body.sin-categorias #form-producto .form-par {
     border-left-color: var(--interfaz-azul);
   }
 
-  /* El contenido es columna para que el pie con la versión baje del todo, y el
-     `padding-block-start` deja aire arriba contra el borde de la ventana. */
+  /* Sólo lo que cambia cuando aparece la barra lateral: el alto fijo, para que
+     `.contenido` sea la ventana de scroll, y el aire arriba contra el borde. */
   .contenido {
-    display: flex;
-    flex-direction: column;
     height: 100vh;
     padding-block-start: var(--espacio-5);
-    overflow-y: auto;
   }
 
   .contenido > .pie-version {

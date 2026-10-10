@@ -247,6 +247,18 @@
   color: var(--color-texto-suave);
 }
 
+/*
+ * El estado vacío del inventario y el de "sin resultados" son hijos directos de
+ * `.contenido` y estiran para ocupar el alto que sobra: así quedan centrados
+ * verticales en el escritorio, donde `.contenido` ya es columna con alto fijo,
+ * en vez de pegados arriba contra el buscador. En el teléfono `.contenido` no
+ * tiene alto fijo y esto no hace nada.
+ */
+.contenido > .vacio {
+  flex: 1;
+  justify-content: center;
+}
+
 .vacio-icono {
   font-size: 3rem;
   line-height: 1;

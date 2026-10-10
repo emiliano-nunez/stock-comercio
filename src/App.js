@@ -690,6 +690,9 @@ export class App {
           <span class="vacio-icono-grande">${icono('caja')}</span>
           <h2 class="subtitulo con-margen-arriba-amplia">Inventario vacío</h2>
           <p class="detalle apagado con-margen-arriba">Toca "Agregar producto" para empezar</p>
+          <button id="btn-agregar-vacio" class="btn-principal con-margen-arriba-amplia">
+            ${icono('mas')}<span>Agregar producto</span>
+          </button>
         </div>
         ${this.renderPieVersionHTML()}
       `;
@@ -1550,6 +1553,17 @@ export class App {
         this.cargarProductos();
       });
     }
+
+    /*
+     * El botón del estado vacío repite el camino de agregar: en el teléfono abre
+     * el mismo menú que el "+" del bottom-nav, y en el escritorio, donde ese menú
+     * no está, va directo al formulario detallado.
+     */
+    document.getElementById('btn-agregar-vacio')?.addEventListener('click', () => {
+      const menu = document.getElementById('btn-agregar-menu');
+      if (menu && menu.offsetParent !== null) menu.click();
+      else this.nuevoProducto();
+    });
 
     document.getElementById('btn-cargar-mas')?.addEventListener('click', () => {
       this._limiteRender += App.LIMITE_RENDER;
