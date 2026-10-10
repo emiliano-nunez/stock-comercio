@@ -49,8 +49,13 @@
  *
  * `white-space: normal` deshace el `.cortado` que trae el nombre en el HTML: ese
  * es de una línea, y acá lo que se quiere son dos.
+ *
+ * El `:not(.etiqueta-seccion)` hace falta porque el título de sección también es
+ * un `h3` de tarjeta, y sin él le toca el `-webkit-box` del clamp: ahí el
+ * `display: flex` de `.etiqueta-seccion` pierde por especificidad y el ícono
+ * queda pegado a la palabra en vez de alineado al costado.
  */
-.tarjeta h3,
+.tarjeta h3:not(.etiqueta-seccion),
 .tarjeta h4 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
