@@ -605,6 +605,14 @@ body.sin-categorias #form-producto .form-par {
     height: 100%;
     min-height: 0;
     padding-block-start: var(--tarjeta-relleno-fila);
+    /*
+     * La barra mide 100% del alto de la ventana y sus renglones no la llenan:
+     * con `normal` el navegador estira cada renglón por su cuenta y el aire
+     * quedaba repartido a saltos --136px arriba, 100px abajo-- y "Copia" caía
+     * pegada a "Catálogo". Con `space-between` el sobrante se reparte a partes
+     * iguales entre los renglones, que es lo que da la barra su ritmo.
+     */
+    align-content: space-between;
   }
 
   .cabecera-cuerpo > h1 {
@@ -645,22 +653,31 @@ body.sin-categorias #form-producto .form-par {
     display: inline;
   }
 
+  /*
+   * Cada renglón ocupa el ancho entero. Las pestañas ya eran columna, y los
+   * tres botones de abajo pasan a lo mismo: si se achicaban a su texto, entraban
+   * dos por renglón y el tercero se iba solo al siguiente, que era lo que dejaba
+   * "Copia" apareada con "Catálogo". A ancho completo se leen como el mismo
+   * menú vertical de las pestañas.
+   */
   .cabecera-cuerpo > .pestanas {
     order: 4;
-    flex: 0 0 auto;
+    flex: 1 0 100%;
   }
 
   .cabecera-cuerpo > #btn-copia {
     order: 5;
-    margin-block-start: var(--espacio-2);
+    flex: 1 0 100%;
   }
 
   .cabecera-cuerpo > #btn-pedido {
     order: 6;
+    flex: 1 0 100%;
   }
 
   .cabecera-cuerpo > #btn-ajustes {
     order: 7;
+    flex: 1 0 100%;
   }
 
   /* El color no se escribe acá: lo toma `.btn-texto`, que ya lo pone en el color de
