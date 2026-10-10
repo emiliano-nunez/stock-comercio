@@ -60,10 +60,11 @@
   /*
    * Los dos grises de texto, un escalón más oscuros: `#9ca3af` daba 2.13 sobre el
    * gris de las tarjetas, que es ilegible, y `#6b7280` (--gris-500) daba 4.06
-   * sobre --interfaz-fondo (#ebebeb), por debajo del 4.5. Suben a --gris-600
-   * (#4b5563), que da 6.6 sobre blanco, 5.7 sobre --interfaz-fondo y 5.3 sobre
-   * --fondo-pagina. Ahora --color-texto-suave y --color-texto-tenue coinciden
-   * porque ambos necesitan el mismo piso de contraste contra fondos no blancos.
+   * sobre --interfaz-fondo, que en ese momento era el `#ebebeb` de fuera de la
+   * paleta: por debajo del 4.5. Suben a --gris-600 (#4b5563), que da 7.56 sobre
+   * blanco, 6.87 sobre --interfaz-fondo y 7.22 sobre --fondo-pagina. Ahora
+   * --color-texto-suave y --color-texto-tenue coinciden porque ambos necesitan
+   * el mismo piso de contraste contra fondos no blancos.
    */
   --color-texto-suave:     var(--gris-600);
   --color-texto-tenue:     var(--gris-600);
@@ -227,20 +228,26 @@
    * ----------------------------------------------------------------- */
 
   /*
-   * Los tres grises y el fondo neutro de la pantalla.
+   * Los tres grises y el fondo de las filas de lista.
    *
    * El tercero era `#999999` y daba 2.85 sobre blanco: ilegible en el código de
-   * barras y en el "sin llenar". Subió a --gris-600 (#4b5563), que da 6.6 sobre
-   * blanco, 5.7 sobre --interfaz-fondo (#ebebeb) y 5.3 sobre --fondo-pagina
-   * (#f0fdf4). Ahora los tres grises de la interfaz son --gris-700, --gris-600
-   * y --gris-600: los dos últimos coinciden a propósito, porque el texto "suave"
-   * y el "tenue" necesitan el mismo piso de contraste contra fondos no blancos, y
-   * mantener dos tonos distintos que fallaran por separado era deuda.
+   * barras y en el "sin llenar". Subió a --gris-600 (#4b5563), que da 7.56 sobre
+   * blanco, 6.87 sobre --interfaz-fondo y 7.22 sobre --fondo-pagina (#f0fdf4).
+   * Ahora los tres grises de la interfaz son --gris-700, --gris-600 y --gris-600:
+   * los dos últimos coinciden a propósito, porque el texto "suave" y el "tenue"
+   * necesitan el mismo piso de contraste contra fondos no blancos, y mantener dos
+   * tonos distintos que fallaran por separado era deuda.
+   *
+   * El fondo era un `#ebebeb` suelto, que no estaba en la paleta y que al lado
+   * del blanco de la tarjeta se leía como una mancha. Pasa a --gris-100
+   * (#f3f4f6), el mismo que usan --color-borde-tenue y --color-marca-tenue: una
+   * sola escala de gris en los dos temas, y en el oscuro --gris-100 ya vale
+   * #374151, así que el bloque oscuro no hace falta que lo pise.
    */
   --interfaz-texto:   var(--gris-700);
   --interfaz-texto-2: var(--gris-600);
   --interfaz-texto-3: var(--gris-600);
-  --interfaz-fondo:   #ebebeb;
+  --interfaz-fondo:   var(--gris-100);
 
   /*
    * El fondo de la página va aparte del de las tarjetas y es el verde del
@@ -508,7 +515,7 @@
     --interfaz-texto:   #f9fafb;
     --interfaz-texto-2: #d1d5db;
     --interfaz-texto-3: #d1d5db;
-    --interfaz-fondo:   #374151;
+    /* --interfaz-fondo no se toca: aquí --gris-100 ya es #374151. */
 
     /*
      * El azul se aclara porque el oscuro ya no sirve: `#1663c4` sobre
