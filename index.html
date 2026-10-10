@@ -25,7 +25,13 @@
   -->
   <link rel="icon" href="favicon.ico" sizes="72x72">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <!--
+    El de Apple va en 180x180, que es el tamaño que pide iOS para la pantalla
+    de inicio. El de 192 servía (lo escala), pero 180 es el que le corresponde
+    y el que usa la documentación: con el exacto no hay reescalado y la marca
+    sale nítida. La ruta sigue relativa por la misma razón que las de arriba.
+  -->
+  <link rel="apple-touch-icon" href="icons/icon-180x180.png" sizes="180x180">
   <!--
     El manifiesto lo inyecta vite-plugin-pwa a partir de la ruta de publicación.
     Acá no se declara ninguno a mano: un link más apuntaría a un archivo que ya

@@ -1,0 +1,46 @@
+<!doctype html>
+<!--
+  Arnés de verificación. NO es parte de la app y se borra antes de publicar.
+
+  La ventana del navegador de la herramienta está fija en 640px y no hay Chrome
+  instalado para emular viewports. Como los media queries de un iframe responden
+  al ancho del iframe y no al de la ventana, esta página permite ver la app en
+  escritorio (>=840px) sin tocar la ventana.
+
+  El `transform: scale()` es lo que deja ver un iframe de 1200px dentro de una
+  ventana de 640px: el iframe sigue midiendo 1200px para los media queries, que
+  es lo que importa, y sólo se achica lo que se dibuja.
+
+  Parámetros por query string:
+    ?ancho=1200   ancho del iframe en px (default 1200)
+    ?alto=900     alto del iframe en px (default 900)
+    ?escala=1     escala de dibujo (default 1)
+
+  Va en public/ y no en pruebas/ porque el iframe necesita ser mismo origen que
+  la app: IndexedDB y el service worker no corren en un origen opaco (file://).
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Arnés de ancho</title>
+  <style>
+    html, body { margin: 0; background: #333; }
+    #marco { display: block; border: 0; transform-origin: top left; }
+  </style>
+</head>
+<body>
+  <iframe id="marco" src="/" title="app"></iframe>
+  <script>
+    const q = new URLSearchParams(location.search);
+    const ancho = Number(q.get('ancho')) || 1200;
+    const alto  = Number(q.get('alto'))  || 900;
+    const escala = Number(q.get('escala')) || 1;
+
+    const marco = document.getElementById('marco');
+    marco.width = ancho;
+    marco.height = alto;
+    marco.style.transform = `scale(${escala})`;
+    document.body.style.width = `${ancho * escala}px`;
+  </script>
+</body>
+</html>

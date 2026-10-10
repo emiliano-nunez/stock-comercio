@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "skills": {
+    "accessibility": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "bffe3d08cfe92ebad63699f74ce29e35c19850ebfbf474c1463183cfe34d6a09"
+    },
+    "css-architecture": {
+      "source": "aj-geddes/useful-ai-prompts",
+      "sourceType": "github",
+      "skillPath": "skills/css-architecture/SKILL.md",
+      "computedHash": "afbd9d491483b0ece46564fdaaf17b30990dfc83b1855aa6817ef3102a97ea91"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "82fb11a63fb1e35ee2469516ed02d54695f783115b1540c0e783197af4240a3a"
+    },
+    "imagegen-frontend-mobile": {
+      "source": "leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/imagegen-frontend-mobile/SKILL.md",
+      "computedHash": "7c1d1dc59cd0df4063b8621af543bf5dea1d576b261507e17b0323c69680b048"
+    },
+    "nodejs-backend-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "autoskills-registry",
+      "computedHash": "710a5e6f83c46e8f6c43356df55c143a7375c4414559a581654ce51709138c55"
+    },
+    "nodejs-best-practices": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "7361ab02fb6b09913e3bdd9cf61c629ed6c17de9485e6a781054e5d437ccfc29"
+    },
+    "pwa-development": {
+      "source": "alinaqi/maggy",
+      "sourceType": "github",
+      "skillPath": "skills/pwa-development/SKILL.md",
+      "computedHash": "2219041ce92f6361ba77eb06c9a927dc7a1ba48f40ff5132321a29c4154ebc7a"
+    },
+    "seo": {
+      "source": "addyosmani/web-quality-skills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "c184da724d1c61ad077f27418ea8e7e88fd54bcdf98165e18be7e4681cbd5e20"
+    },
+    "vite": {
+      "source": "antfu/skills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "e0b52fe3ffea533e1e543ac8a8a20fccca3beed9f8bdc31a0934fe9f554439e8"
+    },
+    "vitest": {
+      "source": "antfu/skills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "be7329a28a492b802061206c2d75603ab294f25f541bc5421d5de8d41abe68b1"
+    }
+  }
+}

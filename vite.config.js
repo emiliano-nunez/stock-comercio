@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { base, DEFINES } from './config-comun.mjs';
+import { MANIFIESTO } from './config-manifiesto.mjs';
 
 export default defineConfig({
   base,
@@ -32,137 +33,63 @@ export default defineConfig({
        * descargó algo nuevo y que un toque lo trae. Ver vigilarActualizacion().
        */
       registerType: 'autoUpdate',
-      // Lo que hay que meter en la precarga a mano son los archivos que
-      // index.html pide y que no entran ni por el manifiesto ni por el
-      // agrupado de los assets. Antes pedía 'apple-touch-icon.png', que no
-      // existe: el ícono de Apple es 'icons/icon-192x192.png', y el favicon
-      // ahora sí está. Un nombre que no existe no rompe el build, sólo no
-      // precarga nada.
-      includeAssets: ['favicon.ico', 'icons/icon.svg', 'icons/icon-192x192.png'],
-      manifest: {
-        name: 'DepoApp',
-        short_name: 'DepoApp',
-        description: 'Control de inventario local-first para comerciantes',
-        // vite-plugin-pwa pone 'en' si no se dice nada, y eso es lo que algunos
-        // lanzadores usan para decidir el idioma de la app instalada.
-        lang: 'es',
-        // El color de la barra del sistema y del splash tienen que ser el verde
-        // de la cabecera, que es el mismo degradado que el ícono. Con el verde
-        // oscuro anterior, la barra del navegador en el celular instalado salía
-        // oscura encima de una cabecera clara.
-        theme_color: '#bbf7d0',
-        background_color: '#f0fdf4',
-        display: 'standalone',
-        orientation: 'portrait',
-        // scope y start_url tienen que ser la ruta de publicación, no "/". En
-        // github pages de proyecto, con "/" la PWA instalada abre el perfil de
-        // github del usuario en vez de la app, y el service worker queda
-        // registrado fuera del directorio donde vive.
-        scope: base,
-        start_url: base,
-        icons: [
-          {
-            src: 'icons/icon-72x72.png',
-            sizes: '72x72',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'icons/icon-96x96.png',
-            sizes: '96x96',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'icons/icon-128x128.png',
-            sizes: '128x128',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'icons/icon-144x144.png',
-            sizes: '144x144',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'icons/icon-152x152.png',
-            sizes: '152x152',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'icons/icon-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'icons/icon-384x384.png',
-            sizes: '384x384',
-            type: 'image/png',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'icons/icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ],
-        categories: ['business', 'productivity'],
-        screenshots: [],
-        shortcuts: [
-          {
-            name: 'Escanear producto',
-            short_name: 'Escanear',
-            description: 'Abrir escáner de código de barras',
-            url: `${base}#scan`,
-            icons: [{ src: 'icons/scan-shortcut.png', sizes: '96x96' }]
-          },
-          {
-            name: 'Agregar producto',
-            short_name: 'Agregar',
-            description: 'Crear nuevo producto',
-            url: `${base}#add`,
-            icons: [{ src: 'icons/add-shortcut.png', sizes: '96x96' }]
-          }
-        ]
-      },
+      /*
+       * Sin `includeAssets`.
+       *
+       * Antes listaba 'favicon.ico', 'icons/icon.svg' e
+       * 'icons/icon-192x192.png'. Los tres ya entran solos por el
+       * `globPatterns` de abajo, que barre dist/ entero: lo que hacía esa
+       * línea era meterlos una SEGUNDA vez en la precarga, y con revisión
+       * distinta, así que Workbox las trataba como dos entradas distintas.
+       * El resultado era un sw.js con el favicon declarado dos veces, que
+       * confunde a cualquiera que lo lea y hace que una actualización del
+       * archivo actualice una entrada y no la otra.
+       *
+       * Lo que index.html pide y no está en dist/ simplemente no existe, y
+       * ahí hacía falta listarlo. Pero todo lo que pide está en dist/: los
+       * íconos los copia Vite desde public/ y los assets los genera él.
+       */
+      manifest: MANIFIESTO,
+      /*
+       * Sin `runtimeCaching` para Google Fonts.
+       *
+       * Antes había dos reglas, CacheFirst para fonts.googleapis.com y para
+       * fonts.gstatic.com, con dos cachés de diez entradas y un año de vida.
+       * No servían para nada: la app no carga ninguna fuente remota.
+       * `--fuente` en tokens.css es `system-ui, -apple-system, ...`, que son
+       * las del sistema, y no hay ni una referencia a Google Fonts en todo
+       * src/. Eran dos reglas que nunca se disparaban y dos cachés que nunca
+       * se llenaban.
+       *
+       * Si algún día se carga una fuente de ahí, la regla vuelve junto con la
+       * fuente, no antes.
+       *
+       * tampoco hace falta listar el ícono maskable en `globPatterns`: el
+       * comodín de extensión png ya lo barre, y ponerlo a mano sería repetir
+       * el duplicado de arriba con otro archivo.
+       */
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'gstatic-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
-      }
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024
+      },
+      /*
+       * `includeManifestIcons: false`.
+       *
+       * Por defecto el plugin suma a la precarga los iconos que declara el
+       * manifiesto, además de los que encuentra el `globPatterns` de arriba.
+       * Son los MISMOS archivos: los dos caminos dan con los de public/icons,
+       * y el sw.js salía con cada icono declarado dos veces, once duplicados
+       * en total. Workbox los descuenta al instalar (es la misma URL), pero
+       * el sw.js queda ilegible y, peor, un icono puede actualizarse por un
+       * camino y no por el otro.
+       *
+       * Se apaga el del manifiesto y no el glob, porque el glob también trae
+       * los assets compilados y el favicon, que no están en el manifiesto.
+       * Lo único que se pierde es la redundancia. Va como opción del plugin y
+       * no adentro de `workbox`: ahí workbox-build valida las llaves y no
+       * acepta ninguna que no conozca.
+       */
+      includeManifestIcons: false
     })
   ],
   build: {

@@ -52,13 +52,21 @@
   --color-texto:           var(--gris-900);
   /*
    * Los dos grises de texto, un escalón más oscuros: `#9ca3af` daba 2.13 sobre el
-   * gris de las tarjetas, que es ilegible, y `#6b7280` daba 4.06 de los 4.5 que
-   * pide el estándar.
+   * gris de las tarjetas, que es ilegible, y `#6b7280` (--gris-500) daba 4.06
+   * sobre --interfaz-fondo (#ebebeb), por debajo del 4.5. Suben a --gris-600
+   * (#4b5563), que da 6.6 sobre blanco, 5.7 sobre --interfaz-fondo y 5.3 sobre
+   * --fondo-pagina. Ahora --color-texto-suave y --color-texto-tenue coinciden
+   * porque ambos necesitan el mismo piso de contraste contra fondos no blancos.
    */
   --color-texto-suave:     var(--gris-600);
-  --color-texto-tenue:     var(--gris-500);
+  --color-texto-tenue:     var(--gris-600);
   --color-texto-invertido: #ffffff;
-  --color-borde:           var(--gris-200);
+  /*
+   * El borde de las tarjetas y los campos. Era --gris-200 (#e5e7eb) y daba 1.24
+   * sobre blanco: no llegaba al 3:1 que pide WCAG 1.4.11 para componentes.
+   * Sube a --gris-500 (#6b7280), que da 4.83 y se ve nítido sin ser agresivo.
+   */
+  --color-borde:           var(--gris-500);
   --color-borde-tenue:     var(--gris-100);
   /*
  * El verde es lo que está BIEN y no se toca: es el color de "con stock" y de
@@ -73,8 +81,15 @@
   --color-marca:           var(--gris-600);
   --color-marca-fuerte:    var(--gris-700);
   --color-marca-tenue:     var(--gris-100);
-  --color-peligro:         var(--rojo-500);
-  --color-peligro-fuerte:  var(--rojo-600);
+  /*
+ * El botón de borrar y los textos de error: base y hover.
+ *
+ * Base en --rojo-700 (#b91c1c): con blanco da 5.5.
+ * Hover en --rojo-900 (#7f1d1d): con blanco da 8.6.
+ * Antes base era rojo-500 (3.76) y hover rojo-600 (4.41), ambos por debajo.
+ */
+  --color-peligro:         var(--rojo-700);
+  --color-peligro-fuerte:  var(--rojo-900);
   --color-peligro-tenue:   var(--rojo-50);
   --color-aviso-tenue:     var(--ambar-50);
 
@@ -82,7 +97,7 @@
    * Tipografía (escala compacta estilo Meli Mobile)
    *
    * Base 14px: iOS no hace zoom en campos a 14px (solo <16px), y gana
-   * dos líneas por tarjeta. Los controles siguen en 40px (--toque-min).
+   * dos líneas por tarjeta. Los controles siguen en 44px (--toque-min).
    * ----------------------------------------------------------------- */
   --fuente: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
@@ -124,18 +139,23 @@
   /* -----------------------------------------------------------------
    * Medidas táctiles
    *
-   * 40px es el mínimo, y es el mínimo en las DOS dimensiones: no es un ancho ni
+   * 44px es el mínimo, y es el mínimo en las DOS dimensiones: no es un ancho ni
    * un alto, son los dos a la vez. Por eso el ancho y el alto comparten
    * variable, y no hay dos números que puedan dejar de coincidir.
    *
    * Estuvo en 52px y bajó porque con 52 la app se veía aireada de más: los
    * botones medían la mitad del ancho de la tarjeta y el formulario de producto
-   * ocupaba tres pantallas de scroll para veinte campos. 40px es lo que dice el
-   * estándar de diseño para un control y sigue siendo un objetivo cómodo con el
-   * dedo.
+   * ocupaba tres pantallas de scroll para veinte campos.
+   *
+   * De 52 bajó a 40, y de 40 subió a 44, que es lo que piden Apple (44pt) y
+   * Material (48dp). La diferencia entre 40 y 44 no se nota en el aire de la
+   * pantalla y sí se nota en un depósito: con el dedo sucio, con guantes o con
+   * la tablet apoyada contra el cuerpo, 4px es lo que separa un toque limpio de
+   * un toque que pega al lado. Y 44 sigue siendo chico, así que el formulario
+   * de veinte campos no vuelve a ocupar tres pantallas.
    *
    * ----------------------------------------------------------------- */
-  --toque-min: 40px;
+  --toque-min: 44px;
 
   --ancho-app: 48rem;
 
@@ -199,10 +219,20 @@
    * Lo que comparten todos los componentes (escala estándar compacta)
    * ----------------------------------------------------------------- */
 
-  /* Los tres grises y el fondo neutro de la pantalla. */
-  --interfaz-texto:   #333333;
-  --interfaz-texto-2: #666666;
-  --interfaz-texto-3: #999999;
+  /*
+   * Los tres grises y el fondo neutro de la pantalla.
+   *
+   * El tercero era `#999999` y daba 2.85 sobre blanco: ilegible en el código de
+   * barras y en el "sin llenar". Subió a --gris-600 (#4b5563), que da 6.6 sobre
+   * blanco, 5.7 sobre --interfaz-fondo (#ebebeb) y 5.3 sobre --fondo-pagina
+   * (#f0fdf4). Ahora los tres grises de la interfaz son --gris-700, --gris-600
+   * y --gris-600: los dos últimos coinciden a propósito, porque el texto "suave"
+   * y el "tenue" necesitan el mismo piso de contraste contra fondos no blancos, y
+   * mantener dos tonos distintos que fallaran por separado era deuda.
+   */
+  --interfaz-texto:   var(--gris-700);
+  --interfaz-texto-2: var(--gris-600);
+  --interfaz-texto-3: var(--gris-600);
   --interfaz-fondo:   #ebebeb;
 
   /*
@@ -216,21 +246,39 @@
    * El azul: el del botón de acción, el del borde de foco y el del botón
    * secundario de la tarjeta, que es fondo azul al 15% con letra azul.
    *
-   * El tono claro no lleva letra encima: es para bordes, líneas y anillos. Con
-   * letra blanca hace falta el fuerte, porque sobre `#3483fa` da 3.64 y el mínimo
-   * es 4.5.
+   * El tono base era `#3483fa`, el azul de Mercado Libre. Se oscureció porque no
+   * llegaba a ningún lado del 4.5 que pide el estándar: con letra blanca encima
+   * daba 3.64 y como texto sobre blanco daba lo mismo, 3.64. O sea que el botón
+   * principal de la app y el item activo del menú inferior fallaban los dos.
+   *
+   * `#1663c4` da 5.81 con letra blanca encima, 5.81 como texto sobre blanco,
+   * 4.68 sobre el fondo azul tenue de los chips y 5.55 sobre el verde de la
+   * página. Es el mismo azul, un escalón más abajo: se sigue leyendo como azul
+   * de acción y no como un azul grisáceo.
+   *
+   * El tono claro no lleva letra encima: es para bordes, líneas y anillos.
    */
-  --interfaz-azul:              #3483fa;
-  --interfaz-azul-fuerte:       #2968c8;
-  --interfaz-azul-mas-fuerte:   #1f4fa0;
-  --interfaz-azul-tenue:        rgb(65 137 230 / 15%);
-  --interfaz-azul-tenue-fuerte: rgb(65 137 230 / 25%);
-  --interfaz-azul-foco:         rgb(52 131 250 / 20%);
+  --interfaz-azul:              #1663c4;
+  --interfaz-azul-fuerte:       #124f9e;
+  --interfaz-azul-mas-fuerte:   #0e3d7a;
+  --interfaz-azul-tenue:        rgb(22 99 196 / 15%);
+  --interfaz-azul-tenue-fuerte: rgb(22 99 196 / 25%);
+  /*
+   * El anillo de foco iba al 20% del azul, que sobre blanco queda en 1.3 a 1 y
+   * no se ve: un borde de foco que no se ve no es un borde de foco. Ahora es el
+   * azul sólido, que da 5.81 contra el fondo y se distingue a la primera.
+   */
+  --interfaz-azul-foco:         var(--interfaz-azul);
 
-  /* El rojo de error y de la acción que borra, con el mismo formato que el azul. */
-  --interfaz-error:              #f04438;
-  --interfaz-error-tenue:        rgb(240 68 56 / 10%);
-  --interfaz-error-tenue-fuerte: rgb(240 68 56 / 18%);
+  /* El rojo de error y de la acción que borra, con el mismo formato que el azul.
+   *
+   * Era `#f04438` (--rojo-500) y con letra blanca daba 3.76, por debajo del 4.5.
+   * Ahora usa el --rojo-700 (#b91c1c), que con blanco da 5.5 y como texto sobre
+   * fondo blanco da lo mismo: el botón de borrar y los textos de error se leen.
+   */
+  --interfaz-error:              var(--rojo-700);
+  --interfaz-error-tenue:        rgb(185 28 28 / 10%);
+  --interfaz-error-tenue-fuerte: rgb(185 28 28 / 18%);
 
   /* La sombra de un píxel, que es la de las cajas del estándar. */
   --interfaz-sombra: 0 1px 2px 0 rgb(0 0 0 / 12%);
@@ -282,7 +330,7 @@
   /* El alto sale del mínimo táctil y no se escribe otra vez: si bajan los
      controles, los campos bajan con ellos. */
   --campo-alto: var(--toque-min);
-  --campo-borde:        #cccccc;
+  --campo-borde:        var(--gris-500);
   --campo-relleno:      var(--espacio-2);   /* 6px */
   --campo-grupo-hueco:  4px;
 
@@ -298,11 +346,209 @@
   --dialogo-pie-fondo:   #f9f9f9;
 
   /* -----------------------------------------------------------------
+   * Fondos que no cambian de claro a oscuro
+   *
+   * Van aparte de --color-superficie porque son negros en los dos temas: el
+   * visor de video y la pista (tooltip) se pintan de negro porque encima van
+   * un video y letra blanca, y en un fondo oscuro la pista se distinguiría
+   * mejor clara, pero cambiarla la haría parecer una superficie de la app.
+   *
+   * Sin estos tokens, el negro estaba escrito como --gris-900, y eso obligaba a
+   * que --gris-900 siguiera siendo negro en el tema oscuro; pero --gris-900 es
+   * --color-texto, o sea el color de todo el texto de la app, y no se puede
+   * dejar negro en una pantalla oscura. Separarlos es lo que permite que el
+   * texto se dé vuelta y el video no.
+   * ----------------------------------------------------------------- */
+  --video-fondo: #111827;
+
+  --pista-fondo:  #111827;
+  --pista-texto:  #ffffff;
+
+  /* -----------------------------------------------------------------
    * El bottom-nav (móvil)
    * ----------------------------------------------------------------- */
 
   --bottom-nav-alto:     3.5rem;    /* 56px */
-  --bottom-nav-etiqueta: 0.625rem;  /* 10px: más chica que --texto-xs (11px)
-                                       para que quepan los cinco items */
+  /*
+   * La etiqueta de cada item.
+   *
+   * Era 10px, que era el texto más chico de la app entera y el único por
+   * debajo de --texto-xs. En un menú que se mira cien veces por día, 10px es
+   * el lugar donde menos hace falta apretar. Ahora es 11px, o sea --texto-xs:
+   * el menú usa la escala como todo lo demás y no tiene un escalón propio.
+   *
+   * No sube a 12 porque con 12 y cinco items el rótulo "Inventario" ya no
+   * entra en un teléfono de 320px, y un menú que se corta es peor que un menú
+   * con la letra chica.
+   */
+  --bottom-nav-etiqueta: 0.6875rem; /* 11px: --texto-xs */
   --bottom-nav-gap:      2px;       /* aire entre el ícono y la etiqueta */
+}
+
+/* =================================================================
+ * Tema oscuro
+ *
+ * Sigue la preferencia del sistema y no ofrece un switch: la app es de uso
+ * diario en un depósito, donde a la mañana con luz y de noche sin ella la
+ * pantalla tiene que servir sola, y agregar un ajuste más sería una decisión
+ * que el usuario tiene que tomar por algo que el sistema ya sabe.
+ *
+ * No se toca ni un componente. Todo lo que cambia son tokens, y por eso vive
+ * acá y no en una hoja aparte: es el mismo razonamiento de siempre, aplicado
+ * al segundo tema. Si un componente usa un token, ya funciona en oscuro.
+ *
+ * El único token que se inventó para esto es --color-texto-invertido, y el
+ * motivo es que "blanco sobre el azul" deja de ser cierto cuando el azul se
+ * aclara. En el tema claro ese token es blanco; en el oscuro es casi negro,
+ * porque ahora es la letra del botón primario, que va sobre un azul claro.
+ *
+ * Los números de contraste de abajo están calculados, no a ojo. Los que menos
+ * margen tienen son los textos tenues: 5.78 sobre la superficie y 6.99 sobre el
+ * fondo de página, contra los 4.5 que pide el estándar.
+ * ================================================================= */
+
+@media (prefers-color-scheme: dark) {
+
+  :root {
+    color-scheme: dark;
+
+    /* -------------------------------------------------------------
+     * La paleta cruda
+     *
+     * Se remapean los pasos pálidos, que son los que sirven de fondo de
+     * insignia y de chip. Los de texto se van al extremo claro. El verde,
+     * el ámbar y el rojo conservan su significado: lo que estaba bien
+     * sigue estando bien y lo que está mal sigue estando mal, sólo que
+     * pintado al revés.
+     * ------------------------------------------------------------- */
+
+    --gris-50:  #1f2937;
+    --gris-100: #374151;
+    --gris-200: #4b5563;
+    --gris-300: #6b7280;
+    --gris-500: #9ca3af;
+    --gris-600: #d1d5db;
+    --gris-700: #e5e7eb;
+    --gris-800: #f3f4f6;
+    --gris-900: #f9fafb;
+
+    --verde-50:  #0f2418;
+    --verde-100: #14361f;
+    --verde-200: #2f855a;
+    --verde-800: #86efac;
+    --verde-texto: #86efac;
+
+    --ambar-50:  #2e2210;
+    --ambar-100: #3a2a10;
+    --ambar-200: #a17a2e;
+    --ambar-700: #fcd34d;
+
+    --rojo-50:  #2a1414;
+    --rojo-100: #3d1a1a;
+    --rojo-200: #7f1d1d;
+    --rojo-500: #f87171;
+    --rojo-600: #fca5a5;
+    --rojo-700: #fca5a5;
+    --rojo-900: #fecaca;
+
+    /* -------------------------------------------------------------
+     * Las superficies
+     *
+     * El fondo de página deja de ser el verde claro del manifiesto y va
+     * en un casi negro con un resto de azul, que es lo que hace que el
+     * blanco de las tarjetas --ahora gris-- se despegue sin necesidad de
+     * una sombra fuerte.
+     * ------------------------------------------------------------- */
+
+    --fondo-pagina:      #0d1117;
+    --color-superficie:  #1f2937;
+    --color-texto:       #f9fafb;
+    --color-texto-suave: #d1d5db;
+    --color-texto-tenue: #9ca3af;
+    /*
+     * El botón primario lleva azul claro en este tema, así que la letra de
+     * encima va oscura. Es lo inverso al tema claro y es el motivo de tener
+     * el token en vez de escribir `#fff` en cada botón.
+     */
+    --color-texto-invertido: #0b1220;
+    --color-borde:      #78839a;
+    --color-borde-tenue: #566070;
+
+    --color-marca:        #d1d5db;
+    --color-marca-fuerte: #f9fafb;
+    --color-marca-tenue:  #374151;
+
+    --color-peligro:        #f87171;
+    --color-peligro-fuerte: #fca5a5;
+    --color-peligro-tenue:  #3d1a1a;
+    --color-aviso-tenue:    #2e2210;
+
+    /* La sombra sobre un fondo oscuro no se ve: lo que separa dos cosas es
+       el borde, y por eso los negros de sombra bajan a la mitad. */
+    --sombra-md:       0 2px 6px rgb(0 0 0 / 45%);
+    --sombra-etiqueta: 0 4px 12px rgb(0 0 0 / 35%);
+    --sombra-lg:       0 8px 24px rgb(0 0 0 / 55%);
+
+    /* -------------------------------------------------------------
+     * El estándar de la interfaz
+     * ------------------------------------------------------------- */
+
+    --interfaz-texto:   #f9fafb;
+    --interfaz-texto-2: #d1d5db;
+    --interfaz-texto-3: #d1d5db;
+    --interfaz-fondo:   #374151;
+
+    /*
+     * El azul se aclara porque el oscuro ya no sirve: `#1663c4` sobre
+     * `#1f2937` da 2.5 a 1 y el botón principal de la app desaparecía en
+     * la pantalla. `#60a5fa` da 5.78 sobre la superficie, 6.98 sobre el
+     * fondo de página y 7.36 con la letra oscura de encima.
+     */
+    --interfaz-azul:              #60a5fa;
+    --interfaz-azul-fuerte:       #7db4f7;
+    --interfaz-azul-mas-fuerte:   #8ab4f8;
+    --interfaz-azul-tenue:        rgb(96 165 250 / 15%);
+    --interfaz-azul-tenue-fuerte: rgb(96 165 250 / 25%);
+    --interfaz-azul-foco:         #60a5fa;
+
+    --interfaz-error:              #f87171;
+    --interfaz-error-tenue:        rgb(248 113 113 / 12%);
+    --interfaz-error-tenue-fuerte: rgb(248 113 113 / 20%);
+
+    --interfaz-sombra: 0 1px 2px 0 rgb(0 0 0 / 45%);
+
+    /*
+     * El verde de la cabecera pasa a ser el verde 800 de la paleta. En el
+     * tema claro la cabecera es verde pálido con letra gris; acá la
+     * inversión completa --verde casi negro con letra blanca-- se come el
+     * contenido, porque la cabecera ocupa el alto de la pantalla entera.
+     * `#166534` da 6.82 con la letra clara y se sigue distinguiendo del
+     * fondo de la página.
+     */
+    --cabecera-fondo:  #166534;
+    --cabecera-texto:  #f9fafb;
+    --cabecera-sombra: 0 1px 2px 0 rgb(0 0 0 / 40%);
+
+    --buscador-sombra: 0 1px 2px 0 rgb(0 0 0 / 40%);
+    --buscador-radio:  2px;
+
+    --campo-borde: #78839a;
+
+    --velo-fondo:          rgb(0 0 0 / 70%);
+    --dialogo-sombra:      0 10px 25px rgb(0 0 0 / 50%);
+    --dialogo-pie-fondo:   #161f2e;
+
+    /*
+     * El video y la pista no se remapean. Los dos van sobre negro en los
+     * dos temas, y por eso están en sus propios tokens y no en --gris-900:
+     * si estuvieran en --gris-900, que es --color-texto, o el texto se
+     * volvería negro o el video se volvería blanco.
+     */
+
+    /* Los items del bottom-nav que no están activos van en el gris claro,
+       que sobre el fondo oscuro da 5.78. */
+    --bottom-nav-alto:     3.5rem;
+    --bottom-nav-etiqueta: 0.6875rem;
+    --bottom-nav-gap:      2px;
+  }
 }

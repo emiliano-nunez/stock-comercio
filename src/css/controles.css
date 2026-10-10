@@ -509,9 +509,21 @@ svg {
   stroke-width: 2.75;
 }
 
+/*
+ * La casilla marcada.
+ *
+ * El fondo y el borde iban en `--color-marca`, que es el gris. El problema no es
+ * el tono: es que en esta app el gris es el color neutro de la superficie y el
+ * azul es el de todo lo que está activo --el anillo de foco, el item encendido
+ * del menú, el botón principal--. Una casilla tildada ES un control activo, y
+ * pintada de gris se leía como deshabilitada al lado de las tres cosas azules
+ * de la misma pantalla.
+ *
+ * El tilde va en blanco sobre el azul, que da 5.81 a 1.
+ */
 .casilla-lista-marcada {
-  border-color: var(--color-marca);
-  background-color: var(--color-marca);
+  border-color: var(--interfaz-azul);
+  background-color: var(--interfaz-azul);
   color: var(--color-superficie);
 }
 
@@ -667,8 +679,8 @@ svg {
   transform: translateX(-50%);
   margin-bottom: var(--espacio-2);
   padding: var(--espacio-1) var(--espacio-2);
-  background-color: var(--gris-900);
-  color: var(--color-texto-invertido);
+  background-color: var(--pista-fondo);
+  color: var(--pista-texto);
   font-size: var(--texto-xs);
   border-radius: var(--radio-sm);
   white-space: nowrap;

@@ -37,6 +37,16 @@ export const ICONOS = {
   eliminar: trazo('<path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/>'),
 
   // La cabecera.
+  /*
+   * El del menú de usuario.
+   *
+   * Faltaba: `App.js` pide `icono('usuario')` y `icono()` devuelve cadena
+   * vacía para los nombres que no existen, así que el botón salía dibujado
+   * pero sin nada adentro. Un botón de 44px transparente en la cabecera, con
+   * su `aria-label` leyendo "Menú de usuario", es un control que el lector de
+   * pantalla anuncia y el ojo no ve.
+   */
+  usuario: trazo('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'),
   camara: trazo('<path d="M3 8a2 2 0 0 1 2-2h2.5l1.2-2h6.6L16.5 6H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><circle cx="12" cy="12.5" r="3.2"/>'),
   escanear: trazo('<path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M3.5 12h17"/>'),
   mas: trazo('<path d="M12 5v14M5 12h14"/>'),

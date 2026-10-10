@@ -590,9 +590,9 @@ body.sin-categorias #form-producto .form-par {
    * tener una línea entera de aire antes de la primera cosa que se toca.
    */
   .cabecera-cuerpo {
-    flex-direction: column;
-    flex-wrap: nowrap;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
     gap: var(--espacio-2);
     height: 100%;
     min-height: 0;
@@ -601,14 +601,20 @@ body.sin-categorias #form-producto .form-par {
 
   .cabecera-cuerpo > h1 {
     order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
     justify-content: flex-start;
     margin-inline-end: 0;
-    margin-block-end: var(--espacio-2);
+    margin-block-end: 0;
+  }
+
+  .cabecera-cuerpo > .usuario-menu {
+    order: 2;
   }
 
   .fila-busca {
-    order: 2;
-    flex: 0 0 auto;
+    order: 3;
+    flex: 1 0 100%;
     flex-direction: column;
     gap: var(--espacio-2);
     margin-block-end: var(--espacio-2);
@@ -632,7 +638,7 @@ body.sin-categorias #form-producto .form-par {
   }
 
   .cabecera-cuerpo > .pestanas {
-    order: 3;
+    order: 4;
     flex: 0 0 auto;
   }
 
@@ -832,7 +838,19 @@ body.sin-categorias #form-producto .form-par {
   }
 }
 
-/* Header compacto en móvil: solo logo + buscador */
+/*
+ * Header compacto en móvil: el menú de usuario comparte renglón con el título.
+ *
+ * Los tres renglones que había --usuario, título, buscador-- sumaban 143px, o
+ * sea el 18% de una pantalla de 800. El botón de usuario estaba en su propia
+ * fila porque su `order` es 0 y el título le pedía el ancho entero, así que
+ * cada uno terminaba donde le tocaba y no podían coincidir.
+ *
+ * Ahora el título va a la izquierda del renglón de arriba y el botón al final
+ * de ese mismo renglón, que es lo mismo que hace el resto de las apps de
+ * teléfono. La cabecera baja a 93px y la lista de productos gana media fila
+ * sin que desaparezca ninguna acción.
+ */
 @media (max-width: 839px) {
   .btn-texto.cabecera-accion,
   .boton-agregar.cabecera-accion {
@@ -847,14 +865,22 @@ body.sin-categorias #form-producto .form-par {
 
   .cabecera-cuerpo > h1 {
     order: 1;
-    flex: 0 0 100%;
+    /* Cede el hueco del botón en vez de tomar el renglón entero. Con
+       `justify-content: flex-start` el título empata con el borde izquierdo
+       del buscador de abajo, que es donde empieza la lupa. */
+    flex: 1 1 auto;
     margin-inline-end: 0;
-    justify-content: center;
+    justify-content: flex-start;
     margin-block-end: 0;
+    min-width: 0;
+  }
+
+  .usuario-menu {
+    order: 2;
   }
 
   .fila-busca {
-    order: 2;
+    order: 3;
     flex: 0 0 100%;
     width: 100%;
   }
@@ -923,7 +949,19 @@ body.sin-categorias #form-producto .form-par {
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-.popover-item {
+/*
+ * Un ítem de menú flotante, para los dos menús de la app: el de Agregar y el
+ * del usuario.
+ *
+ * Van los dos selectores en la misma regla, no dos reglas iguales. Es la misma
+ * idea que con los botones de `.btn`: el HTML escribe una clase por ítem y el
+ * estilo base queda escrito una vez. Antes `.popover-item` y
+ * `.usuario-popover-item` eran dos bloques idénticos de once declaraciones, y
+ * la única diferencia real --el separador-- estaba en una regla suelta, así que
+ * había tres lugares donde podía salir mal algo que sólo existe una vez.
+ */
+.popover-item,
+.usuario-popover-item {
   display: flex;
   align-items: center;
   gap: var(--espacio-2);
@@ -940,15 +978,35 @@ body.sin-categorias #form-producto .form-par {
   min-height: var(--toque-min);
 }
 
-.popover-item:first-child {
+/*
+ * El separador entre ítems.
+ *
+ * Sólo el menú de Agregar lo lleva: el del usuario no lo tenía y este cambio
+ * es para sacar la duplicación del CSS, no para cambiar cómo se ven los menús.
+ *
+ * Era `:first-child`, que pone el borde debajo del primer ítem. Con dos ítems
+ * eso dibuja la línea en el único lugar donde hace falta y se veía bien, pero
+ * sólo porque el menú tiene dos: con tres, la línea saldría después del primero
+ * y los otros dos quedarían pegados.
+ *
+ * `:not(:last-child)` es lo que hace falta con cualquier cantidad de ítems. No
+ * se usa `border-top` en `:not(:first-child)`, que es la otra forma de
+ * escribir lo mismo, porque el menú del usuario trae un cuarto ítem que va
+ * oculto cuando no hay instalación posible: con borde arriba, los tres
+ * visibles seguirían separados, pero el último visible le quedaría un borde
+ * colgando en el borde de abajo del menú.
+ */
+.popover-item:not(:last-child) {
   border-bottom: 1px solid var(--color-borde-tenue);
 }
 
-.popover-item:active {
+.popover-item:active,
+.usuario-popover-item:active {
   background-color: var(--interfaz-azul-tenue);
 }
 
-.popover-item svg {
+.popover-item svg,
+.usuario-popover-item svg {
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
@@ -1016,6 +1074,13 @@ body.sin-categorias #form-producto .form-par {
   max-width: 90vw;
 }
 
+@media (max-width: 839px) {
+  .usuario-popover {
+    left: auto;
+    right: 0;
+  }
+}
+
 @media (min-width: 840px) {
   .usuario-popover {
     left: auto;
@@ -1028,33 +1093,11 @@ body.sin-categorias #form-producto .form-par {
   animation: popover-entra var(--transicion-rapida);
 }
 
-.usuario-popover-item {
-  display: flex;
-  align-items: center;
-  gap: var(--espacio-2);
-  width: 100%;
-  padding: var(--espacio-2) var(--espacio-3);
-  background: none;
-  border: none;
-  border-radius: var(--radio-control);
-  font-size: var(--texto-sm);
-  color: var(--interfaz-texto);
-  font-weight: var(--grosor-medio);
-  text-align: left;
-  cursor: pointer;
-  min-height: var(--toque-min);
-}
-
-.usuario-popover-item:active {
-  background-color: var(--interfaz-azul-tenue);
-}
-
-.usuario-popover-item svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
-  color: var(--interfaz-azul);
-}
+/*
+ * Los ítems no se estilan acá: `.popover-item` y `.usuario-popover-item`
+ * comparten las mismas declaraciones y están definidas juntas, más arriba,
+ * junto al popover del menú Agregar.
+ */
 
 @media (min-width: 1100px) {
   .contenido .rejilla-inventario,

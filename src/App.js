@@ -80,6 +80,17 @@ export class App {
     this.proveedores = [];
     this.categoriaEditando = null;
     this._limiteRender = App.LIMITE_RENDER;
+
+    /*
+     * El prompt de instalación que guarda el navegador.
+     *
+     * Es null hasta que `beforeinstallprompt` lo trae, que es sólo en navegadores
+     * que lo soportan y sólo si la app todavía no está instalada. El botón de la
+     * cabecera se pinta según esto, así que la propiedad existe desde el
+     * constructor: si se leyera antes de escribirse, daría undefined y el botón
+     * aparecería o no según el orden del arranque.
+     */
+    this.promptInstalacion = null;
   }
 
   async init() {
@@ -113,6 +124,8 @@ export class App {
       this.bindEvents();
       this.registrarServiceWorker();
       this.vigilarActualizacion();
+      this.vigilarInstalacion();
+      this.vigilarConexion();
       this.atenderAtajo();
       this.vigilarErroresGlobales();
       this.pedirEspacioPersistente();
@@ -584,8 +597,14 @@ export class App {
               <button class="usuario-popover-item" data-accion="pedido" role="menuitem">
                 ${icono('etiqueta')}<span>Pedido de faltantes</span>
               </button>
-              <button class="usuario-popover-item" data-accion="ajustes" role="menuitem">
-                ${icono('ajuste')}<span>Ajustes de campos</span>
+              <!-- El botón de ajustes de campos se removió del popover de usuario; ahora solo está en el bottom-nav como "Ajustes" -->
+              <!--
+                El botón de instalar arranca oculto: sólo aparece cuando el
+                navegador manda beforeinstallprompt, que es la única señal de
+                que la instalación es posible. Ver vigilarInstalacion().
+              -->
+              <button id="btn-instalar-app" class="usuario-popover-item${this.promptInstalacion ? '' : ' oculto'}" data-accion="instalar" role="menuitem">
+                ${icono('subir')}<span>Instalar app</span>
               </button>
             </div>
           </div>
@@ -654,9 +673,21 @@ export class App {
         `;
       }
 
+      /*
+       * El estado vacío del inventario.
+       *
+       * El icono era un lápiz, que es la herramienta con la que se ESCRIBE y no
+       * el objeto que falta: un inventario vacío no es algo que se esté
+       * editando, es una caja sin nada adentro. Con el lápiz, la pantalla
+       * decía dos cosas distintas --"no hay nada" y "acá se escribe"-- y la
+       * segunda se llevaba la lectura.
+       *
+       * La caja es el mismo trazo que el logo de la app, así que la pantalla
+       * vacía y la barra lateral dicen lo mismo con dos tamaños.
+       */
       return `
         <div class="vacio">
-          <span class="vacio-icono-grande">${icono('lapiz')}</span>
+          <span class="vacio-icono-grande">${icono('caja')}</span>
           <h2 class="subtitulo con-margen-arriba-amplia">Inventario vacío</h2>
           <p class="detalle apagado con-margen-arriba">Toca "Agregar producto" para empezar</p>
         </div>
@@ -1484,6 +1515,7 @@ export class App {
           if (accion === 'copia') this.abrirCopiaSeguridad();
           else if (accion === 'pedido') this.abrirPedido();
           else if (accion === 'ajustes') this.mostrarAjustes();
+          else if (accion === 'instalar') this.instalarApp();
         });
       });
     }
@@ -2445,7 +2477,24 @@ export class App {
 
     if (import.meta.env.DEV) return;
 
+    /*
+     * El primer controlador no es una actualización.
+     *
+     * Con `clientsClaim()` el service worker toma la pestaña apenas se instala,
+     * y eso dispara `controllerchange` también en la PRIMERA visita, cuando no
+     * había versión anterior ni nada que actualizar. Sin esta guarda, el
+     * usuario que recién conoce la app le salía la tarjeta "Se descargó una
+     * versión nueva" sin que se haya descargado nada nuevo: un aviso falso en
+     * el peor momento, el primero.
+     *
+     * Se mira el controlador que había AL ATAR el listener, no el de adentro:
+     * si al llegar el evento todavía no había ninguno, es el primer control y
+     * se calla. Todo lo que venga después, sí es una versión nueva.
+     */
+    const teniaControlador = !!navigator.serviceWorker.controller;
+
     navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!teniaControlador) return;
       this.hayActualizacion = true;
       this.render();
     });
@@ -2458,6 +2507,99 @@ export class App {
       boton.textContent = 'Actualizando...';
     }
     location.reload();
+  }
+
+  /*
+   * El aviso de instalación que trae el navegador.
+   *
+   * `beforeinstallprompt` sólo llega si la app cumple los tres requisitos
+   * (HTTPS, manifiesto completo y service worker con fetch handler) y si todavía
+   * no está instalada. El navegador lo dispara, la app no lo pide: por eso el
+   * botón se esconde hasta que el evento llega, en vez de mostrarse siempre y
+   * fallar en silencio para el que no lo soporta (iOS Safari no lo manda nunca).
+   *
+   * El evento se guarda entero, no sólo el hecho de que exista: `prompt()` es un
+   * método del evento, y sin él no hay forma de abrir el diálogo. Por lo mismo
+   * se consume apenas se usa -- después de `prompt()` el navegador lo descarta,
+   * y una segunda vez daría error.
+   */
+  vigilarInstalacion() {
+    window.addEventListener('beforeinstallprompt', (evento) => {
+      evento.preventDefault();
+      this.promptInstalacion = evento;
+      this.pintarBotonInstalar();
+    });
+
+    window.addEventListener('appinstalled', () => {
+      this.promptInstalacion = null;
+      this.pintarBotonInstalar();
+      toast.success('App instalada en el dispositivo');
+    });
+  }
+
+  /**
+   * Mostrar u ocultar el botón de instalar según si hay un prompt guardado.
+   *
+   * Se toca el nodo y no se repinta la pantalla: el botón vive en el menú de
+   * usuario, que el usuario puede tener abierto, y repintarlo entero para una
+   * clase cerraría ese menú en la cara.
+   */
+  pintarBotonInstalar() {
+    const boton = document.getElementById('btn-instalar-app');
+    if (boton) boton.classList.toggle('oculto', !this.promptInstalacion);
+  }
+
+  async instalarApp() {
+    const evento = this.promptInstalacion;
+    if (!evento) return;
+
+    this.promptInstalacion = null;
+    this.pintarBotonInstalar();
+
+    try {
+      evento.prompt();
+      const { outcome } = await evento.userChoice;
+      if (outcome !== 'accepted') {
+        // El navegador sigue ofreciendo la instalación desde su propio menú:
+        // acá sólo se pierde el atajo, no la posibilidad.
+        console.info('[App] Instalación declinada por el usuario');
+      }
+    } catch (error) {
+      console.error('[App] No se pudo abrir el diálogo de instalación:', error);
+    }
+  }
+
+  /**
+   * El aviso de "sin conexión", que dura lo que dure la falta de red.
+   *
+   * La app es local-first: sin internet sigue andando entera, y eso es
+   * justamente lo que hay que decirle al usuario para que no crea que se le
+   * rompió. El aviso no se autocierra (`duration: 0`) porque un aviso que
+   * desaparece mientras la condición sigue siendo cierta es mentira; se cierra
+   * solo en cuanto vuelve la red.
+   *
+   * Se manda por toast y no por un banner en el HTML porque vive fuera de
+   * `#app`: la pila de avisos es un nodo propio que ningún `render()` toca, y
+   * así el aviso sobrevive a un repintado de pantalla.
+   */
+  vigilarConexion() {
+    const pintar = () => {
+      if (!navigator.onLine) {
+        if (this._avisoSinConexion == null) {
+          this._avisoSinConexion = toast.warning(
+            'Sin conexión. Tus datos siguen guardados en este dispositivo y podés seguir trabajando.',
+            { duration: 0 }
+          );
+        }
+      } else if (this._avisoSinConexion != null) {
+        toast.remove(this._avisoSinConexion);
+        this._avisoSinConexion = null;
+      }
+    };
+
+    window.addEventListener('online', pintar);
+    window.addEventListener('offline', pintar);
+    pintar();
   }
 
   /**

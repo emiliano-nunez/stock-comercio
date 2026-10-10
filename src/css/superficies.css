@@ -39,10 +39,13 @@
 /*
  * El nombre del producto, en el inventario y en el catálogo.
  *
- * Va en 13px y sin negrita: el estándar de la tarjeta dice que el precio es lo
- * único que tiene peso visual, y un título en negrita compite con él. Se corta en
- * dos renglones con puntitos en vez de en uno, que es lo que hace el resto de las
- * tarjetas y lo que aprovecha una columna de 130px.
+ * Va en 12px (--texto-sm) y sin negrita: el estándar de la tarjeta dice que el
+ * precio es lo único que tiene peso visual, y un título en negrita compite con
+ * él. Decía 13px, que era el valor que tenía antes de que el nombre pasara a la
+ * escala de tokens; con los tokens no queda un tamaño suelto que pueda dejar de
+ * coincidir con el resto. Se corta en dos renglones con puntitos en vez de en
+ * uno, que es lo que hace el resto de las tarjetas y lo que aprovecha una
+ * columna de 130px.
  *
  * `white-space: normal` deshace el `.cortado` que trae el nombre en el HTML: ese
  * es de una línea, y acá lo que se quiere son dos.
@@ -56,7 +59,7 @@
   overflow: hidden;
   white-space: normal;
 
-  font-size: var(--texto-sm);   /* 13px */
+  font-size: var(--texto-sm);   /* 12px */
   line-height: var(--tarjeta-interlinea-2);
   font-weight: var(--grosor-normal);
   color: var(--interfaz-texto);
@@ -321,7 +324,7 @@
  */
 .marco-video {
   position: relative;
-  background-color: var(--gris-900);
+  background-color: var(--video-fondo);
   padding: var(--espacio-2);
   border-radius: var(--radio-md);
   overflow: hidden;
@@ -332,7 +335,7 @@
   aspect-ratio: 1 / 1;
   border-radius: var(--radio-md);
   overflow: hidden;
-  background-color: var(--gris-900);
+  background-color: var(--video-fondo);
 }
 
 /*
@@ -1010,7 +1013,33 @@
 .anim-aviso-entra { animation: aviso-entra var(--transicion-media); }
 .anim-aviso-sale  { animation: aviso-sale var(--transicion-media); }
 
+/*
+ * Movimiento reducido.
+ *
+ * El bloque apagaba las ANIMACIONES y dejaba las TRANSICIONES, que son las que
+ * más se usan en la app: son 86 los elementos con `transition-duration`
+ * encendida, entre ellos todos los botones, los campos y los menús. Para alguien
+ * que pidió menos movimiento, la app seguía moviéndose; sólo que en trozos de
+ * 100 a 300ms, que es justo lo bastante para molestar y lo justo para no notarse
+ * como una animación.
+ *
+ * La regla global va al principio y no al final a propósito: así las reglas
+ * particulares de abajo, que apagan el `transform` de la presión de los
+ * botones, siguen teniendo qué pisar.
+ */
 @media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    /* El scroll del navegador a destino se puede quitar sin que nada se rompa:
+       la lista del inventario es larga y el salto de golpe es más fácil de
+       seguir que el deslizamiento. */
+    scroll-behavior: auto !important;
+  }
 
   .anim-subir,
   .anim-bajar,
