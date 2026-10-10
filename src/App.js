@@ -1102,14 +1102,6 @@ export class App {
           </div>
         </div>
 
-        ${this.categorias.length === 0 ? `
-          <div class="vacio">
-            <span class="vacio-icono">${icono('etiqueta')}</span>
-            <p class="detalle medio con-margen-arriba">Sin categorías</p>
-            <button id="btn-nueva-categoria-vacia" class="btn-principal con-margen-arriba">${icono('mas')} Crear primera categoría</button>
-          </div>
-        ` : ''}
-
         ${this.renderEstadosStockHTML()}
         ${this.renderProveedoresHTML()}
       </div>
@@ -1582,7 +1574,6 @@ export class App {
 
     document.getElementById('btn-actualizar-ahora')?.addEventListener('click', () => this.aplicarActualizacion());
     document.getElementById('btn-nueva-categoria')?.addEventListener('click', () => this.abrirModalCategoria());
-    document.getElementById('btn-nueva-categoria-vacia')?.addEventListener('click', () => this.abrirModalCategoria());
     document.getElementById('btn-nuevo-proveedor')?.addEventListener('click', () => this.abrirModalProveedor());
 
     contenedor.querySelectorAll('.fila-tocable[data-proveedor]').forEach(btn => {
