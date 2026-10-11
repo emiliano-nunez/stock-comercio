@@ -37,7 +37,7 @@ export function abrirVarianteModal({ producto, base = null }) {
     box.innerHTML = `
       <div class="dialogo">
         <div class="dialogo-cabecera">
-          <h2 class="titulo titulo-icono">${icono('duplicar')}<span>Crear variante</span></h2>
+          <h2 class="titulo titulo-icono">${icono('variante')}<span>Crear variante</span></h2>
           <button type="button" class="btn-fantasma btn-icono no-crece" data-accion="cancelar" aria-label="Cerrar">✕</button>
         </div>
         <form id="form-variante" class="dialogo-cuerpo apilado-3" novalidate>

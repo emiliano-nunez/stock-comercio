@@ -1414,7 +1414,7 @@ export class App {
             .variante-tarjeta y está en controles.css.
           -->
           <button class="btn-fantasma btn-crece btn-icono-solo variante-tarjeta" data-action="variante" data-id="${escAttr(p.id)}" aria-label="Crear variante de ${escAttr(p.nombre)}">
-            ${icono('duplicar')}
+            ${icono('variante')}
           </button>
           <button class="btn-fantasma btn-crece btn-icono-solo" data-action="edit" data-id="${escAttr(p.id)}" aria-label="Editar ${escAttr(p.nombre)}">
             ${icono('editar')}

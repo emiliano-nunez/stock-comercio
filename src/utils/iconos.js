@@ -32,7 +32,13 @@ const trazo = (d, relleno = false) => `
  */
 export const ICONOS = {
   // La fila de acciones de la tarjeta de inventario.
-  duplicar: trazo('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'),
+  /*
+   * La caja del inventario con un punto de color: el mismo producto en otra
+   * presentación, que es lo que es una variante. Antes era `duplicar`, el
+   * ícono de copiar dos rectángulos, y no representaba la función: una
+   * variante no es una copia suelta, es un hermano de la familia.
+   */
+  variante: trazo('<g transform="translate(-0.4 -0.35) scale(0.75)" stroke-width="2.333"><path d="M21 8.5v7a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 15.5v-7a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8.5Z"/><path d="m3.3 7.5 8.7 5 8.7-5"/><path d="M12 21v-8.5"/></g><circle cx="19.5" cy="19.5" r="3.1" fill="currentColor" stroke="none"/>'),
   editar: trazo('<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>'),
   eliminar: trazo('<path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6M14 11v6"/>'),
 

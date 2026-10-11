@@ -237,7 +237,7 @@ export function abrirDetalleProducto({ producto, categorias = [], variantes = []
               id="detalle-variante"
               class="btn-secundario btn-icono-solo variante-detalle"
               aria-label="Crear variante de este producto"
-            >${icono('duplicar')}</button>
+            >${icono('variante')}</button>
             <button type="button" id="detalle-editar" class="btn-secundario btn-icono-solo" aria-label="Editar este producto">${icono('editar')}</button>
             <button type="button" id="detalle-cerrar-pie" class="btn-principal btn-crece">Cerrar</button>
           </div>

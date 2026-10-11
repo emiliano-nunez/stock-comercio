@@ -441,7 +441,7 @@ export class ProductoForm {
                 no muestra chip.
               -->
               <div class="solo-detallado campo-variante">
-                <label for="variante-etiqueta" class="etiqueta">${icono('duplicar')} Etiqueta de variante</label>
+                <label for="variante-etiqueta" class="etiqueta">${icono('variante')} Etiqueta de variante</label>
                 <input
                   type="text"
                   id="variante-etiqueta"
