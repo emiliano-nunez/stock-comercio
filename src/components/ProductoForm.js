@@ -610,12 +610,12 @@ export class ProductoForm {
             <div class="recuadro">
               <div class="fila fila-separada detalle">
                 <span class="con-medio">Precio calculado:</span>
-                <span id="precioCalculado" class="marca mediano">$0.00</span>
+                <span id="precioCalculado" class="marca mediano">$0</span>
               </div>
               <div class="fila fila-separada micro apagado con-margen-arriba-chica">
-                <span>Costo: <span id="costoBase">$0.00</span></span>
-                <span>+IVA: <span id="ivaCalculado">$0.00</span></span>
-                <span>+Margen: <span id="margenCalculado">$0.00</span></span>
+                <span>Costo: <span id="costoBase">$0</span></span>
+                <span>+IVA: <span id="ivaCalculado">$0</span></span>
+                <span>+Margen: <span id="margenCalculado">$0</span></span>
               </div>
             </div>
 
@@ -1414,10 +1414,10 @@ export class ProductoForm {
       const margenMonto = costoConIva * (margenPct / 100);
       const precioCalc = costoConIva + margenMonto;
 
-      costoBaseEl.textContent = `$${costo.toLocaleString('es-ES', {minimumFractionDigits: 2})}`;
-      ivaCalculadoEl.textContent = `$${ivaMonto.toLocaleString('es-ES', {minimumFractionDigits: 2})}`;
-      margenCalculadoEl.textContent = `$${margenMonto.toLocaleString('es-ES', {minimumFractionDigits: 2})}`;
-      precioCalculadoEl.textContent = `$${precioCalc.toLocaleString('es-ES', {minimumFractionDigits: 2})}`;
+      costoBaseEl.textContent = `$${fmtPrecio(costo)}`;
+      ivaCalculadoEl.textContent = `$${fmtPrecio(ivaMonto)}`;
+      margenCalculadoEl.textContent = `$${fmtPrecio(margenMonto)}`;
+      precioCalculadoEl.textContent = `$${fmtPrecio(precioCalc)}`;
 
       /*
        * Si el precio final está vacío o igual al calculado anterior, se

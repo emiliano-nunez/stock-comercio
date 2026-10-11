@@ -1,6 +1,6 @@
 {
   "name": "stock-comercio-pwa",
-  "version": "2.3.39",
+  "version": "2.3.40",
   "description": "App de Control de Stock Local-First (PWA) para comerciantes",
   "type": "module",
   "scripts": {

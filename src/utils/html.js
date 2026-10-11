@@ -20,8 +20,16 @@ export function escAttr(texto) {
   return esc(texto).replace(/"/g, '&quot;');
 }
 
+/**
+ * Precio para mostrar: entero con punto de miles (es-ES separa miles con "."
+ * y decimales con ","), sin decimales.
+ *
+ * Los precios de esta app se cargan en pesos enteros y las decimales que
+ * aparecían sólo ensuciaban la tarjeta: `$1.500,00` lee igual que `$1.500` y
+ * ocupa el doble. El valor guardado no se toca, sólo lo que se pinta.
+ */
 export function fmtPrecio(valor) {
   const n = Number(valor);
   if (!Number.isFinite(n)) return '';
-  return n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return n.toLocaleString('es-ES', { maximumFractionDigits: 0 });
 }
