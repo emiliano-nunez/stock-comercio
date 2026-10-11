@@ -155,7 +155,7 @@ export class PedidoModal {
             ${this.grupos.map((grupo, indice) => this.renderGrupoHTML(grupo, indice)).join('')}
           </div>
 
-          <div class="dialogo-pie dialogo-pie-fija apilado">
+          <div class="dialogo-pie dialogo-pie-fija apilado pie-acciones">
             ${haySinProveedor ? `
               <button id="btn-copiar-sin-proveedor" class="btn-secundario btn-ancho">
                 📋 Copiar los ${this.grupos.find(g => !g.clave).productos.length} que no tienen proveedor

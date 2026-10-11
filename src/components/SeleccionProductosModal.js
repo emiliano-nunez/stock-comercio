@@ -179,7 +179,7 @@ export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTien
             <p class="detalle centro-texto marca" data-contador></p>
           </div>
 
-          <div class="dialogo-pie apilado">
+          <div class="dialogo-pie apilado pie-acciones">
             <div class="fila">
               <button class="btn-principal btn-crece" data-accion="agregar" disabled>
                 ${icono('mas')}<span>Agregar a ${tildeDe}</span>

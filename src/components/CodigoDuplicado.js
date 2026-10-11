@@ -136,7 +136,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
 
       const pie = origen === 'escaner'
         ? `
-          <div class="dialogo-pie apilado">
+          <div class="dialogo-pie apilado pie-acciones">
             <p class="detalle apagado">
               Un mismo código no puede identificar a dos productos. Abrí el que
               corresponde, o creá uno nuevo si ninguno es el que buscabas.
@@ -148,7 +148,7 @@ export function abrirCodigoDuplicado({ codigo, productos, origen, onAbrir, onBor
           </div>
         `
         : `
-          <div class="dialogo-pie apilado">
+          <div class="dialogo-pie apilado pie-acciones">
             <p class="detalle apagado">
               Un mismo código no puede identificar a dos productos. Podés
               distinguirlo con un sufijo, guardarlo sin código, o borrar el

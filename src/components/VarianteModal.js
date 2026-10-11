@@ -64,7 +64,7 @@ export function abrirVarianteModal({ producto, base = null }) {
             <p class="fuerte rompe-palabras js-nombre-variante">${esc(nombreBase)}</p>
           </div>
         </form>
-        <div class="dialogo-pie apilado">
+        <div class="dialogo-pie apilado pie-acciones">
           <p class="detalle apagado">
             Después de crearla se abre el formulario con todo copiado: sólo faltan
             el código y revisar lo que cambie.

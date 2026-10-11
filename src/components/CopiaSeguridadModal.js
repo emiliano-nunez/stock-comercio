@@ -135,7 +135,7 @@ export class CopiaSeguridadModal {
           ${avisoActualizacion()}
         </div>
 
-        <div class="dialogo-pie apilado pie-suave">
+        <div class="dialogo-pie apilado pie-suave pie-acciones">
           <div class="fila">
             <button id="btn-exportar-backup" class="btn-secundario btn-crece detalle">${icono('descargar')}<span>Exportar copia</span></button>
             <button id="btn-importar-backup" class="btn-principal btn-crece detalle">${icono('subir')}<span>Importar copia</span></button>

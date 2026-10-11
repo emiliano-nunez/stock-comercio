@@ -955,13 +955,15 @@
 }
 
 /*
- * El pie de la hoja del producto va en columna: primero el ajuste de stock y
- * debajo la fila de botones.
+ * El pie que va en columna: primero un texto y debajo los botones, o una fila
+ * de botones y otra cosa más abajo.
  *
  * `.dialogo-pie` es una fila, y la clase `apilado` sólo agrega márgenes: no
- * cambia la dirección. Los dos bloques quedaban uno al lado del otro y en un
- * teléfono el segundo se salía del diálogo. Como `.dialogo-pie-fija` lo usan
- * también el formulario y el pedido, esto va en una clase propia.
+ * cambia la dirección. Con dos bloques apilados en el HTML, el navegador los
+ * pone uno al lado del otro, achica cada uno hasta el mínimo y el texto de los
+ * botones se parte en dos o tres líneas: "Crear variante" medía 62px contra
+ * los 44px de "Cancelar" al lado. Acá la dirección cambia y cada hijo ocupa el
+ * ancho entero del pie.
  */
 .pie-acciones {
   flex-direction: column;
