@@ -1,4 +1,4 @@
-import { COLORES_CATEGORIAS, nombreDeVariante, nombreBaseDe } from '../db.js';
+import { COLORES_PALETA, coloresParaElegir, nombreDeVariante, nombreBaseDe } from '../db.js';
 import { esc, escAttr } from '../utils/html.js';
 import { icono } from '../utils/iconos.js';
 
@@ -22,7 +22,7 @@ export function abrirVarianteModal({ producto, base = null }) {
     const nombreBase = base && base.id !== producto.id ? base.nombre : nombreBaseDe(producto);
     // Siempre un color elegible, y siempre cambiable: el color de una variante
     // es un dato real que el usuario decide, no uno que se le asigna.
-    const colorInicial = COLORES_CATEGORIAS[0];
+    const colorInicial = COLORES_PALETA[0];
 
     const box = document.createElement('div');
     box.className = 'velo';
@@ -53,8 +53,8 @@ export function abrirVarianteModal({ producto, base = null }) {
           </div>
           <div>
             <label class="etiqueta">Color</label>
-            <div class="fila envuelto">
-              ${COLORES_CATEGORIAS.map(color => `
+            <div class="fila fila-muestras envuelto">
+              ${coloresParaElegir(colorInicial.toLowerCase()).map(color => `
                 <button type="button" class="color-btn muestra-color ${color === colorInicial ? 'muestra-color-elegida' : ''}" data-color="${escAttr(color)}" style="background-color: ${escAttr(color)}; border-color: ${escAttr(color)}40;" aria-label="Color ${escAttr(color)}"></button>
               `).join('')}
             </div>

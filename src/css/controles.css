@@ -619,18 +619,39 @@ svg {
  * La muestra de un color
  * ================================================================= */
 
+/*
+ * La fila de muestras va en UNA línea, y las muestras se achican solas.
+ *
+ * Doce muestras de 24px con 3px de aire son 321px y el diálogo deja 329px en un
+ * móvil de 375. Con `flex: 1` y un tope de 32px, en una pantalla más angosta
+ * bajan antes de partirse la fila: en 360px quedan de 23px y en 320 de 19. El
+ * `min-width: 0` va porque sin eso un botón no baja de su ancho de contenido y
+ * la fila se sale del diálogo.
+ */
+.fila-muestras {
+  flex-wrap: nowrap;
+  gap: var(--espacio-1);
+}
+
 .muestra-color {
-  width: 2.5rem;
-  height: 2.5rem;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: var(--radio-full);
   border: 2px solid var(--gris-200);
   cursor: pointer;
-  transition: transform var(--transicion-rapida), box-shadow var(--transicion-rapida);
+  transition: box-shadow var(--transicion-rapida);
 }
 
+/*
+ * El anillo del elegido mide 3px y no 4px, y ya no agranda la muestra: a 24px
+ * y con 3px de aire entre una y otra, un anillo más grueso o un `scale` se
+ * comían el borde de la muestra de al lado.
+ */
 .muestra-color-elegida {
-  box-shadow: 0 0 0 2px var(--color-superficie), 0 0 0 4px var(--color-marca);
-  transform: scale(1.1);
+  box-shadow: 0 0 0 2px var(--color-superficie), 0 0 0 3px var(--color-marca);
 }
 
 /* =================================================================

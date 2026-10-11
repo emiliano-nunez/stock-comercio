@@ -1014,6 +1014,49 @@ export const COLORES_CATEGORIAS = [
   '#1F2937',
 ];
 
+/*
+ * Los doce que se muestran para elegir.
+ *
+ * Doce muestras de 32px con 3px de aire son 417px, y entran en UNA línea del
+ * diálogo de escritorio. En el teléfono las muestras se achican solas hasta
+ * entrar (`.fila-muestras`): en un móvil de 375 quedan de 24px y en uno de 360
+ * de 23. Con los veinte de antes, a 40px y en tres líneas, la fila ocupaba más
+ * que el propio diálogo.
+ *
+ * Los veinte de `COLORES_CATEGORIAS` siguen siendo válidos: una categoría o una
+ * variante creada con uno que ya no se muestra no pierde su color, y al editarla
+ * esa muestra se suma a la fila (`coloresParaElegir`). Por eso ésta es la lista
+ * para ELEGIR y no la lista de colores de la app.
+ */
+export const COLORES_PALETA = [
+  '#EF4444',
+  '#F97316',
+  '#F59E0B',
+  '#EAB308',
+  '#84CC16',
+  '#22C55E',
+  '#14B8A6',
+  '#0EA5E9',
+  '#3B82F6',
+  '#8B5CF6',
+  '#EC4899',
+  '#1F2937',
+];
+
+/**
+ * La paleta a mostrar, con el color actual sumado si quedó fuera de los doce.
+ *
+ * @param {string} actual  el color, en cualquier mayúscula
+ * @returns {string[]} los doce, o los trece si `actual` no está entre ellos
+ */
+export function coloresParaElegir(actual) {
+  if (!actual) return COLORES_PALETA;
+  const limpio = String(actual).trim().toLowerCase();
+  return COLORES_PALETA.some(c => c.toLowerCase() === limpio)
+    ? COLORES_PALETA
+    : [...COLORES_PALETA, limpio];
+}
+
 export const TIPOS_VENTA = [
   {
     value: 'unidad',

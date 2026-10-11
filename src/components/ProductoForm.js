@@ -1,4 +1,4 @@
-import { db, dbUtils, TIPOS_VENTA, UNIDADES_STOCK, pasoUnidadStock, categoriasDe, normalizarProveedor, construirHistorialPrecios, claveFamilia, economiaDistinta, COLORES_CATEGORIAS, nombreBaseDe } from '../db.js';
+import { db, dbUtils, TIPOS_VENTA, UNIDADES_STOCK, pasoUnidadStock, categoriasDe, normalizarProveedor, construirHistorialPrecios, claveFamilia, economiaDistinta, COLORES_CATEGORIAS, coloresParaElegir, nombreBaseDe } from '../db.js';
 import { imagenUtils } from '../utils/imagen.js';
 import { abrirCamara } from './CamaraModal.js';
 import { abrirScanner } from './ScannerModal.js';
@@ -453,8 +453,8 @@ export class ProductoForm {
                   autocomplete="off"
                 >
                 <label class="etiqueta con-margen-arriba-chica">Color</label>
-                <div class="fila envuelto">
-                  ${COLORES_CATEGORIAS.map(color => `
+                <div class="fila fila-muestras envuelto">
+                  ${coloresParaElegir(colorInicial).map(color => `
                     <button type="button" class="color-btn muestra-color ${color.toLowerCase() === colorInicial ? 'muestra-color-elegida' : ''}" data-color="${escAttr(color)}" style="background-color: ${escAttr(color)}; border-color: ${escAttr(color)}40;" aria-label="Color ${escAttr(color)}"></button>
                   `).join('')}
                 </div>

@@ -1,4 +1,4 @@
-import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, insigniaEstado, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe, claveFamilia, datosDeVariante, normalizarProveedor } from './db.js';
+import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, COLORES_PALETA, coloresParaElegir, estadoStock, insigniaEstado, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe, claveFamilia, datosDeVariante, normalizarProveedor } from './db.js';
 import { abrirFormularioProducto } from './components/ProductoForm.js';
 import { abrirCopiaSeguridad } from './components/CopiaSeguridadModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
@@ -992,12 +992,12 @@ export class App {
     return COLORES_CATEGORIAS.find(c => c.toLowerCase() === limpio) || COLORES_CATEGORIAS[0];
   }
 
-  // La paleta tiene 20 colores y alcanza de sobra: si el usuario tiene más de
-  // 20 categorías, los colores se repiten y ya sabrá elegir.
+  // La paleta para elegir tiene 12 colores y alcanza de sobra: si el usuario
+  // tiene más de 12 categorías, los colores se repiten y ya sabrá elegir.
   colorAleatorioCategoria() {
     const usados = new Set(this.categorias.map(c => c.color).filter(Boolean));
-    const libres = COLORES_CATEGORIAS.filter(c => !usados.has(c));
-    const pool = libres.length > 0 ? libres : COLORES_CATEGORIAS;
+    const libres = COLORES_PALETA.filter(c => !usados.has(c));
+    const pool = libres.length > 0 ? libres : COLORES_PALETA;
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
@@ -2239,9 +2239,9 @@ export class App {
           </div>
           <div>
             <label class="etiqueta">Color</label>
-            <div class="fila envuelto">
-              ${COLORES_CATEGORIAS.map(color => `
-                <button type="button" class="color-btn muestra-color ${cat && this.getCategoriaColor(cat) === color ? 'muestra-color-elegida' : ''}" data-color="${escAttr(color)}" style="background-color: ${escAttr(color)}; border-color: ${escAttr(color)}40;" aria-label="Color ${escAttr(color)}">
+            <div class="fila fila-muestras envuelto">
+              ${coloresParaElegir(cat ? this.getCategoriaColor(cat).toLowerCase() : '').map(color => `
+                <button type="button" class="color-btn muestra-color ${cat && this.getCategoriaColor(cat).toLowerCase() === color.toLowerCase() ? 'muestra-color-elegida' : ''}" data-color="${escAttr(color)}" style="background-color: ${escAttr(color)}; border-color: ${escAttr(color)}40;" aria-label="Color ${escAttr(color)}">
                 </button>
               `).join('')}
             </div>
