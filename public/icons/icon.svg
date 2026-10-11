@@ -6,5 +6,20 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="96" fill="url(#fondo)"/>
-  <text x="256" y="256" font-family="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji, sans-serif" font-size="260" fill="#14532d" text-anchor="middle" dominant-baseline="central">📦</text>
+  <!--
+    La misma caja que dibuja icono('caja') en el encabezado, en los mismos
+    24 de la retícula del catálogo de íconos y con el mismo grosor de trazo
+    (1.75 sobre 24). El scale(16) es el que la lleva al lienzo de 512 y el
+    translate el que la centra: la caja ocupa de 3 a 21 en X y de 3.5 a 21 en
+    Y, así que el centro del dibujo es (12, 12.25) y no (12, 12).
+
+    El color va escrito y no como currentColor: adentro de un <img> el SVG se
+    pinta en modo estático y currentColor no resuelve, que era justamente lo
+    que hacía falta evitar para poder rasterizarlo con el navegador.
+  -->
+  <g id="marca" transform="translate(64 60) scale(16)" fill="none" stroke="#14532d" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 8.5v7a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 15.5v-7a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8.5Z"/>
+    <path d="m3.3 7.5 8.7 5 8.7-5"/>
+    <path d="M12 21v-8.5"/>
+  </g>
 </svg>
