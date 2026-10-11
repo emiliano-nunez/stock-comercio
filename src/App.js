@@ -1,4 +1,4 @@
-import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, insigniaEstado, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe, claveFamilia, datosDeVariante } from './db.js';
+import { db, dbUtils, inicializarCategorias, TIPOS_VENTA, COLORES_CATEGORIAS, estadoStock, insigniaEstado, unidadStockTexto, pasoUnidadStock, getPrecioPrincipal, categoriasDe, claveFamilia, datosDeVariante, normalizarProveedor } from './db.js';
 import { abrirFormularioProducto } from './components/ProductoForm.js';
 import { abrirCopiaSeguridad } from './components/CopiaSeguridadModal.js';
 import { abrirPedido } from './components/PedidoModal.js';
@@ -7,6 +7,7 @@ import { abrirCodigoDuplicado } from './components/CodigoDuplicado.js';
 import { abrirVarianteModal } from './components/VarianteModal.js';
 import { abrirDetalleProducto } from './components/ProductoDetalle.js';
 import { abrirAjustes } from './components/AjustesModal.js';
+import { abrirSeleccionProductos } from './components/SeleccionProductosModal.js';
 import { toast } from './utils/toast.js';
 import { esc, escAttr, fmtPrecio } from './utils/html.js';
 import { normalizarTexto, fechaEnDia, fechaYHora } from './utils/texto.js';
@@ -1089,14 +1090,14 @@ export class App {
                 <button
                   class="fila-tocable"
                   data-id="${escAttr(cat.id)}"
-                  aria-label="Ver los productos de ${escAttr(cat.nombre)} en el catálogo"
+                  aria-label="Gestionar los productos de ${escAttr(cat.nombre)}"
                 >
                   <span class="punto" style="background-color: ${escAttr(this.getCategoriaColor(cat))}"></span>
                   <span class="columna crece">
                     <span class="medio">${esc(cat.nombre)}</span>
                     <span class="micro apagado">
                       ${this.contarProductosCategoria(cat.id)} ${this.contarProductosCategoria(cat.id) === 1 ? 'producto' : 'productos'}
-                      · Ver en el catálogo ›
+                      · Agregar o quitar ›
                     </span>
                   </span>
                 </button>
@@ -1216,14 +1217,14 @@ export class App {
                 <button
                   class="fila-tocable"
                   data-proveedor="${escAttr(prov.id)}"
-                  aria-label="Ver en el inventario los ${escAttr(total)} productos de ${escAttr(prov.nombre)}"
+                  aria-label="Gestionar los productos de ${escAttr(prov.nombre)}"
                 >
                   <span class="columna crece">
                     <span class="medio">${esc(prov.nombre)}</span>
                     <span class="micro apagado">
                       ${total === 0
                         ? 'Sin productos todavía'
-                        : `${total} ${total === 1 ? 'producto' : 'productos'} · Ver en el inventario ›`}
+                        : `${total} ${total === 1 ? 'producto' : 'productos'} · Agregar o quitar ›`}
                     </span>
                   </span>
                 </button>
@@ -1244,6 +1245,98 @@ export class App {
   abrirProveedor(proveedor) {
     this.abrirVista('catalogo', { tipo: 'proveedor', valor: proveedor.nombre });
     document.getElementById('contenido-principal')?.scrollIntoView({ block: 'start' });
+  }
+
+  /*
+   * Gestionar los productos de una categoría o de un proveedor, de a varios
+   * a la vez.
+   *
+   * Tocar la fila de la categoría hacía lo mismo que el texto que se veía
+   * debajo: "Ver en el catálogo ›". Ese atajo sigue estando, pero ahora adentro
+   * del selector, porque lo que más se necesita desde la pantalla de categorías
+   * es sacarle o ponerle la categoría a un montón de productos sin abrir cada
+   * ficha.
+   *
+   * El inventario se lee entero de la base y no de `this.productos`, que es
+   * sólo la página que se está pintando: el selector tiene que ofrecer todos,
+   * incluso los que todavía no se desplegaron en la lista de la pantalla.
+   */
+  async gestionarProductosDeCategoria(categoriaId) {
+    const cat = this.categorias.find(c => c.id === categoriaId);
+    if (!cat) return;
+
+    await this._gestionarProductosDe({
+      tipo: 'categoria',
+      nombre: cat.nombre,
+      color: this.getCategoriaColor(cat),
+      yaTiene: p => categoriasDe(p).includes(cat.id),
+      aplicar: (ids, accion) => dbUtils.aplicarEnLote(ids, producto => ({
+        categoriaIds: accion === 'agregar'
+          ? [...new Set([...categoriasDe(producto), cat.id])]
+          : categoriasDe(producto).filter(id => id !== cat.id)
+      })),
+      verCatalogo: () => this.abrirCategoria(cat.id)
+    });
+  }
+
+  async gestionarProductosDeProveedor(proveedorId) {
+    const prov = this.proveedores.find(p => p.id === proveedorId);
+    if (!prov) return;
+
+    /*
+     * Un producto sólo puede tener UN proveedor, así que "agregar" en éste
+     * reemplaza al que ya tenía y "quitar" lo deja sin proveedor. Por eso el
+     * selector le muestra al usuario el proveedor actual de cada producto:
+     * si no, agregar uno por accidente borra el otro sin aviso.
+     *
+     * Se compara por clave normalizada y no por texto exacto: los productos
+     * cargados a mano pueden traerlo escrito con otra mayúscula, y queremos
+     * saber si ya tiene ESTE proveedor, no uno igual escrito distinto.
+     */
+    const clave = normalizarTexto(prov.nombre);
+
+    await this._gestionarProductosDe({
+      tipo: 'proveedor',
+      nombre: prov.nombre,
+      yaTiene: p => normalizarTexto(p.proveedor || '') === clave,
+      aplicar: (ids, accion) => dbUtils.aplicarEnLote(ids, () => ({
+        proveedor: accion === 'agregar' ? normalizarProveedor(prov.nombre) : ''
+      })),
+      verCatalogo: () => this.abrirProveedor(prov)
+    });
+  }
+
+  async _gestionarProductosDe({ tipo, nombre, color, yaTiene, aplicar, verCatalogo }) {
+    let productos;
+    try {
+      productos = await db.productos.toArray();
+    } catch (error) {
+      console.error('No se pudo cargar el inventario para el selector:', error);
+      toast.error('No se pudo abrir el selector de productos');
+      return;
+    }
+
+    const r = await abrirSeleccionProductos({ tipo, nombre, color, productos, yaTiene });
+
+    if (r.accion === 'catalogo') {
+      verCatalogo();
+      return;
+    }
+    if (r.accion !== 'agregar' && r.accion !== 'quitar') return;
+
+    try {
+      const tocados = await aplicar(r.ids, r.accion);
+      const plural = tocados === 1 ? 'producto' : 'productos';
+
+      toast.success(tipo === 'categoria'
+        ? `${tocados} ${plural} ${r.accion === 'agregar' ? 'con' : 'sin'} la categoría "${nombre}"`
+        : `${tocados} ${plural} ${r.accion === 'agregar' ? 'con' : 'sin'} el proveedor "${nombre}"`);
+
+      await this.recargarYAvisar();
+    } catch (error) {
+      console.error('No se pudo aplicar el cambio a los productos:', error);
+      toast.error('No se pudieron actualizar los productos');
+    }
   }
 
   renderProductoHTML(p) {
@@ -1589,7 +1682,7 @@ export class App {
 
     contenedor.querySelectorAll('.fila-tocable[data-proveedor]').forEach(btn => {
       const prov = this.proveedores.find(p => p.id === btn.dataset.proveedor);
-      if (prov) btn.addEventListener('click', () => this.abrirProveedor(prov));
+      if (prov) btn.addEventListener('click', () => this.gestionarProductosDeProveedor(prov.id));
     });
     contenedor.querySelectorAll('.editar-proveedor').forEach(btn => {
       btn.addEventListener('click', () => this.abrirModalProveedor(btn.dataset.id));
@@ -1605,7 +1698,7 @@ export class App {
       btn.addEventListener('click', () => this.eliminarCategoria(btn.dataset.id));
     });
     contenedor.querySelectorAll('.fila-tocable[data-id]').forEach(btn => {
-      btn.addEventListener('click', () => this.abrirCategoria(btn.dataset.id));
+      btn.addEventListener('click', () => this.gestionarProductosDeCategoria(btn.dataset.id));
     });
     contenedor.querySelectorAll('.fila-tocable[data-estado]').forEach(btn => {
       btn.addEventListener('click', () => this.abrirEstado(btn.dataset.estado));

@@ -689,6 +689,49 @@ export const dbUtils = {
   },
 
   /**
+   * Escribir un cambio en una lista concreta de productos, elegidos a mano.
+   *
+   * Es la hermana de `recalcularDerivados`: la diferencia es de dónde sale la
+   * lista. Ésa recorre el inventario entero buscando los que casan con un
+   * filtro; ésta ya sabe cuáles son, porque los tildó el usuario en el selector
+   * de la categoría o del proveedor. Con un filtro no se puede armar: el filtro
+   * busca por una condición del producto, y "los que marqué" es una lista que
+   * vive en la pantalla.
+   *
+   * Igual que ésa, recalcula los campos derivados de cada producto que toca:
+   * cambiarle la categoría cambia por qué categoría se ordena y se busca, y
+   * cambiarle el proveedor cambia su clave. Sin ese recálculo el producto
+   * quedaría en el grupo equivocado hasta el próximo arranque.
+   *
+   * Va en UNA transacción: si la quinta escritura de veinte falla, no puede
+   * quedar la mitad de los productos con la categoría puesta y la otra mitad
+   * sin ella.
+   *
+   * @param {string[]} ids productos a tocar, elegidos por el usuario.
+   * @param {(p: object) => object} cambia qué se les escribe.
+   * @returns {Promise<number>} cuántos se tocaron de verdad.
+   */
+  async aplicarEnLote(ids, cambia) {
+    const categorias = this._categoriasCache || [];
+
+    return db.transaction('rw', db.productos, async () => {
+      let tocados = 0;
+
+      for (const id of ids) {
+        const producto = await db.productos.get(id);
+        if (!producto) continue;
+
+        const nuevo = { ...producto, ...cambia(producto) };
+        Object.assign(nuevo, camposDerivados(nuevo, categorias));
+        await db.productos.put(nuevo);
+        tocados++;
+      }
+
+      return tocados;
+    });
+  },
+
+  /**
    * Fotos guardadas que no referencia ningún producto ni ningún punto de
    * restauración. NO borra nada: sólo mide.
    *
