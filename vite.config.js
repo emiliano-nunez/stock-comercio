@@ -1,3 +1,4 @@
+import { rmSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { base, DEFINES } from './config-comun.mjs';
@@ -67,6 +68,16 @@ export default defineConfig({
        * tampoco hace falta listar el ícono maskable en `globPatterns`: el
        * comodín de extensión png ya lo barre, y ponerlo a mano sería repetir
        * el duplicado de arriba con otro archivo.
+       *
+       * `ancho-prueba.html` tampoco se lista acá, ni con un patrón de
+       * exclusión `!`. Es un arnés de verificación que vive en public/ porque
+       * necesita servirse del mismo origen que la app, y no es parte de la
+       * app. La forma de que no entre en la precarga es no dejarlo existir en
+       * dist/ cuando el glob barre el directorio, y eso lo hace el plugin de
+       * abajo, que corre antes que éste glob (los plugins internos de
+       * vite-plugin-pwa se suman a Vite después de los nuestros). Un `!` en
+       * cambio hacía que workbox avisara en cada build de que el patrón de
+       * exclusión no matcheaba nada.
        */
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
@@ -90,7 +101,31 @@ export default defineConfig({
        * acepta ninguna que no conozca.
        */
       includeManifestIcons: false
-    })
+    }),
+
+    /*
+     * Sacar `ancho-prueba.html` de dist/ apenas se termina de compilar.
+     *
+     * Es un arnés de verificación, no parte de la app: su comentario de arriba
+     * dice que se borra antes de publicar, y eso es lo que hacía a mano. Vite
+     * copia public/ entero a dist/ sin forma de excluir un archivo, así que el
+     * borrado va como plugin.
+     *
+     * Este `closeBundle` corre ANTES que el de vite-plugin-pwa (el plugin
+     * interno que arma el sw.js se suma a Vite después de los nuestros), así
+     * que el archivo ya no está cuando workbox barre dist/: por eso no hace
+     * falta ningún patrón de exclusión en `workbox.globPatterns`.
+     *
+     * `force` porque el archivo puede no estar (por ejemplo en un build que no
+     * llegó a copiar public/).
+     */
+    {
+      name: 'borrar-arnes-de-verificacion',
+      apply: 'build',
+      closeBundle() {
+        rmSync('dist/ancho-prueba.html', { force: true });
+      }
+    }
   ],
   build: {
     target: 'es2020',

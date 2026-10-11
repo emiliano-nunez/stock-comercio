@@ -12,6 +12,18 @@ import { esc, escAttr, fmtPrecio } from './utils/html.js';
 import { normalizarTexto, fechaEnDia, fechaYHora } from './utils/texto.js';
 import { icono } from './utils/iconos.js';
 import { aplicarCampos } from './utils/campos.js';
+/*
+ * `backup.js` va acá en estático, no en diferido dentro de
+ * `mostrarErrorArranque()`.
+ *
+ * Estaba como `await import('./utils/backup.js')`, con la idea de cargarlo
+ * sólo si fallaba el arranque. Pero el módulo ya entraba en el bundle de
+ * todas formas: `CopiaSeguridadModal.js` lo importa en estático y éste archivo
+ * lo importa en estático a su vez. El diferido no movía nada a otro chunk —
+ * Rollup avisaba de eso al compilar — y sólo hacía creer que había un lazy
+ * loading que no existía.
+ */
+import { exportarBackup, descargarBackup } from './utils/backup.js';
 
 export class App {
 
@@ -264,7 +276,6 @@ export class App {
       btn.disabled = true;
       btn.textContent = '⏳ Generando...';
       try {
-        const { exportarBackup, descargarBackup } = await import('./utils/backup.js');
         descargarBackup(await exportarBackup(), `backup-stock-rescate-${new Date().toISOString().slice(0, 10)}.json`);
         btn.textContent = '✅ Copia descargada';
       } catch (e) {

@@ -1,6 +1,13 @@
 <!doctype html>
 <!--
-  Arnés de verificación. NO es parte de la app y se borra antes de publicar.
+  Arnés de verificación. NO es parte de la app.
+
+  Vive en public/ porque el iframe necesita ser mismo origen que la app:
+  IndexedDB y el service worker no corren en un origen opaco (file://). Vite
+  copia public/ entero a dist/, así que de fábrica este archivo se publicaría
+  y además entraría en la precarga del service worker. Por eso `vite.config.js`
+  lo excluye de `workbox.globPatterns` y lo borra de dist/ al terminar el
+  build: acá se usa en desarrollo, y no sale publicado.
 
   La ventana del navegador de la herramienta está fija en 640px y no hay Chrome
   instalado para emular viewports. Como los media queries de un iframe responden
@@ -15,9 +22,6 @@
     ?ancho=1200   ancho del iframe en px (default 1200)
     ?alto=900     alto del iframe en px (default 900)
     ?escala=1     escala de dibujo (default 1)
-
-  Va en public/ y no en pruebas/ porque el iframe necesita ser mismo origen que
-  la app: IndexedDB y el service worker no corren en un origen opaco (file://).
 -->
 <html lang="es">
 <head>
