@@ -7,13 +7,18 @@
  * El relleno va en la tarjeta y no en una clase aparte. La tarjeta del producto
  * siempre lo lleva, así que ponerlo en la tarjeta base evita acordarse de
  * escribir dos clases.
+ *
+ * Sin borde: la tarjeta se separa del fondo con la sombra de abajo. El gris del
+ * borde (--color-borde) en 1px alrededor de cada tarjeta se leía como una línea
+ * pesada y encuadraba de más bloques que ya están dados de baja por el fondo
+ * blanco sobre el verde de la página. El borde sigue en los campos de
+ * formulario, donde marca dónde se escribe y sí necesita contraste.
  */
 .tarjeta {
   /* Los tokens `--tarjeta-*` son el estándar de la tarjeta de producto. Está
      escrito en tokens.css y ese es el lugar donde se cambia. */
   padding: var(--tarjeta-relleno);
   background-color: var(--color-superficie);
-  border: 1px solid var(--color-borde);
   border-radius: var(--radio-md);
   box-shadow: var(--interfaz-sombra);
   overflow: hidden;
@@ -556,8 +561,11 @@
   background-color: var(--interfaz-error-tenue-fuerte);
 }
 
+/* Va con el borde escrito entero porque la tarjeta base ya no tiene uno, y acá
+   el rojo es lo que avisa que la fila está en peligro: sin el marco se pierde
+   el aviso y sólo queda el fondo, que en pantalla chica pasa desapercibido. */
 .tarjeta-peligro {
-  border-color: var(--rojo-200);
+  border: 1px solid var(--rojo-200);
   background-color: var(--color-peligro-tenue);
 }
 

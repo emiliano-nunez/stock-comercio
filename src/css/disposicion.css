@@ -785,6 +785,11 @@ body.sin-categorias #form-producto .form-par {
  * Bottom-nav móvil (estilo Meli)
  * ================================================================= */
 
+/*
+ * Sin `border-top`: la separación la da el `box-shadow` de abajo. Con las dos
+ * cosas juntas eran dos líneas seguidas arriba del nav, y la del borde
+ * (--color-borde, gris-500) era la que se veía más.
+ */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -792,7 +797,6 @@ body.sin-categorias #form-producto .form-par {
   right: 0;
   height: var(--bottom-nav-alto);
   background-color: var(--color-superficie);
-  border-top: 1px solid var(--color-borde);
   box-shadow: 0 -1px 4px rgb(0 0 0 / 8%);
   display: flex;
   justify-content: space-around;
