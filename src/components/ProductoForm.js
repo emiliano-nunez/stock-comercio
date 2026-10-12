@@ -126,7 +126,8 @@ export class ProductoForm {
       null,
       this.onBuscarCodigo,
       this.onBorrarProducto,
-      'rapida'
+      'rapida',
+      this.onCrearCategoria
     );
   }
 

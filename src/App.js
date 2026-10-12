@@ -1958,6 +1958,7 @@ export class App {
       producto,
       (codigo) => this._alBuscarCodigo(codigo),
       (p) => this.eliminarProducto(p.id),
+      'detallado',
       (alGuardar) => this.abrirModalCategoria(null, alGuardar)
     );
   }
@@ -2000,6 +2001,7 @@ export class App {
       datos,
       (codigo) => this._alBuscarCodigo(codigo),
       (p) => this.eliminarProducto(p.id),
+      'detallado',
       (alGuardar) => this.abrirModalCategoria(null, alGuardar)
     );
   }
@@ -2162,6 +2164,7 @@ export class App {
       { codigoBarras: codigo },
       (codigo) => this._alBuscarCodigo(codigo),
       (p) => this.eliminarProducto(p.id),
+      'detallado',
       (alGuardar) => this.abrirModalCategoria(null, alGuardar)
     );
   }
