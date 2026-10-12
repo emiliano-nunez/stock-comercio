@@ -1930,7 +1930,8 @@ export class App {
       categoriaId ? { categoriaIds: [categoriaId] } : null,
       (codigo) => this._alBuscarCodigo(codigo),
       (p) => this.eliminarProducto(p.id),
-      modo
+      modo,
+      (alGuardar) => this.abrirModalCategoria(null, alGuardar)
     );
   }
 
@@ -1944,7 +1945,8 @@ export class App {
       () => { this._productoFormAbierto = false; },
       producto,
       (codigo) => this._alBuscarCodigo(codigo),
-      (p) => this.eliminarProducto(p.id)
+      (p) => this.eliminarProducto(p.id),
+      (alGuardar) => this.abrirModalCategoria(null, alGuardar)
     );
   }
 
@@ -1985,7 +1987,8 @@ export class App {
       () => { this._productoFormAbierto = false; },
       datos,
       (codigo) => this._alBuscarCodigo(codigo),
-      (p) => this.eliminarProducto(p.id)
+      (p) => this.eliminarProducto(p.id),
+      (alGuardar) => this.abrirModalCategoria(null, alGuardar)
     );
   }
 
@@ -2146,7 +2149,8 @@ export class App {
       () => { this._productoFormAbierto = false; },
       { codigoBarras: codigo },
       (codigo) => this._alBuscarCodigo(codigo),
-      (p) => this.eliminarProducto(p.id)
+      (p) => this.eliminarProducto(p.id),
+      (alGuardar) => this.abrirModalCategoria(null, alGuardar)
     );
   }
 
@@ -2216,8 +2220,23 @@ export class App {
     }
   }
 
-  async abrirModalCategoria(categoriaId = null) {
-    if (this._categoriaModalAbierto) return;
+  /**
+   * El modal de crear o editar una categoría.
+   *
+   * `alGuardar` es la salida de quien sólo necesita el id: lo recibe con la
+   * categoría ya escrita en la base, o con null si el usuario se fue sin
+   * guardar. Mientras ese callback exista no se repinta la app --el llamador
+   * está debajo con sus propios modales abiertos-- y sólo se le devuelve la
+   * lista de categorías al día.
+   *
+   * @param {string|null}  [categoriaId]  la categoría a editar, o null para crear.
+   * @param {(id: string|null) => void} [alGuardar] quién espera el id.
+   */
+  async abrirModalCategoria(categoriaId = null, alGuardar = null) {
+    if (this._categoriaModalAbierto) {
+      alGuardar?.(null);
+      return;
+    }
     this._categoriaModalAbierto = true;
 
     const cat = categoriaId ? this.categorias.find(c => c.id === categoriaId) : null;
@@ -2258,9 +2277,11 @@ export class App {
     document.body.appendChild(modal);
     modal.querySelector('#cat-nombre').focus();
 
+    let creada = null;
     const cerrar = () => {
       this._categoriaModalAbierto = false;
       modal.remove();
+      alGuardar?.(creada);
     };
 
     modal.querySelector('#cerrar-cat-modal').addEventListener('click', cerrar);
@@ -2325,13 +2346,16 @@ export class App {
               () => ({})
             );
           });
+          creada = cat.id;
         } else {
           const id = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           await db.categorias.add({ id, nombre, color });
+          creada = id;
         }
         toast.success(esEdicion ? 'Categoría actualizada' : 'Categoría creada');
         cerrar();
-        await this.recargarYAvisar();
+        if (alGuardar) this.categorias = await db.categorias.toArray();
+        else await this.recargarYAvisar();
       } catch (error) {
         toast.error('Error guardando categoría');
       }
