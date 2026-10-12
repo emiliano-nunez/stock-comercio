@@ -5,14 +5,14 @@ import { icono } from '../utils/iconos.js';
  * Selector de productos en lote para una categoría o un proveedor.
  *
  * Antes la única forma de sacarle una categoría a diez productos era abrir cada
- * ficha y tildarla a mano. Acá se eligen varios de una vez y se les agrega o se
- * les quita, sin salir de la pantalla de categorías.
+ * ficha y tildarla a mano. Acá se eligen de a varios, sin salir de la pantalla
+ * de categorías.
  *
- * Las casillas empiezan vacías a propósito: marcan lo que se va a TOCAR, no lo
- * que ya está. Si empezaran tildadas las que ya tienen la categoría, para
- * agregar dos productos nuevos habría que desmarcar los otros quince primero.
- * El estado actual de cada producto no se pierde: se dice con una etiqueta al
- * lado del nombre.
+ * La selección ES el resultado: lo que queda tildado después de guardar es lo
+ * que va a tener la categoría o el proveedor, y lo que no queda tildado, no.
+ * Por eso arrancan tildados los que ya lo tienen hoy. Tildar uno nuevo lo
+ * agrega y destildar uno viejo lo saca, y el usuario no tiene que elegir entre
+ * esas dos cosas: no son dos botones, es la misma confirmación.
  *
  * @param {Object}   opciones
  * @param {'categoria'|'proveedor'} opciones.tipo  qué se está gestionando.
@@ -22,7 +22,7 @@ import { icono } from '../utils/iconos.js';
  * @param {(p: object) => boolean} opciones.yaTiene  si el producto ya está en
  *   esa categoría o ya tiene ese proveedor.
  * @returns {Promise<{accion: string, ids: string[]}>} `accion` es una de:
- *   'agregar' | 'quitar' | 'catalogo' | 'cancelar'.
+ *   'guardar' | 'catalogo' | 'cancelar'.
  */
 export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTiene }) {
   return new Promise((resolve) => {
@@ -34,7 +34,7 @@ export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTien
 
     const esCategoria = tipo === 'categoria';
 
-    let seleccion = new Set();
+    let seleccion = new Set(productos.filter(yaTiene).map(p => p.id));
     let texto = '';
     let yaEnfocoElBuscador = false;
 
@@ -114,12 +114,16 @@ export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTien
       actualizarPie();
     }
 
-    /** Los botones del pie y el contador de elegidos, con la lista ya tildada. */
+    /**
+     * El contador de elegidos, con la lista ya tildada.
+     *
+     * Guardar no se apaga nunca. Una selección vacía es una orden válida
+     * --saca lo que hoy tenía la categoría o el proveedor-- y además es el caso
+     * de la categoría recién creada, que no tiene a nadie tildado todavía y
+     * con el botón apagado no podría recibir su primer producto.
+     */
     function actualizarPie() {
       const n = seleccion.size;
-      box.querySelectorAll('[data-accion="agregar"], [data-accion="quitar"]').forEach(b => {
-        b.disabled = n === 0;
-      });
 
       const contador = box.querySelector('[data-contador]');
       if (contador) contador.textContent = n === 0
@@ -131,8 +135,6 @@ export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTien
       const visibles = productos.filter(coincide);
       const aMostrar = visibles.slice(0, MAX_FILAS);
       const ocultos = visibles.length - aMostrar.length;
-
-      const tildeDe = esCategoria ? 'la categoría' : 'este proveedor';
 
       box.innerHTML = `
         <div class="dialogo">
@@ -181,19 +183,21 @@ export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTien
 
           <div class="dialogo-pie apilado pie-acciones">
             <div class="fila">
-              <button class="btn-principal btn-crece" data-accion="agregar" disabled>
-                ${icono('mas')}<span>Agregar a ${tildeDe}</span>
+              <button class="btn-secundario btn-crece" data-accion="catalogo">
+                ${icono('caja')}<span>Ver en el catálogo</span>
               </button>
-              <button class="btn-secundario btn-crece" data-accion="quitar" disabled>
-                ${icono('eliminar')}<span>Quitar</span>
+              <button class="btn-principal" data-accion="guardar">
+                ${icono('verificar')}<span>Guardar</span>
               </button>
             </div>
-            <button class="btn-fantasma btn-ancho" data-accion="catalogo">
-              ${icono('caja')}<span>Ver en el catálogo</span>
-            </button>
           </div>
         </div>
       `;
+
+      // El contador se pinta junto con la lista y no recién al primer tildado:
+      // la selección ya arranca con los que hoy tienen la categoría o el
+      // proveedor, y sin esto el pie decía "vacío" con tres productos tildados.
+      actualizarPie();
 
       // El foco va al buscador sólo la primera vez: robarlo en cada repintado
       // dejaría la lista scrolleada al principio cada vez que se tilda algo.

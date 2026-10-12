@@ -1322,15 +1322,27 @@ export class App {
       verCatalogo();
       return;
     }
-    if (r.accion !== 'agregar' && r.accion !== 'quitar') return;
+    if (r.accion !== 'guardar') return;
+
+    /*
+     * La selección es el resultado completo y no lo que se tocó: lo tildado
+     * tiene que quedar con la categoría o el proveedor y lo que no, sin eso.
+     * Los dos movimientos se calculan contra el estado actual, así que un
+     * producto que no cambió no se escribe de nuevo.
+     */
+    const elegidos = new Set(r.ids);
+    const aMeter = productos.filter(p => elegidos.has(p.id) && !yaTiene(p)).map(p => p.id);
+    const aSacar = productos.filter(p => !elegidos.has(p.id) && yaTiene(p)).map(p => p.id);
+
+    if (aMeter.length === 0 && aSacar.length === 0) return;
 
     try {
-      const tocados = await aplicar(r.ids, r.accion);
-      const plural = tocados === 1 ? 'producto' : 'productos';
+      let tocados = 0;
+      if (aMeter.length) tocados += await aplicar(aMeter, 'agregar');
+      if (aSacar.length) tocados += await aplicar(aSacar, 'quitar');
 
-      toast.success(tipo === 'categoria'
-        ? `${tocados} ${plural} ${r.accion === 'agregar' ? 'con' : 'sin'} la categoría "${nombre}"`
-        : `${tocados} ${plural} ${r.accion === 'agregar' ? 'con' : 'sin'} el proveedor "${nombre}"`);
+      const plural = tocados === 1 ? 'producto' : 'productos';
+      toast.success(`${tocados} ${plural} actualizados`);
 
       await this.recargarYAvisar();
     } catch (error) {
