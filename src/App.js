@@ -1085,32 +1085,35 @@ export class App {
                 ${icono('mas')}<span class="texto-bloque">Nueva categoría</span>
               </button>
             </div>
-            ${this.categorias.map(cat => `
-              <div class="recuadro recuadro-suave fila fila-separada">
-                <button
-                  class="fila-tocable"
-                  data-id="${escAttr(cat.id)}"
-                  aria-label="Gestionar los productos de ${escAttr(cat.nombre)}"
-                >
-                  <span class="punto" style="background-color: ${escAttr(this.getCategoriaColor(cat))}"></span>
-                  <span class="columna crece">
-                    <span class="medio">${esc(cat.nombre)}</span>
-                    <span class="micro apagado">
-                      ${this.contarProductosCategoria(cat.id)} ${this.contarProductosCategoria(cat.id) === 1 ? 'producto' : 'productos'}
-                      · Agregar o quitar ›
+            ${this.categorias.map(cat => {
+              const conteo = this.contarProductosCategoria(cat.id);
+              return `
+                <div class="recuadro recuadro-suave fila fila-separada">
+                  <button
+                    class="fila-tocable"
+                    data-id="${escAttr(cat.id)}"
+                    aria-label="Ver en el catálogo los ${escAttr(conteo)} productos de ${escAttr(cat.nombre)}"
+                  >
+                    <span class="punto" style="background-color: ${escAttr(this.getCategoriaColor(cat))}"></span>
+                    <span class="columna crece">
+                      <span class="medio">${esc(cat.nombre)}</span>
+                      <span class="micro apagado">
+                        ${conteo} ${conteo === 1 ? 'producto' : 'productos'}
+                        · Ver en el catálogo ›
+                      </span>
                     </span>
-                  </span>
-                </button>
-                <div class="fila no-crece">
-                  <button class="btn-fantasma btn-icono texto-marca editar-categoria" data-id="${escAttr(cat.id)}" aria-label="Editar ${escAttr(cat.nombre)}">
-                    ${icono('editar')}
                   </button>
-                  <button class="btn-fantasma btn-icono texto-peligro eliminar-categoria" data-id="${escAttr(cat.id)}" aria-label="Eliminar ${escAttr(cat.nombre)}">
-                    ${icono('eliminar')}
-                  </button>
+                  <div class="fila no-crece">
+                    <button class="btn-fantasma btn-icono texto-marca editar-categoria" data-id="${escAttr(cat.id)}" aria-label="Editar los productos de ${escAttr(cat.nombre)}">
+                      ${icono('editar')}
+                    </button>
+                    <button class="btn-fantasma btn-icono texto-peligro eliminar-categoria" data-id="${escAttr(cat.id)}" aria-label="Eliminar ${escAttr(cat.nombre)}">
+                      ${icono('eliminar')}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
           </div>
         </div>
 
@@ -1251,11 +1254,10 @@ export class App {
    * Gestionar los productos de una categoría o de un proveedor, de a varios
    * a la vez.
    *
-   * Tocar la fila de la categoría hacía lo mismo que el texto que se veía
-   * debajo: "Ver en el catálogo ›". Ese atajo sigue estando, pero ahora adentro
-   * del selector, porque lo que más se necesita desde la pantalla de categorías
-   * es sacarle o ponerle la categoría a un montón de productos sin abrir cada
-   * ficha.
+   * Es el trabajo del lápiz de la fila. Tocar el recuadro entero ya no viene
+   * acá: eso abre el catálogo con esa categoría puesta, que es lo que más se
+   * pide desde esa pantalla. Elegir quién entra y quién sale es una edición,
+   * y las ediciones van con lápiz.
    *
    * El inventario se lee entero de la base y no de `this.productos`, que es
    * sólo la página que se está pintando: el selector tiene que ofrecer todos,
@@ -1275,7 +1277,19 @@ export class App {
           ? [...new Set([...categoriasDe(producto), cat.id])]
           : categoriasDe(producto).filter(id => id !== cat.id)
       })),
-      verCatalogo: () => this.abrirCategoria(cat.id)
+      verCatalogo: () => this.abrirCategoria(cat.id),
+      /*
+       * El nombre y el color se editan adentro del selector y no desde la fila,
+       * así que hay que devolverle la categoría como quedó. Se espera a que el
+       * diálogo se cierre --`abrirModalCategoria` resuelve apenas se abre-- y se
+       * vuelve a leer de la base en vez de fiarse de la caché de la pantalla.
+       */
+      onRenombrar: () => new Promise(resolve => {
+        this.abrirModalCategoria(cat.id, async () => {
+          await this.recargarYAvisar();
+          resolve(await db.categorias.get(cat.id) || null);
+        });
+      })
     });
   }
 
@@ -1306,7 +1320,7 @@ export class App {
     });
   }
 
-  async _gestionarProductosDe({ tipo, nombre, color, yaTiene, aplicar, verCatalogo }) {
+  async _gestionarProductosDe({ tipo, nombre, color, yaTiene, aplicar, verCatalogo, onRenombrar = null }) {
     let productos;
     try {
       productos = await db.productos.toArray();
@@ -1316,7 +1330,7 @@ export class App {
       return;
     }
 
-    const r = await abrirSeleccionProductos({ tipo, nombre, color, productos, yaTiene });
+    const r = await abrirSeleccionProductos({ tipo, nombre, color, productos, yaTiene, onRenombrar });
 
     if (r.accion === 'catalogo') {
       verCatalogo();
@@ -1704,13 +1718,13 @@ export class App {
     });
 
     contenedor.querySelectorAll('.editar-categoria').forEach(btn => {
-      btn.addEventListener('click', () => this.abrirModalCategoria(btn.dataset.id));
+      btn.addEventListener('click', () => this.gestionarProductosDeCategoria(btn.dataset.id));
     });
     contenedor.querySelectorAll('.eliminar-categoria').forEach(btn => {
       btn.addEventListener('click', () => this.eliminarCategoria(btn.dataset.id));
     });
     contenedor.querySelectorAll('.fila-tocable[data-id]').forEach(btn => {
-      btn.addEventListener('click', () => this.gestionarProductosDeCategoria(btn.dataset.id));
+      btn.addEventListener('click', () => this.abrirCategoria(btn.dataset.id));
     });
     contenedor.querySelectorAll('.fila-tocable[data-estado]').forEach(btn => {
       btn.addEventListener('click', () => this.abrirEstado(btn.dataset.estado));

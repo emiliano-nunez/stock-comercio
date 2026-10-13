@@ -21,10 +21,14 @@ import { icono } from '../utils/iconos.js';
  * @param {Array}    opciones.productos  el inventario completo, ya cargado.
  * @param {(p: object) => boolean} opciones.yaTiene  si el producto ya está en
  *   esa categoría o ya tiene ese proveedor.
+ * @param {() => Promise<object|null>} [opciones.onRenombrar] abre el diálogo de
+ *   editar nombre y color y devuelve la categoría como quedó, o null si no se
+ *   tocó nada. Sólo lo recibe una categoría: un proveedor no tiene nombre propio
+ *   que editar acá.
  * @returns {Promise<{accion: string, ids: string[]}>} `accion` es una de:
  *   'guardar' | 'catalogo' | 'cancelar'.
  */
-export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTiene }) {
+export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTiene, onRenombrar = null }) {
   return new Promise((resolve) => {
 
     // Con el inventario entero pintado en cada pantalla el diálogo se volvía
@@ -33,6 +37,10 @@ export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTien
     const MAX_FILAS = 60;
 
     const esCategoria = tipo === 'categoria';
+
+    // El nombre y el color pueden cambiar con el diálogo abierto --el lápiz de
+    // la cabecera--, así que viven en un objeto y no como parámetros.
+    const etiqueta = { nombre, color };
 
     let seleccion = new Set(productos.filter(yaTiene).map(p => p.id));
     let texto = '';
@@ -53,6 +61,27 @@ export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTien
       const buscado = texto.toLowerCase();
       return String(p.nombre || '').toLowerCase().includes(buscado)
         || String(p.codigoBarras || '').toLowerCase().includes(buscado);
+    };
+
+    /*
+     * El nombre y el color de la categoría, adentro del propio selector.
+     *
+     * Se actualizan los dos nodos de la cabecera y no se repinta el diálogo
+     * entero: un repintado devolvería la lista al principio y perdería el
+     * scroll de sesenta filas por un cambio de nombre.
+     */
+    const renombrar = async () => {
+      if (!onRenombrar) return;
+      const actualizada = await onRenombrar();
+      if (!actualizada) return;
+
+      etiqueta.nombre = actualizada.nombre;
+      etiqueta.color = actualizada.color;
+
+      const punto = box.querySelector('#selector-punto');
+      const nombreNode = box.querySelector('#selector-nombre');
+      if (punto) punto.style.backgroundColor = etiqueta.color || '#64748B';
+      if (nombreNode) nombreNode.textContent = etiqueta.nombre;
     };
 
     function filaProducto(p) {
@@ -139,12 +168,19 @@ export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTien
       box.innerHTML = `
         <div class="dialogo">
           <div class="dialogo-cabecera">
-            <h2 class="titulo fila ancho-cero">
-              ${esCategoria
-                ? `<span class="punto no-crece" style="background-color: ${escAttr(color || '#64748B')}"></span>`
-                : `<span class="no-crece">${icono('proveedor')}</span>`}
-              <span class="cortado">${esc(nombre)}</span>
-            </h2>
+            <div class="fila ancho-cero crece">
+              <h2 class="titulo fila ancho-cero">
+                ${esCategoria
+                  ? `<span class="punto no-crece" id="selector-punto" style="background-color: ${escAttr(etiqueta.color || '#64748B')}"></span>`
+                  : `<span class="no-crece">${icono('proveedor')}</span>`}
+                <span class="cortado" id="selector-nombre">${esc(etiqueta.nombre)}</span>
+              </h2>
+              ${esCategoria ? `
+                <button class="btn-fantasma btn-icono no-crece" data-accion="editar" aria-label="Editar el nombre y el color de ${escAttr(etiqueta.nombre)}">
+                  ${icono('editar')}
+                </button>
+              ` : ''}
+            </div>
             <button class="btn-fantasma btn-icono no-crece" data-accion="cancelar" aria-label="Cerrar">✕</button>
           </div>
 
@@ -217,6 +253,7 @@ export function abrirSeleccionProductos({ tipo, nombre, color, productos, yaTien
       if (!boton || boton.disabled) return;
 
       const accion = boton.dataset.accion;
+      if (accion === 'editar') return renombrar();
       if (accion === 'cancelar') return cerrar({ accion: 'cancelar', ids: [] });
       if (accion === 'catalogo') return cerrar({ accion: 'catalogo', ids: [] });
       return cerrar({ accion, ids: [...seleccion] });
